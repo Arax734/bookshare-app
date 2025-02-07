@@ -6,6 +6,7 @@
   --background: #ffffff;
   --foreground: #171717;
   --primaryColor: #007304;
+  --primaryColorLight: #00a305;
   --secondaryColor: #bababa;
 }
 
@@ -21,17 +22,6 @@ body {
   background: var(--background);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
+button {
+  transition: 0.2s ease-in-out;
 }

@@ -1,5 +1,10 @@
 "use client";
 
+import { EmailIcon } from "./components/svg-icons/EmailIcon";
+import { LockIcon } from "./components/svg-icons/LockIcon";
+import { GoogleIcon } from "./components/svg-icons/GoogleIcon";
+import { AppleIcon } from "./components/svg-icons/AppleIcon";
+
 export default function Login() {
   const videoSrc = "/movies/library-movie.mp4";
 
@@ -19,62 +24,61 @@ export default function Login() {
       ></video>
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="absolute inset-0 flex justify-center items-center">
-        <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-4">Logowanie/Rejestracja</h1>
-          <form>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="email"
-              >
-                Email
-              </label>
+        <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full h-auto">
+          <h1 className="text-2xl font-bold text-center mb-6">Rejestracja</h1>
+          <form className="my-8">
+            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+              <div className="flex justify-center items-center">
+                <EmailIcon width={20} height={20} fill="gray" />
+              </div>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="w-full focus:outline-none ml-3"
                 id="email"
                 type="email"
                 placeholder="Email"
               />
             </div>
-            <div className="mb-6">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="password"
-              >
-                Hasło
-              </label>
+            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+              <div className="flex justify-center items-center">
+                <LockIcon width={20} height={20} fill="gray" />
+              </div>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                className="w-full focus:outline-none focus:shadow-outline ml-3"
                 id="password"
                 type="password"
-                placeholder="********"
+                placeholder="Hasło"
               />
             </div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+              <div className="flex justify-center items-center">
+                <LockIcon width={20} height={20} fill="gray" />
+              </div>
+              <input
+                className="w-full focus:outline-none focus:shadow-outline ml-3"
+                id="password"
+                type="password"
+                placeholder="Powtórz hasło"
+              />
+            </div>
+            <div className="flex items-center justify-center mb-4">
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
-              >
-                Zaloguj się
-              </button>
-              <button
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
                 type="button"
               >
                 Zarejestruj się
               </button>
             </div>
-            <div className="flex items-center justify-center">
-              <button
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
-                type="button"
-              >
-                <img
-                  src="/images/google-icon.svg"
-                  alt="Google Icon"
-                  className="w-5 h-5 mr-2"
-                />
-                Zaloguj się przez Google
+            <div className="flex items-center justify-between mb-4 my-8">
+              <div className="h-[1px] w-full bg-gray-300 mr-2" />
+              <label className="text-gray-500">lub</label>
+              <div className="h-[1px] w-full bg-gray-300 ml-2" />
+            </div>
+            <div className="flex items-center justify-center mb-4 my-8">
+              <button className="flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110">
+                <GoogleIcon width={20} height={20} />
+              </button>
+              <button className="ml-5 flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110">
+                <AppleIcon width={20} height={20} fill="black" />
               </button>
             </div>
           </form>
