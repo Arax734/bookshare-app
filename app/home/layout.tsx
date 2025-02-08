@@ -22,8 +22,10 @@ export default function BaseLayout({
 }>) {
   return (
     <html lang="pl">
-      <Navbar />
-      <body className={`${roboto.variable} antialiased`}>{children}</body>
+      <body className={`${roboto.variable} antialiased`}>
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }
