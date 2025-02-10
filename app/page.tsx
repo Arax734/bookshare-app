@@ -8,9 +8,9 @@ import BackgroundVideo from "./components/BackgroundVideo";
 import { EmailIcon } from "./components/svg-icons/EmailIcon";
 import { LockIcon } from "./components/svg-icons/LockIcon";
 import { GoogleIcon } from "./components/svg-icons/GoogleIcon";
-import { AppleIcon } from "./components/svg-icons/AppleIcon";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
+import Link from "next/link";
 
 const schema = yup.object().shape({
   email: yup
@@ -50,7 +50,9 @@ export default function Register() {
       }
     } catch (e) {
       console.error("Błąd rejestracji:", e);
-      setErrorMessage("Wystąpił błąd podczas rejestracji");
+      setErrorMessage(
+        e instanceof Error ? e.message : "Wystąpił błąd podczas rejestracji"
+      );
     }
   };
 
@@ -83,56 +85,65 @@ export default function Register() {
             </div>
           )}
           <form onSubmit={handleSubmit(onSubmit)} className="my-8">
-            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-              <div className="flex justify-center items-center">
-                <EmailIcon width={20} height={20} fill="gray" />
+            {/* Email input and error */}
+            <div className="mb-6">
+              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex justify-center items-center">
+                  <EmailIcon width={20} height={20} fill="gray" />
+                </div>
+                <input
+                  className="w-full h-full focus:outline-none ml-3"
+                  {...register("email")}
+                  type="email"
+                  placeholder="Email"
+                />
               </div>
-              <input
-                className="w-full focus:outline-none ml-3"
-                {...register("email")}
-                type="email"
-                placeholder="Email"
-              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-2">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
-            {errors.email && (
-              <p className="text-red-500 text-xs mb-4">
-                {errors.email.message}
-              </p>
-            )}
 
-            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-              <div className="flex justify-center items-center">
-                <LockIcon width={20} height={20} fill="gray" />
+            {/* Password input and error */}
+            <div className="mb-6">
+              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex justify-center items-center">
+                  <LockIcon width={20} height={20} fill="gray" />
+                </div>
+                <input
+                  className="w-full h-full focus:outline-none ml-3"
+                  {...register("password")}
+                  type="password"
+                  placeholder="Hasło"
+                />
               </div>
-              <input
-                className="w-full focus:outline-none ml-3"
-                {...register("password")}
-                type="password"
-                placeholder="Hasło"
-              />
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-2">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
-            {errors.password && (
-              <p className="text-red-500 text-xs mb-4">
-                {errors.password.message}
-              </p>
-            )}
 
-            <div className="flex shadow appearance-none border rounded-3xl w-full py-2 px-3 text-gray-700 mb-6 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-              <div className="flex justify-center items-center">
-                <LockIcon width={20} height={20} fill="gray" />
+            {/* Repeat Password input and error */}
+            <div className="mb-6">
+              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex justify-center items-center">
+                  <LockIcon width={20} height={20} fill="gray" />
+                </div>
+                <input
+                  className="w-full h-full focus:outline-none ml-3"
+                  {...register("repeatPassword")}
+                  type="password"
+                  placeholder="Powtórz hasło"
+                />
               </div>
-              <input
-                className="w-full focus:outline-none ml-3"
-                {...register("repeatPassword")}
-                type="password"
-                placeholder="Powtórz hasło"
-              />
+              {errors.repeatPassword && (
+                <p className="text-red-500 text-xs mt-2">
+                  {errors.repeatPassword.message}
+                </p>
+              )}
             </div>
-            {errors.repeatPassword && (
-              <p className="text-red-500 text-xs mb-4">
-                {errors.repeatPassword.message}
-              </p>
-            )}
 
             <div className="flex items-center justify-center mb-4">
               <button
@@ -143,7 +154,6 @@ export default function Register() {
                 {loading ? "Rejestracja..." : "Zarejestruj się"}
               </button>
             </div>
-
             <div className="flex items-center justify-between mb-4 my-8">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
               <label className="text-gray-500">lub</label>
@@ -158,11 +168,17 @@ export default function Register() {
               >
                 <GoogleIcon width={20} height={20} />
               </button>
-              <button className="ml-5 flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110">
-                <AppleIcon width={20} height={20} fill="black" />
-              </button>
             </div>
           </form>
+          <div className="text-center mt-4 text-sm">
+            <span className="text-gray-600">Masz już konto? </span>
+            <Link
+              href="/login"
+              className="text-[--primaryColor] hover:text-[--primaryColorLight] font-semibold"
+            >
+              Zaloguj się
+            </Link>
+          </div>
         </div>
       </div>
     </main>
