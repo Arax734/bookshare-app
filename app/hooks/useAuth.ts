@@ -1,28 +1,42 @@
 import { useState } from "react";
-import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 import { auth } from "@/firebase/config";
 
 export const useAuth = () => {
-  const [error, setError] = useState("");
-  const [createUserWithEmailAndPassword, user, loading, userError] =
-    useCreateUserWithEmailAndPassword(auth);
+  const [loading, setLoading] = useState(false);
 
   const registerUser = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      const res = await createUserWithEmailAndPassword(email, password);
-      if (res) {
-        return { success: true, user: res };
-      }
-    } catch (e) {
-      setError("Wystąpił błąd podczas rejestracji");
-      return { success: false, error: e };
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      setLoading(false);
+      return userCredential.user;
+    } catch (error) {
+      setLoading(false);
+      throw error;
     }
   };
 
-  return {
-    registerUser,
-    error,
-    loading,
-    user,
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      setLoading(false);
+      return result.user;
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
+
+  return { registerUser, signInWithGoogle, loading };
 };
