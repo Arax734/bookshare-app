@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
+  FacebookAuthProvider,
   signInWithPopup,
   AuthError,
   signOut,
@@ -30,6 +31,18 @@ const getAuthErrorMessage = (errorCode: string) => {
       return "Rejestracja jest obecnie niedostępna";
     case "auth/weak-password":
       return "Hasło jest zbyt słabe";
+
+    // Other errors
+    case "auth/account-exists-with-different-credential":
+      return "To konto jest już połączone z inną metodą logowania";
+    case "auth/popup-blocked":
+      return "Popup został zablokowany. Zezwól na wyskakujące okienka i spróbuj ponownie";
+    case "auth/popup-closed-by-user":
+      return "Logowanie zostało przerwane. Spróbuj ponownie";
+    case "auth/cancelled-popup-request":
+      return "Poprzednie okno logowania nie zostało zamknięte";
+    case "auth/user-not-found":
+      return "Nie znaleziono konta połączonego z Facebookiem";
 
     default:
       console.error("Nieobsługiwany kod błędu:", errorCode);
@@ -85,6 +98,27 @@ export const useAuth = () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+
+      if (
+        result.user.metadata.creationTime ===
+        result.user.metadata.lastSignInTime
+      ) {
+      }
+
+      setLoading(false);
+      return result.user;
+    } catch (error) {
+      setLoading(false);
+      const authError = error as AuthError;
+      throw new Error(getAuthErrorMessage(authError.code));
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    setLoading(true);
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
       setLoading(false);
       return result.user;
     } catch (error) {
@@ -102,5 +136,12 @@ export const useAuth = () => {
     }
   };
 
-  return { registerUser, signInUser, signInWithGoogle, logout, loading };
+  return {
+    registerUser,
+    signInUser,
+    signInWithGoogle,
+    signInWithFacebook,
+    logout,
+    loading,
+  };
 };
