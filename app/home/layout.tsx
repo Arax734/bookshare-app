@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Lato } from "next/font/google";
 import "../globals.css";
 
 import Navbar from "../components/Navbar";
 
-const roboto = Roboto({
-  variable: "--font-roboto",
+const lato = Lato({
+  variable: "--font-lato",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["100", "300", "400", "700", "900"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function BaseLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={`${roboto.className} ${roboto.variable} antialiased`}>
+      <body className={`${lato.className} ${lato.variable} antialiased`}>
         <Navbar />
         {children}
       </body>
