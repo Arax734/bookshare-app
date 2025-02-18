@@ -8,6 +8,7 @@ import BackgroundVideo from "../components/BackgroundVideo";
 import { EmailIcon } from "../components/svg-icons/EmailIcon";
 import { LockIcon } from "../components/svg-icons/LockIcon";
 import { GoogleIcon } from "../components/svg-icons/GoogleIcon";
+import { FacebookIcon } from "../components/svg-icons/FacebookIcon";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
@@ -29,7 +30,8 @@ type FormInputs = yup.InferType<typeof schema>;
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-  const { signInUser, signInWithGoogle, loading } = useAuth();
+  const { signInUser, signInWithGoogle, signInWithFacebook, loading } =
+    useAuth();
   const {
     register,
     handleSubmit,
@@ -66,12 +68,29 @@ export default function Login() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        console.log("Zalogowano przez Google:", user);
+        if (user.metadata.creationTime === user.metadata.lastSignInTime) {
+          console.log("Utworzono nowe konto przez Google:", user);
+        } else {
+          console.log("Zalogowano przez Google:", user);
+        }
         router.push("/home");
       }
     } catch (e) {
       console.error("Błąd logowania przez Google:", e);
       setErrorMessage("Wystąpił błąd podczas logowania przez Google");
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const user = await signInWithFacebook();
+      if (user) {
+        console.log("Zalogowano przez Facebook:", user);
+        router.push("/home");
+      }
+    } catch (e) {
+      console.error("Błąd logowania przez Facebook:", e);
+      setErrorMessage("Wystąpił błąd podczas logowania przez Facebook");
     }
   };
 
@@ -110,8 +129,6 @@ export default function Login() {
                 </p>
               )}
             </div>
-
-            {/* Password input and error */}
             <div className="mb-6">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
@@ -130,8 +147,6 @@ export default function Login() {
                 </p>
               )}
             </div>
-
-            {/* Login button */}
             <div className="flex items-center justify-center mb-6">
               <button
                 type="submit"
@@ -148,7 +163,7 @@ export default function Login() {
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
 
-            <div className="flex items-center justify-center mb-4 my-8">
+            <div className="flex items-center justify-center gap-4 mb-4 my-8">
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -156,6 +171,14 @@ export default function Login() {
                 disabled={loading}
               >
                 <GoogleIcon width={20} height={20} />
+              </button>
+              <button
+                type="button"
+                onClick={handleFacebookSignIn}
+                className="flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110"
+                disabled={loading}
+              >
+                <FacebookIcon width={20} height={20} />
               </button>
             </div>
           </form>

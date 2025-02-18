@@ -5,7 +5,7 @@ import "./globals.css";
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: "900",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -20,7 +20,9 @@ export default function BaseLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={`${roboto.variable} antialiased`}>{children}</body>
+      <body className={`${roboto.className} ${roboto.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }

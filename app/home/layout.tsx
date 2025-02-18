@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar";
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: "900",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function BaseLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={`${roboto.variable} antialiased`}>
+      <body className={`${roboto.className} ${roboto.variable} antialiased`}>
         <Navbar />
         {children}
       </body>

@@ -8,6 +8,7 @@
   --primaryColor: #007304;
   --primaryColorLight: #00a305;
   --secondaryColor: #bababa;
+  --font-roboto: var(--font-roboto);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -20,6 +21,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-roboto), system-ui, sans-serif;
 }
 
 button {
