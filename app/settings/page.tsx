@@ -18,16 +18,17 @@ export default function Settings() {
         <h1 className="text-2xl font-bold mb-6">Ustawienia profilu</h1>
 
         <div className="bg-[var(--secondaryColorLight)] rounded-2xl shadow p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4">Ustawienia ogólne</h2>
           <div className="flex items-center space-x-4 mb-6">
-            <div className="relative w-20 h-20 rounded-full overflow-hidden">
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden">
               <Image
                 src={user?.photoURL || "/default-avatar.png"}
                 alt="Profile"
                 fill
-                className="object-cover"
+                className="object-cover shadow"
               />
             </div>
-            <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-colors duration-200">
+            <button className="shadow px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-colors duration-200">
               Zmień zdjęcie
             </button>
           </div>
@@ -82,7 +83,7 @@ export default function Settings() {
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-colors duration-200"
+                  className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-3xl transition-colors duration-200"
                 >
                   Zapisz zmiany
                 </button>
@@ -94,10 +95,13 @@ export default function Settings() {
         <div className="bg-[var(--secondaryColorLight)] rounded-2xl shadow p-6">
           <h2 className="text-xl font-bold mb-4">Bezpieczeństwo</h2>
           <div className="space-y-4">
-            <button className="w-full px-4 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-colors duration-200">
+            <button className="shadow w-full px-4 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-3xl transition-colors duration-200">
               Zmień hasło
             </button>
-            <button className="w-full px-4 py-2 text-left text-white bg-red-600 hover:bg-red-500 rounded-xl transition-colors duration-200">
+            <button
+              disabled
+              className="shadow w-full px-4 py-2 text-left text-white bg-red-600 hover:bg-red-500 rounded-3xl transition-colors duration-200"
+            >
               Usuń konto
             </button>
           </div>
