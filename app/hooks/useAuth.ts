@@ -9,6 +9,7 @@ import {
   signOut,
   onAuthStateChanged,
   User,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "@/firebase/config";
 
@@ -54,7 +55,7 @@ const getAuthErrorMessage = (errorCode: string) => {
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -129,7 +130,19 @@ export const useAuth = () => {
     setLoading(true);
     try {
       const provider = new FacebookAuthProvider();
+      provider.addScope("public_profile");
+
       const result = await signInWithPopup(auth, provider);
+      const credential = FacebookAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+
+      if (result.user && token) {
+        const photoURL = `https://graph.facebook.com/${result.user.providerData[0].uid}/picture?type=large&access_token=${token}`;
+        await updateProfile(result.user, {
+          photoURL: photoURL,
+        });
+      }
+
       setLoading(false);
       return result.user;
     } catch (error) {

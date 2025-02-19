@@ -12,6 +12,10 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontSmoothing: {
+        antialiased: "antialiased",
+        "subpixel-antialiased": "subpixel-antialiased",
+      },
     },
   },
   plugins: [],

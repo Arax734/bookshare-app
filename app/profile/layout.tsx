@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import "../globals.css";
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout";
 
 export const metadata: Metadata = {
-  title: "BookShare",
-  description: "The best application to find desired books",
+  title: "Profil | BookShare",
+  description: "Profil użytkownika",
 };
 
-export default function HomeLayout({
+export default function ProfileLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

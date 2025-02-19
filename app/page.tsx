@@ -102,8 +102,8 @@ export default function Register() {
       <BackgroundVideo />
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="absolute inset-0 flex justify-center items-center">
-        <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full h-auto">
-          <h1 className="text-2xl font-bold text-center mb-6">Rejestracja</h1>
+        <div className="bg-white p-6 rounded-3xl shadow-lg max-w-md w-full h-auto">
+          <h1 className="text-xl font-bold text-center mb-8">Rejestracja</h1>
           {errorMessage && (
             <div
               className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -112,46 +112,47 @@ export default function Register() {
               <span className="block sm:inline">{errorMessage}</span>
             </div>
           )}
-          <form onSubmit={handleSubmit(onSubmit)} className="my-8">
-            <div className="mb-6">
-              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                <div className="flex justify-center items-center">
+
+          <form onSubmit={handleSubmit(onSubmit)} className="my-4">
+            {/* Name fields in a row */}
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1">
+                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                   <UserIcon width={20} height={20} fill="gray" />
+                  <input
+                    className="w-full focus:outline-none ml-3"
+                    {...register("firstName")}
+                    type="text"
+                    placeholder="Imię"
+                  />
                 </div>
-                <input
-                  className="w-full h-full focus:outline-none ml-3"
-                  {...register("firstName")}
-                  type="text"
-                  placeholder="Imię"
-                />
+                {errors.firstName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.firstName.message}
+                  </p>
+                )}
               </div>
-              {errors.firstName && (
-                <p className="text-red-500 text-xs mt-2">
-                  {errors.firstName.message}
-                </p>
-              )}
+
+              <div className="flex-1">
+                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                  <UserIcon width={20} height={20} fill="gray" />
+                  <input
+                    className="w-full focus:outline-none ml-3"
+                    {...register("lastName")}
+                    type="text"
+                    placeholder="Nazwisko"
+                  />
+                </div>
+                {errors.lastName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="mb-6">
-              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                <div className="flex justify-center items-center">
-                  <UserIcon width={20} height={20} fill="gray" />
-                </div>
-                <input
-                  className="w-full h-full focus:outline-none ml-3"
-                  {...register("lastName")}
-                  type="text"
-                  placeholder="Nazwisko"
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-red-500 text-xs mt-2">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-6">
+            {/* Email field */}
+            <div className="mb-4">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
                   <EmailIcon width={20} height={20} fill="gray" />
@@ -169,44 +170,46 @@ export default function Register() {
                 </p>
               )}
             </div>
-            <div className="mb-6">
-              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                <div className="flex justify-center items-center">
+
+            {/* Password fields in a row */}
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1">
+                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                   <LockIcon width={20} height={20} fill="gray" />
+                  <input
+                    className="w-full focus:outline-none ml-3"
+                    {...register("password")}
+                    type="password"
+                    placeholder="Hasło"
+                  />
                 </div>
-                <input
-                  className="w-full h-full focus:outline-none ml-3"
-                  {...register("password")}
-                  type="password"
-                  placeholder="Hasło"
-                />
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-2">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            <div className="mb-6">
-              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                <div className="flex justify-center items-center">
+
+              <div className="flex-1">
+                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                   <LockIcon width={20} height={20} fill="gray" />
+                  <input
+                    className="w-full focus:outline-none ml-3"
+                    {...register("repeatPassword")}
+                    type="password"
+                    placeholder="Powtórz hasło"
+                  />
                 </div>
-                <input
-                  className="w-full h-full focus:outline-none ml-3"
-                  {...register("repeatPassword")}
-                  type="password"
-                  placeholder="Powtórz hasło"
-                />
+                {errors.repeatPassword && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.repeatPassword.message}
+                  </p>
+                )}
               </div>
-              {errors.repeatPassword && (
-                <p className="text-red-500 text-xs mt-2">
-                  {errors.repeatPassword.message}
-                </p>
-              )}
             </div>
 
-            <div className="flex items-center justify-center mb-4">
+            {/* Submit button */}
+            <div className="flex items-center justify-center mb-3 mt-8">
               <button
                 type="submit"
                 className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105"
@@ -215,12 +218,18 @@ export default function Register() {
                 {loading ? "Rejestracja..." : "Zarejestruj się"}
               </button>
             </div>
-            <div className="flex items-center justify-between mb-4 my-8">
+
+            {/* Divider */}
+            <div className="flex items-center justify-between my-8">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
-              <label className="text-gray-500">lub</label>
+              <label className="text-gray-500 whitespace-nowrap px-2">
+                lub
+              </label>
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
-            <div className="flex items-center justify-center gap-4 mb-4 my-8">
+
+            {/* Social buttons */}
+            <div className="flex items-center justify-center gap-4 mb-8">
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -239,7 +248,9 @@ export default function Register() {
               </button>
             </div>
           </form>
-          <div className="text-center mt-4 text-sm">
+
+          {/* Login link */}
+          <div className="text-center text-sm">
             <span className="text-gray-600">Masz już konto? </span>
             <Link
               href="/login"
