@@ -59,14 +59,15 @@ export default function Navbar() {
           src="/bookshare-logo-text.svg"
           alt="BookShare"
           width={150}
-          height={50}
+          height={75}
+          className="max-[500px]:hidden" // Hide on screens smaller than 500px
         />
         <Image
-          className="hidden"
-          src="/bookshare-logo.svg"
+          src="/bookshare-logo2.svg"
           alt="BookShare"
-          width={150}
-          height={150}
+          width={72} // Reduced size for the icon
+          height={72}
+          className="hidden max-[500px]:block" // Show on screens smaller than 500px
         />
       </a>
 
