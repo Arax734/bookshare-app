@@ -53,8 +53,8 @@ export default function Navbar() {
   const defaultAvatar = "/images/default-avatar.png";
 
   return (
-    <nav className="flex justify-between items-center bg-[var(--secondaryColor)] p-2 px-10">
-      <div>
+    <nav className="shadow flex justify-between items-center bg-[var(--secondaryColor)] p-2 px-10">
+      <a href="/home" className="flex items-center space-x-3">
         <Image
           src="/bookshare-logo-text.svg"
           alt="BookShare"
@@ -68,7 +68,7 @@ export default function Navbar() {
           width={150}
           height={150}
         />
-      </div>
+      </a>
 
       <div className="relative">
         {!isLoading && (

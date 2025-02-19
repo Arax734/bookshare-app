@@ -154,7 +154,7 @@ export default function Login() {
             <div className="flex items-center justify-center mb-4 mt-8">
               <button
                 type="submit"
-                className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
+                className="shadow rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
                 disabled={loading}
               >
                 {loading ? "Logowanie..." : "Zaloguj się"}
