@@ -9,11 +9,21 @@ import { EmailIcon } from "./components/svg-icons/EmailIcon";
 import { LockIcon } from "./components/svg-icons/LockIcon";
 import { GoogleIcon } from "./components/svg-icons/GoogleIcon";
 import { FacebookIcon } from "./components/svg-icons/FacebookIcon";
+import { UserIcon } from "./components/svg-icons/UserIcon";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
+import { updateProfile } from "firebase/auth";
 import Link from "next/link";
 
 const schema = yup.object().shape({
+  firstName: yup
+    .string()
+    .required("Imię jest wymagane")
+    .min(2, "Imię musi mieć co najmniej 2 znaki"),
+  lastName: yup
+    .string()
+    .required("Nazwisko jest wymagane")
+    .min(2, "Nazwisko musi mieć co najmniej 2 znaki"),
   email: yup
     .string()
     .required("Email jest wymagany")
@@ -47,6 +57,9 @@ export default function Register() {
     try {
       const res = await registerUser(data.email, data.password);
       if (res) {
+        await updateProfile(res, {
+          displayName: `${data.firstName} ${data.lastName}`,
+        });
         console.log("Użytkownik zarejestrowany:", res);
         router.push("/home");
       }
@@ -100,6 +113,44 @@ export default function Register() {
             </div>
           )}
           <form onSubmit={handleSubmit(onSubmit)} className="my-8">
+            <div className="mb-6">
+              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex justify-center items-center">
+                  <UserIcon width={20} height={20} fill="gray" />
+                </div>
+                <input
+                  className="w-full h-full focus:outline-none ml-3"
+                  {...register("firstName")}
+                  type="text"
+                  placeholder="Imię"
+                />
+              </div>
+              {errors.firstName && (
+                <p className="text-red-500 text-xs mt-2">
+                  {errors.firstName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="mb-6">
+              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex justify-center items-center">
+                  <UserIcon width={20} height={20} fill="gray" />
+                </div>
+                <input
+                  className="w-full h-full focus:outline-none ml-3"
+                  {...register("lastName")}
+                  type="text"
+                  placeholder="Nazwisko"
+                />
+              </div>
+              {errors.lastName && (
+                <p className="text-red-500 text-xs mt-2">
+                  {errors.lastName.message}
+                </p>
+              )}
+            </div>
+
             <div className="mb-6">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
