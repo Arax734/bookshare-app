@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -7,6 +7,8 @@ import {
   signInWithPopup,
   AuthError,
   signOut,
+  onAuthStateChanged,
+  User,
 } from "firebase/auth";
 import { auth } from "@/firebase/config";
 
@@ -52,6 +54,15 @@ const getAuthErrorMessage = (errorCode: string) => {
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const registerUser = async (email: string, password: string) => {
     setLoading(true);
@@ -143,5 +154,6 @@ export const useAuth = () => {
     signInWithFacebook,
     logout,
     loading,
+    user,
   };
 };
