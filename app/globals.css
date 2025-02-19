@@ -9,8 +9,9 @@
   --primaryColorLight: #00a305;
   --primaryColorLightMax: #b6ffb8;
   --secondaryColor: #bababa;
-  --font-roboto: var(--font-roboto);
+  --secondaryColorLight: #e1e1e1;
   --font-lato: var(--font-lato);
+  --font-montserrat: var(--font-montserrat);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -23,7 +24,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-lato), system-ui, sans-serif;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
 }
 
 button {

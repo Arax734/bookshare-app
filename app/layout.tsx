@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Lato } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 
-const lato = Lato({
-  variable: "--font-lato",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  adjustFontFallback: false,
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -13,14 +15,16 @@ export const metadata: Metadata = {
   description: "The best application to find desired books",
 };
 
-export default function BaseLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl">
-      <body className={`${lato.className} ${lato.variable} antialiased`}>
+    <html lang="pl" className={`${montserrat.variable}`}>
+      <body
+        className={`${montserrat.className} antialiased tracking-normal leading-normal`}
+      >
         {children}
       </body>
     </html>

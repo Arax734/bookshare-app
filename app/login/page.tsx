@@ -99,8 +99,10 @@ export default function Login() {
       <BackgroundVideo />
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="absolute inset-0 flex justify-center items-center">
-        <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full h-auto">
-          <h1 className="text-2xl font-bold text-center mb-6">Logowanie</h1>
+        {/* Reduced max-width and padding */}
+        <div className="bg-white p-6 rounded-3xl shadow-lg max-w-sm w-full h-auto">
+          {/* Reduced text size and margins */}
+          <h1 className="text-xl font-bold text-center mb-8">Logowanie</h1>
           {errorMessage && (
             <div
               className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -109,9 +111,10 @@ export default function Login() {
               <span className="block sm:inline">{errorMessage}</span>
             </div>
           )}
-          <form onSubmit={handleSubmit(onSubmit)} className="my-8">
-            {/* Email input and error */}
-            <div className="mb-6">
+          {/* Reduced vertical margins */}
+          <form onSubmit={handleSubmit(onSubmit)} className="my-6">
+            {/* Reduced bottom margins for form groups */}
+            <div className="mb-4">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
                   <EmailIcon width={20} height={20} fill="gray" />
@@ -129,7 +132,7 @@ export default function Login() {
                 </p>
               )}
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
                   <LockIcon width={20} height={20} fill="gray" />
@@ -147,7 +150,8 @@ export default function Login() {
                 </p>
               )}
             </div>
-            <div className="flex items-center justify-center mb-6">
+            {/* Adjusted button container spacing */}
+            <div className="flex items-center justify-center mb-4 mt-8">
               <button
                 type="submit"
                 className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
@@ -157,13 +161,15 @@ export default function Login() {
               </button>
             </div>
 
+            {/* Reduced vertical margins for divider */}
             <div className="flex items-center justify-between mb-4 my-8">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
               <label className="text-gray-500">lub</label>
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
 
-            <div className="flex items-center justify-center gap-4 mb-4 my-8">
+            {/* Reduced vertical margins for social buttons */}
+            <div className="flex items-center justify-center gap-4 mb-8 my-8">
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -183,7 +189,8 @@ export default function Login() {
             </div>
           </form>
 
-          <div className="text-center mt-4 text-sm">
+          {/* Adjusted bottom text margins */}
+          <div className="text-center mt-3 text-sm">
             <span className="text-gray-600">Nie masz jeszcze konta? </span>
             <Link
               href="/"
