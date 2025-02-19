@@ -158,7 +158,7 @@ export default function Register() {
             <div className="flex items-center justify-center mb-4">
               <button
                 type="submit"
-                className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
+                className="rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105"
                 disabled={loading}
               >
                 {loading ? "Rejestracja..." : "Zarejestruj się"}
