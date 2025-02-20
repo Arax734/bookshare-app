@@ -53,21 +53,21 @@ export default function Navbar() {
   const defaultAvatar = "/images/default-avatar.png";
 
   return (
-    <nav className="shadow flex justify-between items-center bg-[var(--secondaryColor)] p-2 px-10">
+    <nav className="fixed top-0 left-0 right-0 z-50 shadow flex justify-between items-center bg-[var(--secondaryColor)] p-2 px-10">
       <a href="/home" className="flex items-center space-x-3">
         <Image
           src="/bookshare-logo-text.svg"
           alt="BookShare"
           width={150}
           height={75}
-          className="max-[500px]:hidden" // Hide on screens smaller than 500px
+          className="max-[500px]:hidden"
         />
         <Image
           src="/bookshare-logo2.svg"
           alt="BookShare"
-          width={72} // Reduced size for the icon
+          width={72}
           height={72}
-          className="hidden max-[500px]:block" // Show on screens smaller than 500px
+          className="hidden max-[500px]:block"
         />
       </a>
 
