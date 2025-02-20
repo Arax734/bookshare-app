@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="pl" className={`${montserrat.variable}`}>
       <ThemeProvider>
         <body
-          className={`${montserrat.className} antialiased tracking-normal leading-normal`}
+          className={`${montserrat.className} antialiased tracking-normal leading-normal transition-all duration-200`}
         >
           {children}
         </body>
