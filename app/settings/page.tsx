@@ -13,15 +13,15 @@ export default function Settings() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 bg-background">
+    <main className="container mx-auto px-4 py-8 bg-[var(--background)]">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        <h1 className="text-2xl font-bold mb-6 text-foreground">
           Ustawienia profilu
         </h1>
 
         {/* General Settings Card */}
-        <div className="bg-card-background rounded-2xl shadow-md p-6 mb-8 text-foreground">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">
+        <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4 text-foreground">
             Ustawienia ogólne
           </h2>
           <div className="flex items-center space-x-4 mb-6">
@@ -40,48 +40,47 @@ export default function Settings() {
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
-              {/* Form fields with updated styling */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
                   Imię i nazwisko
                 </label>
                 <input
                   type="text"
-                  defaultValue={user?.displayName || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  placeholder={user?.displayName || ""}
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
                   Email
                 </label>
                 <input
                   type="email"
                   defaultValue={user?.email || ""}
                   disabled
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 shadow-sm"
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
                   Numer telefonu
                 </label>
                 <input
                   type="tel"
                   defaultValue={user?.phoneNumber || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
                   Bio
                 </label>
                 <textarea
                   rows={4}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
                   placeholder="Napisz coś o sobie..."
                 />
               </div>
@@ -99,8 +98,8 @@ export default function Settings() {
         </div>
 
         {/* Security Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">
+        <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6">
+          <h2 className="text-xl font-bold mb-4 text-foreground">
             Bezpieczeństwo
           </h2>
           <div className="space-y-4">

@@ -3,7 +3,7 @@
 @import "tailwindcss/utilities";
 
 :root {
-  --background: #ffffff;
+  --background: #f5f5f5;
   --foreground: #171717;
   --primaryColor: #007304;
   --primaryColorLight: #00a305;
@@ -21,21 +21,21 @@
 }
 
 .dark {
-  --background: #1a1a1a;
+  --background: #242424;
   --foreground: #ffffff;
   --primaryColor: #00a305;
   --primaryColorLight: #00c406;
   --primaryColorLightMax: #00e607;
-  --secondaryColor: #1f1f1f;
-  --secondaryColorLight: #2d2d2d;
-  --secondaryColorDark: #141414;
-  --gray-50: #141414;
-  --gray-100: #1f1f1f;
-  --gray-200: #2d2d2d;
+  --secondaryColor: #2d2d2d;
+  --secondaryColorLight: #383838;
+  --secondaryColorDark: #1f1f1f;
+  --gray-50: #1a1a1a;
+  --gray-100: #2a2a2a;
+  --gray-200: #383838;
   --gray-500: #717171;
   --gray-700: #e5e5e5;
   --gray-800: #f5f5f5;
-  --card-background: #1f1f1f;
+  --card-background: #2a2a2a;
 }
 
 body {
