@@ -19,22 +19,60 @@ export default function Settings() {
     return (
       <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
         <div className="max-w-2xl mx-auto">
+          {/* Page Title Skeleton */}
           <div className="h-8 w-48 bg-[var(--gray-200)] rounded animate-pulse mb-6" />
+
+          {/* General Settings Card Skeleton */}
           <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 animate-pulse">
-            {/* Loading skeleton content */}
-            <div className="h-6 w-36 bg-[var(--gray-200)] rounded mb-4" />
+            {/* Card Title */}
+            <div className="h-7 w-40 bg-[var(--gray-200)] rounded mb-4" />
+
+            {/* Avatar Section */}
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-20 h-20 rounded-xl bg-[var(--gray-200)]" />
-              <div className="h-8 w-24 bg-[var(--gray-200)] rounded-full" />
+              <div className="h-9 w-32 bg-[var(--gray-200)] rounded-full" />
             </div>
-            {/* Form skeleton */}
+
+            {/* Form Fields */}
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i}>
-                  <div className="h-4 w-24 bg-[var(--gray-200)] rounded mb-2" />
-                  <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
-                </div>
-              ))}
+              {/* Name Input */}
+              <div>
+                <div className="h-5 w-32 bg-[var(--gray-200)] rounded mb-2" />
+                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
+              </div>
+
+              {/* Email Input */}
+              <div>
+                <div className="h-5 w-24 bg-[var(--gray-200)] rounded mb-2" />
+                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
+              </div>
+
+              {/* Phone Input */}
+              <div>
+                <div className="h-5 w-36 bg-[var(--gray-200)] rounded mb-2" />
+                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
+              </div>
+
+              {/* Bio Textarea */}
+              <div>
+                <div className="h-5 w-20 bg-[var(--gray-200)] rounded mb-2" />
+                <div className="h-32 bg-[var(--gray-200)] rounded-xl" />
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4">
+                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
+              </div>
+            </div>
+          </div>
+
+          {/* Security Card Skeleton */}
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 animate-pulse">
+            <div className="h-7 w-36 bg-[var(--gray-200)] rounded mb-4" />
+            <div className="space-y-4">
+              {/* Security Buttons */}
+              <div className="h-12 bg-[var(--gray-200)] rounded-xl" />
+              <div className="h-12 bg-[var(--gray-200)] rounded-xl" />
             </div>
           </div>
         </div>
@@ -64,7 +102,7 @@ export default function Settings() {
                 src={user?.photoURL || "/default-avatar.png"}
                 alt="Profile"
                 fill
-                className="object-cover transition-transform duration-200 hover:scale-105"
+                className="object-cover"
               />
             </div>
             <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105">

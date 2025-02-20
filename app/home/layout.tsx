@@ -3,7 +3,7 @@ import "../globals.css";
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout";
 
 export const metadata: Metadata = {
-  title: "BookShare",
+  title: "Strona główna | BookShare",
   description: "The best application to find desired books",
 };
 
