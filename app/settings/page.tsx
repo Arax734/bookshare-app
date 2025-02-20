@@ -65,23 +65,23 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
                   Numer telefonu
                 </label>
                 <input
                   type="tel"
                   defaultValue={user?.phoneNumber || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-all duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--gray-600)] mb-1">
+                <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
                   Bio
                 </label>
                 <textarea
                   rows={4}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
+                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-all duration-200"
                   placeholder="Napisz coś o sobie..."
                 />
               </div>
