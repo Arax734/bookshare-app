@@ -8,6 +8,8 @@ import { ArrowDownIcon } from "./svg-icons/ArrowDownIcon";
 import { UserCircleIcon } from "./svg-icons/UserCircleIcon";
 import { LogoutIcon } from "./svg-icons/LogoutIcon";
 import { SettingsIcon } from "./svg-icons/SettingsIcon";
+import { useTheme } from "../contexts/ThemeContext";
+import { ThemeIcon } from "./svg-icons/ThemeIcon";
 
 export default function Navbar() {
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function Navbar() {
   const [isLoading, setIsLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (user !== undefined) {
@@ -53,7 +56,7 @@ export default function Navbar() {
   const defaultAvatar = "/images/default-avatar.png";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 shadow flex justify-between items-center bg-[var(--secondaryColor)] p-2 px-10">
+    <nav className="fixed top-0 left-0 right-0 z-50 shadow flex justify-between items-center bg-secondary p-2 px-10">
       <a href="/home" className="flex items-center space-x-3">
         <Image
           src="/bookshare-logo-text.svg"
@@ -70,6 +73,62 @@ export default function Navbar() {
           className="hidden max-[500px]:block"
         />
       </a>
+
+      <div className="hidden md:flex items-center space-x-6">
+        <a
+          href="/home"
+          className="text-foreground hover:text-primary transition-colors duration-200 flex items-center space-x-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+          <span className="font-medium">Główna</span>
+        </a>
+        <a
+          href="/exchange"
+          className="text-foreground hover:text-primary transition-colors duration-200 flex items-center space-x-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+          </svg>
+          <span className="font-medium">Wymiana</span>
+        </a>
+        <a
+          href="/stats"
+          className="text-foreground hover:text-primary transition-colors duration-200 flex items-center space-x-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+          <span className="font-medium">Statystyki</span>
+        </a>
+
+        <button
+          onClick={toggleTheme}
+          className="text-foreground hover:text-primary transition-colors duration-200 flex items-center space-x-2"
+          aria-label="Toggle theme"
+        >
+          <ThemeIcon className="h-5 w-5" />
+          <span className="font-medium">
+            {theme === "light" ? "Ciemny" : "Jasny"}
+          </span>
+        </button>
+      </div>
 
       <div className="relative">
         {!isLoading && (

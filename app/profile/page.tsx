@@ -10,10 +10,10 @@ export default function Profile() {
   const defaultAvatar = "/images/default-avatar.png";
 
   return (
-    <main className="container mx-auto px-4 py-8 bg-gray-50">
+    <main className="container mx-auto px-4 py-8 bg-background">
       <div className="max-w-2xl mx-auto">
         {/* Profile Header Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+        <div className="bg-card-background rounded-2xl shadow-md p-6 mb-8 text-foreground">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
             {/* Profile Image */}
             <div className="relative w-32 h-32 rounded-2xl overflow-hidden shadow-lg">
@@ -47,16 +47,14 @@ export default function Profile() {
         </div>
 
         {/* Contact Information Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">
-            Dane kontaktowe
-          </h2>
+        <div className="bg-card-background rounded-2xl shadow-md p-6 mb-8 text-foreground">
+          <h2 className="text-xl font-bold mb-4">Dane kontaktowe</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-500">
+              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                 Email
               </label>
-              <p className="mt-1 text-gray-800">{user?.email}</p>
+              <p className="mt-1">{user?.email}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">
@@ -70,23 +68,25 @@ export default function Profile() {
         </div>
 
         {/* Statistics Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Statystyki</h2>
+        <div className="bg-card-background rounded-2xl shadow-md p-6 text-foreground">
+          <h2 className="text-xl font-bold mb-4">Statystyki</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <p className="text-2xl font-bold text-[var(--primaryColor)]">0</p>
-              <p className="text-sm text-gray-500">Książek</p>
+            <div className="text-center p-4 bg-secondary rounded-xl">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Książek
+              </p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <p className="text-2xl font-bold text-[var(--primaryColor)]">0</p>
+            <div className="text-center p-4 bg-secondary rounded-xl">
+              <p className="text-2xl font-bold text-primary">0</p>
               <p className="text-sm text-gray-500">Recenzji</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <p className="text-2xl font-bold text-[var(--primaryColor)]">0</p>
+            <div className="text-center p-4 bg-secondary rounded-xl">
+              <p className="text-2xl font-bold text-primary">0</p>
               <p className="text-sm text-gray-500">Obserwujących</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <p className="text-2xl font-bold text-[var(--primaryColor)]">0</p>
+            <div className="text-center p-4 bg-secondary rounded-xl">
+              <p className="text-2xl font-bold text-primary">0</p>
               <p className="text-sm text-gray-500">Obserwowanych</p>
             </div>
           </div>

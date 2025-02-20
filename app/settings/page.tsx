@@ -13,14 +13,14 @@ export default function Settings() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 bg-gray-50">
+    <main className="container mx-auto px-4 py-8 bg-background">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6 text-gray-800">
           Ustawienia profilu
         </h1>
 
         {/* General Settings Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-8 border border-gray-100">
+        <div className="bg-card-background rounded-2xl shadow-md p-6 mb-8 text-foreground">
           <h2 className="text-xl font-bold mb-4 text-gray-800">
             Ustawienia ogólne
           </h2>
@@ -48,7 +48,7 @@ export default function Settings() {
                 <input
                   type="text"
                   defaultValue={user?.displayName || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
@@ -71,7 +71,7 @@ export default function Settings() {
                 <input
                   type="tel"
                   defaultValue={user?.phoneNumber || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
@@ -81,7 +81,7 @@ export default function Settings() {
                 </label>
                 <textarea
                   rows={4}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-background dark:bg-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   placeholder="Napisz coś o sobie..."
                 />
               </div>
