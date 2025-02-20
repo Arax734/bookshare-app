@@ -13,14 +13,19 @@ export default function Settings() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 bg-gray-50">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Ustawienia profilu</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">
+          Ustawienia profilu
+        </h1>
 
-        <div className="bg-[var(--secondaryColorLight)] rounded-2xl shadow p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">Ustawienia ogólne</h2>
+        {/* General Settings Card */}
+        <div className="bg-white rounded-2xl shadow-md p-6 mb-8 border border-gray-100">
+          <h2 className="text-xl font-bold mb-4 text-gray-800">
+            Ustawienia ogólne
+          </h2>
           <div className="flex items-center space-x-4 mb-6">
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden">
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-md">
               <Image
                 src={user?.photoURL || "/default-avatar.png"}
                 alt="Profile"
@@ -28,13 +33,14 @@ export default function Settings() {
                 className="object-cover shadow"
               />
             </div>
-            <button className="shadow px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-colors duration-200">
+            <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-colors duration-200 shadow-sm hover:shadow">
               Zmień zdjęcie
             </button>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
+              {/* Form fields with updated styling */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Imię i nazwisko
@@ -42,7 +48,7 @@ export default function Settings() {
                 <input
                   type="text"
                   defaultValue={user?.displayName || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
                 />
               </div>
 
@@ -54,7 +60,7 @@ export default function Settings() {
                   type="email"
                   defaultValue={user?.email || ""}
                   disabled
-                  className="w-full px-4 py-2 rounded-xl border border-gray-300 bg-gray-50"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 shadow-sm"
                 />
               </div>
 
@@ -65,7 +71,7 @@ export default function Settings() {
                 <input
                   type="tel"
                   defaultValue={user?.phoneNumber || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
                 />
               </div>
 
@@ -75,7 +81,7 @@ export default function Settings() {
                 </label>
                 <textarea
                   rows={4}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)]"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] bg-white shadow-sm"
                   placeholder="Napisz coś o sobie..."
                 />
               </div>
@@ -83,7 +89,7 @@ export default function Settings() {
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-3xl transition-colors duration-200"
+                  className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-colors duration-200 shadow-sm hover:shadow"
                 >
                   Zapisz zmiany
                 </button>
@@ -92,17 +98,41 @@ export default function Settings() {
           </form>
         </div>
 
-        <div className="bg-[var(--secondaryColorLight)] rounded-2xl shadow p-6">
-          <h2 className="text-xl font-bold mb-4">Bezpieczeństwo</h2>
+        {/* Security Card */}
+        <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+          <h2 className="text-xl font-bold mb-4 text-gray-800">
+            Bezpieczeństwo
+          </h2>
           <div className="space-y-4">
-            <button className="shadow w-full px-4 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-3xl transition-colors duration-200">
-              Zmień hasło
+            <button className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-colors duration-200 shadow-sm hover:shadow flex items-center justify-between">
+              <span>Zmień hasło</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
-            <button
-              disabled
-              className="shadow w-full px-4 py-2 text-left text-white bg-red-600 hover:bg-red-500 rounded-3xl transition-colors duration-200"
-            >
-              Usuń konto
+            <button className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors duration-200 shadow-sm hover:shadow flex items-center justify-between group">
+              <span>Usuń konto</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
           </div>
         </div>
