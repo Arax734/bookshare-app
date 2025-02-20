@@ -102,7 +102,9 @@ export default function Login() {
         {/* Reduced max-width and padding */}
         <div className="bg-white p-6 rounded-3xl shadow-lg max-w-sm w-full h-auto">
           {/* Reduced text size and margins */}
-          <h1 className="text-xl font-bold text-center mb-8">Logowanie</h1>
+          <h1 className="text-xl text-black font-bold text-center mb-8">
+            Logowanie
+          </h1>
           {errorMessage && (
             <div
               className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"

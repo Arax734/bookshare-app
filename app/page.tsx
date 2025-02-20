@@ -103,7 +103,9 @@ export default function Register() {
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="absolute inset-0 flex justify-center items-center">
         <div className="bg-white p-6 rounded-3xl shadow-lg max-w-md w-full h-auto">
-          <h1 className="text-xl font-bold text-center mb-8">Rejestracja</h1>
+          <h1 className="text-xl text-black font-bold text-center mb-8">
+            Rejestracja
+          </h1>
           {errorMessage && (
             <div
               className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"

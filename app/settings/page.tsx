@@ -1,12 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import Image from "next/image";
 
 export default function Settings() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
+        <div className="max-w-2xl mx-auto">
+          <div className="h-8 w-48 bg-[var(--gray-200)] rounded animate-pulse mb-6" />
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 animate-pulse">
+            {/* Loading skeleton content */}
+            <div className="h-6 w-36 bg-[var(--gray-200)] rounded mb-4" />
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-20 h-20 rounded-xl bg-[var(--gray-200)]" />
+              <div className="h-8 w-24 bg-[var(--gray-200)] rounded-full" />
+            </div>
+            {/* Form skeleton */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i}>
+                  <div className="h-4 w-24 bg-[var(--gray-200)] rounded mb-2" />
+                  <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +76,7 @@ export default function Settings() {
             <div className="space-y-4">
               {/* Form inputs with transitions */}
               <div className="transition-all duration-200">
-                <label className="block text-sm font-medium text-[var(--gray-500)] mb-1 transition-colors duration-200">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                   Imię i nazwisko
                 </label>
                 <input
@@ -53,7 +87,7 @@ export default function Settings() {
               </div>
 
               <div className="transition-all duration-200">
-                <label className="block text-sm font-medium text-[var(--gray-500)] mb-1 transition-colors duration-200">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                   Email
                 </label>
                 <input
@@ -65,7 +99,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
+                <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
                   Numer telefonu
                 </label>
                 <input
@@ -76,7 +110,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
+                <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
                   Bio
                 </label>
                 <textarea

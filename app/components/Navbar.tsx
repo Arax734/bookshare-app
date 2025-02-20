@@ -9,7 +9,6 @@ import { UserCircleIcon } from "./svg-icons/UserCircleIcon";
 import { LogoutIcon } from "./svg-icons/LogoutIcon";
 import { SettingsIcon } from "./svg-icons/SettingsIcon";
 import { useTheme } from "../contexts/ThemeContext";
-import { ThemeIcon } from "./svg-icons/ThemeIcon";
 import { SunIcon } from "./svg-icons/SunIcon";
 import { MoonIcon } from "./svg-icons/MoonIcon";
 
@@ -166,7 +165,7 @@ export default function Navbar() {
 
           <div
             ref={menuRef}
-            className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-white ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
+            className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
               isMenuOpen
                 ? "opacity-100 scale-100 translate-y-0"
                 : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
@@ -175,21 +174,21 @@ export default function Navbar() {
             <div className="py-1">
               <a
                 href="/profile"
-                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors duration-200 ease-in-out"
+                className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
               >
                 <UserCircleIcon width={20} height={20} className="mr-3" />
                 <span className="font-medium">Profil</span>
               </a>
               <a
                 href="/settings"
-                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors duration-200 ease-in-out"
+                className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
               >
                 <SettingsIcon width={20} height={20} className="mr-3" />
                 <span className="font-medium">Ustawienia</span>
               </a>
               <button
                 onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors duration-200 ease-in-out"
+                className="flex items-center w-full px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
               >
                 <LogoutIcon width={20} height={20} className="mr-3" />
                 <span className="font-medium">Wyloguj się</span>

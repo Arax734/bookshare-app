@@ -51,7 +51,7 @@ export default function Profile() {
           <h2 className="text-xl font-bold mb-4">Dane kontaktowe</h2>
           <div className="space-y-4">
             <div className="transition-colors duration-200">
-              <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
+              <label className="block text-sm font-semibold text-[var(--foreground)] transition-colors duration-200">
                 Email
               </label>
               <p className="mt-1 text-[var(--gray-800)] transition-colors duration-200">
@@ -59,7 +59,7 @@ export default function Profile() {
               </p>
             </div>
             <div className="transition-colors duration-200">
-              <label className="block text-sm font-medium text-[var(--gray-500)] transition-colors duration-200">
+              <label className="block text-sm font-semibold text-[var(--foreground)] transition-colors duration-200">
                 Telefon
               </label>
               <p className="mt-1 text-[var(--gray-800)] transition-colors duration-200">
@@ -77,12 +77,12 @@ export default function Profile() {
               (label) => (
                 <div
                   key={label}
-                  className="text-center p-4 bg-[var(--secondaryColorLight)] rounded-xl transition-all duration-200 hover:shadow-lg"
+                  className="text-center p-4 bg-[var(--secondaryColorLight)] rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-105 hover:cursor-pointer"
                 >
                   <p className="text-2xl font-bold text-[var(--primaryColor)] transition-colors duration-200">
                     0
                   </p>
-                  <p className="text-sm text-[var(--gray-800)] transition-colors duration-200">
+                  <p className="text-sm font-semibold text-[var(--gray-800)] transition-colors duration-200">
                     {label}
                   </p>
                 </div>
