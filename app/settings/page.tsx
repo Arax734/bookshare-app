@@ -3,15 +3,32 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import Image from "next/image";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 export default function Settings() {
-  const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
+  const { user, signInWithGoogle, signInWithFacebook } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [error, setError] = useState("");
+  const [authMethod, setAuthMethod] = useState<
+    "password" | "google" | "facebook" | null
+  >(null);
+  const defaultAvatar = "/images/default-avatar.png";
 
   useEffect(() => {
     if (user !== undefined) {
       setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.providerData[0]?.providerId) {
+      const provider = user.providerData[0].providerId;
+      if (provider === "password") setAuthMethod("password");
+      else if (provider === "google.com") setAuthMethod("google");
+      else if (provider === "facebook.com") setAuthMethod("facebook");
     }
   }, [user]);
 
@@ -84,131 +101,266 @@ export default function Settings() {
     e.preventDefault();
   };
 
-  return (
-    <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-[var(--foreground)] transition-colors duration-200">
-          Ustawienia profilu
-        </h1>
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-        {/* General Settings Card */}
-        <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 transition-all duration-200">
-          <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
-            Ustawienia ogólne
-          </h2>
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-md transition-all duration-200">
-              <Image
-                src={user?.photoURL || "/default-avatar.png"}
-                alt="Profile"
-                fill
-                className="object-cover"
-              />
+    if (!user) return;
+
+    try {
+      if (authMethod === "password") {
+        // Verify password for email/password users
+        const credential = EmailAuthProvider.credential(user.email!, password);
+        await reauthenticateWithCredential(user, credential);
+      } else {
+        // For social auth, require re-authentication
+        const reAuthResult = await (authMethod === "google"
+          ? signInWithGoogle()
+          : signInWithFacebook());
+
+        if (!reAuthResult) {
+          throw new Error("Ponowne uwierzytelnienie nie powiodło się");
+        }
+      }
+
+      // If we get here, authentication was successful
+      await user.delete();
+      // Redirect to home or login page
+      window.location.href = "/";
+    } catch (error: any) {
+      if (error.code === "auth/wrong-password") {
+        setError("Nieprawidłowe hasło");
+      } else if (error.code === "auth/requires-recent-login") {
+        setError(
+          "Wymagane ponowne zalogowanie. Spróbuj zalogować się ponownie."
+        );
+      } else {
+        setError("Wystąpił błąd podczas usuwania konta");
+      }
+      console.error("Delete account error:", error);
+    }
+  };
+
+  const renderAuthenticationSection = () => {
+    if (authMethod === "password") {
+      return (
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+            Potwierdź hasło
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-[border] duration-200"
+            required
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-[var(--foreground)] mb-4">
+        <p>
+          Konto utworzone przez{" "}
+          {authMethod === "google" ? "Google" : "Facebook"}.
+        </p>
+        <p>Aby usunąć konto, będziesz musiał się ponownie zalogować.</p>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6 text-[var(--foreground)] transition-colors duration-200">
+            Ustawienia profilu
+          </h1>
+
+          {/* General Settings Card */}
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 transition-all duration-200">
+            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
+              Ustawienia ogólne
+            </h2>
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="relative w-20 h-20 rounded-xl overflow-hidden ">
+                <Image
+                  src={user?.photoURL || defaultAvatar}
+                  alt="Profile"
+                  fill
+                  className="object-cover shadow-md transition-all duration-200"
+                />
+              </div>
+              <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105">
+                Zmień zdjęcie
+              </button>
             </div>
-            <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105">
-              Zmień zdjęcie
-            </button>
+
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                {/* Form inputs without transitions */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                    Imię i nazwisko
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={user?.displayName || ""}
+                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    defaultValue={user?.email || ""}
+                    disabled
+                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                    Numer telefonu
+                  </label>
+                  <input
+                    type="tel"
+                    defaultValue={user?.phoneNumber || ""}
+                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                    Bio
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                    placeholder="Napisz coś o sobie..."
+                  />
+                </div>
+
+                <div className="pt-4 transition-all duration-200">
+                  <button
+                    type="submit"
+                    className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105"
+                  >
+                    Zapisz zmiany
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          {/* Security Card */}
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 transition-all duration-200">
+            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
+              Bezpieczeństwo
+            </h2>
             <div className="space-y-4">
-              {/* Form inputs with transitions */}
-              <div className="transition-all duration-200">
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
-                  Imię i nazwisko
-                </label>
+              <button className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between">
+                <span>Zmień hasło</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between group"
+              >
+                <span>Usuń konto</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Delete Account Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">
+            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
+              Usuń konto
+            </h2>
+            <p className="text-[var(--foreground)] mb-6">
+              Tej operacji nie można cofnąć. Wszystkie Twoje dane zostaną trwale
+              usunięte.
+            </p>
+
+            <form onSubmit={handleDeleteAccount} className="space-y-4">
+              {renderAuthenticationSection()}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <div className="flex items-center mb-4">
                 <input
-                  type="text"
-                  placeholder={user?.displayName || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-all duration-200"
+                  type="checkbox"
+                  id="confirm"
+                  checked={confirmDelete}
+                  onChange={(e) => setConfirmDelete(e.target.checked)}
+                  className="mr-2"
+                  required
                 />
-              </div>
-
-              <div className="transition-all duration-200">
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
-                  Email
+                <label
+                  htmlFor="confirm"
+                  className="text-sm text-[var(--foreground)]"
+                >
+                  Potwierdzam, że chcę trwale usunąć moje konto
                 </label>
-                <input
-                  type="email"
-                  defaultValue={user?.email || ""}
-                  disabled
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-all duration-200"
-                />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
-                  Numer telefonu
-                </label>
-                <input
-                  type="tel"
-                  defaultValue={user?.phoneNumber || ""}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
-                  Bio
-                </label>
-                <textarea
-                  rows={4}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-all duration-200"
-                  placeholder="Napisz coś o sobie..."
-                />
-              </div>
-
-              <div className="pt-4 transition-all duration-200">
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setPassword("");
+                    setConfirmDelete(false);
+                    setError("");
+                  }}
+                  className="flex-1 px-4 py-2 bg-[var(--gray-200)] text-[var(--foreground)] rounded-xl hover:bg-[var(--gray-300)] transition-colors duration-200"
+                >
+                  Anuluj
+                </button>
                 <button
                   type="submit"
-                  className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105"
+                  disabled={
+                    !confirmDelete || (authMethod === "password" && !password)
+                  }
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Zapisz zmiany
+                  Usuń konto
                 </button>
               </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Security Card */}
-        <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 transition-all duration-200">
-          <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
-            Bezpieczeństwo
-          </h2>
-          <div className="space-y-4">
-            <button className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between">
-              <span>Zmień hasło</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-            <button className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between group">
-              <span>Usuń konto</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+            </form>
           </div>
         </div>
-      </div>
-    </main>
+      )}
+    </>
   );
 }

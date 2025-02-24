@@ -73,12 +73,12 @@ export default function Profile() {
         <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 text-[var(--foreground)] transition-all duration-200">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
             {/* Profile Image */}
-            <div className="relative w-32 h-32 rounded-2xl overflow-hidden shadow-lg transition-shadow duration-200">
+            <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
               <Image
                 src={user?.photoURL || defaultAvatar}
                 alt="Profile"
                 fill
-                className="object-cover"
+                className="object-cover shadow-lg transition-shadow duration-200"
               />
             </div>
 
