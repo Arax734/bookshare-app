@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import Image from "next/image";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
+  updateProfile, // Add this import
 } from "firebase/auth";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import { storage } from "@/firebase/config";
 
 export default function Settings() {
   const { user, signInWithGoogle, signInWithFacebook } = useAuth();
@@ -30,6 +38,11 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Add new state for image upload
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (user !== undefined) {
       setIsLoading(false);
@@ -44,6 +57,16 @@ export default function Settings() {
       else if (provider === "facebook.com") setAuthMethod("facebook");
     }
   }, [user]);
+
+  // Add this useEffect to handle the success message after page reload
+  useEffect(() => {
+    const message = localStorage.getItem("showSuccessMessage");
+    if (message) {
+      setSuccessMessage(message);
+      localStorage.removeItem("showSuccessMessage");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -122,11 +145,9 @@ export default function Settings() {
 
     try {
       if (authMethod === "password") {
-        // Verify password for email/password users
         const credential = EmailAuthProvider.credential(user.email!, password);
         await reauthenticateWithCredential(user, credential);
       } else {
-        // For social auth, require re-authentication
         const reAuthResult = await (authMethod === "google"
           ? signInWithGoogle()
           : signInWithFacebook());
@@ -136,9 +157,17 @@ export default function Settings() {
         }
       }
 
-      // If we get here, authentication was successful
+      // Delete profile image from storage if it exists
+      try {
+        const imageRef = ref(storage, `avatars/${user.uid}`);
+        await deleteObject(imageRef);
+      } catch (storageError) {
+        // Ignore error if image doesn't exist
+        console.log("No profile image to delete or already deleted");
+      }
+
+      // Delete user account
       await user.delete();
-      // Redirect to home or login page
       window.location.href = "/";
     } catch (error: any) {
       if (error.code === "auth/wrong-password") {
@@ -202,6 +231,56 @@ export default function Settings() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // File validation
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ["image/jpeg", "image/png"];
+
+    if (file.size > maxSize) {
+      setUploadError("Plik jest za duży. Maksymalny rozmiar to 5MB.");
+      return;
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Dozwolone są tylko pliki JPG i PNG.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadError("");
+
+      const imageRef = ref(storage, `avatars/${user.uid}`);
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
+
+      // Update user profile
+      await updateProfile(user, {
+        photoURL: downloadURL,
+      });
+
+      // Force refresh the auth state to update the navbar
+      await user.reload();
+
+      // Refresh the page and show success message after reload
+      window.location.reload();
+
+      // Success message will be shown after page reload
+      localStorage.setItem(
+        "showSuccessMessage",
+        "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
+      );
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setUploadError("Wystąpił błąd podczas przesyłania zdjęcia");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const renderAuthenticationSection = () => {
     if (authMethod === "password") {
       return (
@@ -252,18 +331,39 @@ export default function Settings() {
               Ustawienia ogólne
             </h2>
             <div className="flex items-center space-x-4 mb-6">
-              <div className="relative w-20 h-20 rounded-xl overflow-hidden ">
+              <div className="relative w-20 h-20 rounded-xl overflow-hidden">
                 <Image
                   src={user?.photoURL || defaultAvatar}
                   alt="Profile"
                   fill
-                  className="object-cover shadow-md transition-all duration-200"
+                  className="object-cover transition-all duration-200 shadow"
                 />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
               </div>
-              <button className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105">
-                Zmień zdjęcie
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+              />
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={authMethod !== "password" || isUploading}
+                className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
+              >
+                {isUploading ? "Przesyłanie..." : "Zmień zdjęcie"}
               </button>
             </div>
+            {uploadError && (
+              <p className="text-red-500 text-sm mb-4">{uploadError}</p>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
