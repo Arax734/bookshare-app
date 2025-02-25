@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         hostname: "graph.facebook.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**",
+      },
     ],
   },
 };
