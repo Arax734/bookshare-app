@@ -144,30 +144,46 @@ export default function Settings() {
     if (!user) return;
 
     try {
-      if (authMethod === "password") {
-        const credential = EmailAuthProvider.credential(user.email!, password);
-        await reauthenticateWithCredential(user, credential);
-      } else {
-        const reAuthResult = await (authMethod === "google"
-          ? signInWithGoogle()
-          : signInWithFacebook());
-
-        if (!reAuthResult) {
-          throw new Error("Ponowne uwierzytelnienie nie powiodło się");
-        }
-      }
-
-      // Delete profile image from storage if it exists
+      // Add App Check error handling
       try {
-        const imageRef = ref(storage, `avatars/${user.uid}`);
-        await deleteObject(imageRef);
-      } catch (storageError) {
-        // Ignore error if image doesn't exist
-        console.log("No profile image to delete or already deleted");
+        if (authMethod === "password") {
+          const credential = EmailAuthProvider.credential(
+            user.email!,
+            password
+          );
+          await reauthenticateWithCredential(user, credential);
+        } else {
+          const reAuthResult = await (authMethod === "google"
+            ? signInWithGoogle()
+            : signInWithFacebook());
+
+          if (!reAuthResult) {
+            throw new Error("Ponowne uwierzytelnienie nie powiodło się");
+          }
+        }
+
+        // Delete profile image from storage if it exists
+        try {
+          const imageRef = ref(storage, `avatars/${user.uid}`);
+          await deleteObject(imageRef);
+        } catch (storageError) {
+          // Ignore error if image doesn't exist
+          console.log("No profile image to delete or already deleted");
+        }
+
+        // Delete user account
+        await user.delete();
+      } catch (error: any) {
+        if (
+          error.code === "auth/unauthorized-domain" ||
+          error.code === "appcheck/invalid-token"
+        ) {
+          setError("Błąd weryfikacji. Spróbuj ponownie później.");
+          return;
+        }
+        throw error;
       }
 
-      // Delete user account
-      await user.delete();
       window.location.href = "/";
     } catch (error: any) {
       if (error.code === "auth/wrong-password") {
@@ -201,15 +217,27 @@ export default function Settings() {
     }
 
     try {
-      // First, re-authenticate the user
-      const credential = EmailAuthProvider.credential(
-        user.email!,
-        currentPassword
-      );
-      await reauthenticateWithCredential(user, credential);
+      // Add App Check error handling
+      try {
+        // First, re-authenticate the user
+        const credential = EmailAuthProvider.credential(
+          user.email!,
+          currentPassword
+        );
+        await reauthenticateWithCredential(user, credential);
 
-      // Then update the password using the updatePassword function
-      await updatePassword(user, newPassword);
+        // Then update the password using the updatePassword function
+        await updatePassword(user, newPassword);
+      } catch (error: any) {
+        if (
+          error.code === "auth/unauthorized-domain" ||
+          error.code === "appcheck/invalid-token"
+        ) {
+          setPasswordError("Błąd weryfikacji. Spróbuj ponownie później.");
+          return;
+        }
+        throw error;
+      }
 
       // Show success message and close modal
       setSuccessMessage("Hasło zostało zmienione pomyślnie!");
@@ -253,14 +281,26 @@ export default function Settings() {
       setIsUploading(true);
       setUploadError("");
 
-      const imageRef = ref(storage, `avatars/${user.uid}`);
-      await uploadBytes(imageRef, file);
-      const downloadURL = await getDownloadURL(imageRef);
+      // Add App Check error handling
+      try {
+        const imageRef = ref(storage, `avatars/${user.uid}`);
+        await uploadBytes(imageRef, file);
+        const downloadURL = await getDownloadURL(imageRef);
 
-      // Update user profile
-      await updateProfile(user, {
-        photoURL: downloadURL,
-      });
+        // Update user profile
+        await updateProfile(user, {
+          photoURL: downloadURL,
+        });
+      } catch (error: any) {
+        if (
+          error.code === "storage/unauthorized" ||
+          error.code === "appcheck/invalid-token"
+        ) {
+          setUploadError("Błąd weryfikacji. Spróbuj ponownie później.");
+          return;
+        }
+        throw error;
+      }
 
       // Force refresh the auth state to update the navbar
       await user.reload();
@@ -358,7 +398,7 @@ export default function Settings() {
                 disabled={authMethod !== "password" || isUploading}
                 className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
               >
-                {isUploading ? "Przesyłanie..." : "Zmień zdjęcie"}
+                {isUploading ? "Weryfikacja..." : "Zmień zdjęcie"}
               </button>
             </div>
             {uploadError && (
@@ -523,11 +563,13 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={
-                    !confirmDelete || (authMethod === "password" && !password)
+                    !confirmDelete ||
+                    (authMethod === "password" && !password) ||
+                    isLoading
                   }
                   className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Usuń konto
+                  {isLoading ? "Weryfikacja..." : "Usuń konto"}
                 </button>
               </div>
             </form>
@@ -601,9 +643,12 @@ export default function Settings() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[var(--primaryColor)] text-white rounded-xl hover:bg-[var(--primaryColorLight)] transition-colors duration-200"
+                  disabled={
+                    !currentPassword || !newPassword || !confirmNewPassword
+                  }
+                  className="flex-1 px-4 py-2 bg-[var(--primaryColor)] text-white rounded-xl hover:bg-[var(--primaryColorLight)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Zmień hasło
+                  {isLoading ? "Weryfikacja..." : "Zmień hasło"}
                 </button>
               </div>
             </form>

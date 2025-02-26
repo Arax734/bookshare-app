@@ -30,6 +30,15 @@ export default function RootLayout({
     >
       <head>
         <ThemeScript />
+        {process.env.NODE_ENV === "development" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+              `,
+            }}
+          />
+        )}
       </head>
       <ThemeProvider>
         <body
