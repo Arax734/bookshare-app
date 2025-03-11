@@ -8,6 +8,7 @@ import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { TagIcon } from "../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import { HashtagIcon } from "../components/svg-icons/HashtagIcon";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 interface Marc {
   leader: string;
@@ -133,11 +134,7 @@ export default function Home() {
   };
 
   if (isLoading) {
-    return (
-      <div className="p-4 flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primaryColor)]"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
