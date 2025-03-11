@@ -309,117 +309,139 @@ export default function Settings() {
           </h1>
 
           {/* General Settings Card */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 transition-all duration-200">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
-              Ustawienia ogólne
-            </h2>
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="relative w-20 h-20 rounded-xl overflow-hidden">
-                <Image
-                  src={user?.photoURL || defaultAvatar}
-                  alt="Profile"
-                  fill
-                  className="object-cover transition-all duration-200 shadow"
-                />
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
-
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-              />
-
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={authMethod !== "password" || isUploading}
-                className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
-              >
-                {isUploading ? "Weryfikacja..." : "Zmień zdjęcie"}
-              </button>
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+            <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <h2 className="text-xl font-bold">Ustawienia ogólne</h2>
             </div>
-            {uploadError && (
-              <p className="text-red-500 text-sm mb-4">{uploadError}</p>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                {/* Form inputs without transitions */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
-                    Imię i nazwisko
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={user?.displayName || ""}
-                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+            <div className="p-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden">
+                  <Image
+                    src={user?.photoURL || defaultAvatar}
+                    alt="Profile"
+                    fill
+                    className="object-cover transition-all duration-200 shadow"
                   />
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={user?.email || ""}
-                    disabled
-                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200"
-                  />
-                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
-                    Numer telefonu
-                  </label>
-                  <input
-                    type="tel"
-                    defaultValue={user?.phoneNumber || ""}
-                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
-                    Bio
-                  </label>
-                  <textarea
-                    rows={4}
-                    className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
-                    placeholder="Napisz coś o sobie..."
-                  />
-                </div>
-
-                <div className="pt-4 transition-all duration-200">
-                  <button
-                    type="submit"
-                    className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105"
-                  >
-                    Zapisz zmiany
-                  </button>
-                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={authMethod !== "password" || isUploading}
+                  className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
+                >
+                  {isUploading ? "Weryfikacja..." : "Zmień zdjęcie"}
+                </button>
               </div>
-            </form>
+              {uploadError && (
+                <p className="text-red-500 text-sm mb-4">{uploadError}</p>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4">
+                  {/* Form inputs without transitions */}
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                      Imię i nazwisko
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={user?.displayName || ""}
+                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      defaultValue={user?.email || ""}
+                      disabled
+                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                      Numer telefonu
+                    </label>
+                    <input
+                      type="tel"
+                      defaultValue={user?.phoneNumber || ""}
+                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                      Bio
+                    </label>
+                    <textarea
+                      rows={4}
+                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                      placeholder="Napisz coś o sobie..."
+                    />
+                  </div>
+
+                  <div className="pt-4 transition-all duration-200">
+                    <button
+                      type="submit"
+                      className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105"
+                    >
+                      Zapisz zmiany
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
 
           {/* Security Card */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 transition-all duration-200">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)] transition-colors duration-200">
-              Bezpieczeństwo
-            </h2>
-            <div className="space-y-4">
-              {authMethod === "password" && (
+          <div className="my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+            <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <h2 className="text-xl font-bold">Bezpieczeństwo</h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {authMethod === "password" && (
+                  <button
+                    onClick={() => setIsChangePasswordModalOpen(true)}
+                    className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between"
+                  >
+                    <span>Zmień hasło</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
                 <button
-                  onClick={() => setIsChangePasswordModalOpen(true)}
-                  className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between group"
                 >
-                  <span>Zmień hasło</span>
+                  <span>Usuń konto</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
@@ -433,25 +455,7 @@ export default function Settings() {
                     />
                   </svg>
                 </button>
-              )}
-              <button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between group"
-              >
-                <span>Usuń konto</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+              </div>
             </div>
           </div>
         </div>
