@@ -1,19 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  // Get search parameters from the request
   const searchParams = request.nextUrl.searchParams;
   const limit = searchParams.get("limit") || "10";
   const search = searchParams.get("search") || "";
+  const searchType = searchParams.get("searchType") || "title";
   const sinceId = searchParams.get("sinceId") || "";
 
-  // Construct URL for BN API
-  let url = `https://data.bn.org.pl/api/institutions/bibs.json?limit=${limit}`;
-  if (search) url += `&search=${encodeURIComponent(search)}`;
-  if (sinceId) url += `&sinceId=${sinceId}`;
+  // Construct BN API URL based on search type
+  let url = `https://data.bn.org.pl/api/institutions/bibs.json?limit=${limit}&kind=książka`;
+
+  if (search) {
+    switch (searchType) {
+      case "title":
+        url += `&title=${encodeURIComponent(search)}`;
+        break;
+      case "author":
+        url += `&author=${encodeURIComponent(search)}`;
+        break;
+      case "isbn":
+        url += `&isbnIssn=${encodeURIComponent(search)}`;
+        break;
+      default:
+        url += `&search=${encodeURIComponent(search)}`;
+    }
+  }
+
+  if (sinceId) {
+    url += `&sinceId=${sinceId}`;
+  }
 
   try {
-    // Make server-side request to BN API
     const response = await fetch(url);
 
     if (!response.ok) {

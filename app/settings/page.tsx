@@ -16,6 +16,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { storage } from "@/firebase/config";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Settings() {
   const { user, signInWithGoogle, signInWithFacebook } = useAuth();
@@ -69,11 +70,7 @@ export default function Settings() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="p-4 flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primaryColor)]"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

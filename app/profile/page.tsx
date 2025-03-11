@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import Image from "next/image";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -18,11 +19,7 @@ export default function Profile() {
   }, [user]);
 
   if (isLoading) {
-    return (
-      <div className="p-4 flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primaryColor)]"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -142,9 +142,13 @@ export default function Navbar() {
         <div className="relative">
           {isLoading ? (
             <div className="flex items-center space-x-3 bg-[var(--primaryColor)] rounded-full px-4 py-2 animate-pulse">
-              <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full"></div>
-              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]"></div>
-              <div className="absolute right-3 bottom-2 flex items-center justify-center bg-[var(--gray-300)] rounded-full w-4 h-4"></div>
+              <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
+              <div className="relative w-9 h-9 rounded-full overflow-hidden">
+                <div className="w-full h-full bg-[var(--gray-300)]" />
+              </div>
+              <div className="absolute right-3 bottom-2 flex items-center justify-center">
+                <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
+              </div>
             </div>
           ) : (
             <button
