@@ -8,6 +8,8 @@ import { TagIcon } from "../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Link from "next/link";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/firebase/config"; // Import your Firebase configuration
 
 interface Marc {
   leader: string;
@@ -35,6 +37,8 @@ interface BookItem {
   marc: Marc;
   isbnIssn?: string;
   nationalBibliographyNumber?: string;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 interface ApiResponse {
@@ -98,15 +102,27 @@ export default function Home() {
             item.kind?.toLowerCase() === "books"
         );
 
+        // Fetch ratings for each book
+        const booksWithRatings = await Promise.all(
+          booksOnly.map(async (book) => {
+            const ratings = await fetchBookRatings(book.id);
+            return {
+              ...book,
+              averageRating: ratings.average,
+              totalReviews: ratings.total,
+            };
+          })
+        );
+
         if (append) {
-          if (booksOnly.length === 0) {
+          if (booksWithRatings.length === 0) {
             setHasMoreResults(false);
             return;
           }
-          setBooks((prevBooks) => [...prevBooks, ...booksOnly]);
+          setBooks((prevBooks) => [...prevBooks, ...booksWithRatings]);
         } else {
-          setBooks(booksOnly);
-          setHasMoreResults(booksOnly.length >= 10);
+          setBooks(booksWithRatings);
+          setHasMoreResults(booksWithRatings.length >= 10);
         }
 
         // Update nextPage while preserving search parameters
@@ -141,6 +157,23 @@ export default function Home() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
+  };
+
+  // Add a function to fetch ratings for books
+  const fetchBookRatings = async (bookId: number) => {
+    const paddedId = bookId.toString().padStart(14, "0");
+    const q = query(collection(db, "reviews"), where("bookId", "==", paddedId));
+
+    const querySnapshot = await getDocs(q);
+    const reviews = querySnapshot.docs.map((doc) => doc.data());
+
+    if (reviews.length === 0) return { average: 0, total: 0 };
+
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return {
+      average: Number((sum / reviews.length).toFixed(1)),
+      total: reviews.length,
+    };
   };
 
   // Initial fetch - update URL to use our API
@@ -289,6 +322,30 @@ export default function Home() {
                     <div className="flex items-center text-[var(--gray-700)]">
                       <CalendarIcon className="h-4 w-4 mr-1" />
                       <span>{book.publicationYear || "Rok nieznany"}</span>
+                    </div>
+
+                    {/* Add rating display */}
+                    <div className="flex items-center mt-2 gap-2">
+                      <div className="flex items-center">
+                        <svg
+                          className="w-5 h-5 text-yellow-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="ml-1 text-sm font-medium text-[var(--gray-700)]">
+                          {book.averageRating
+                            ? `${book.averageRating}/10`
+                            : "Brak ocen"}
+                        </span>
+                      </div>
+                      {book.totalReviews ? (
+                        <span className="text-sm text-[var(--gray-500)]">
+                          ({book.totalReviews}{" "}
+                          {book.totalReviews === 1 ? "opinia" : "opinii"})
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   {book.isbnIssn && (
