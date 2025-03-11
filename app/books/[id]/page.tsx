@@ -9,6 +9,7 @@ import { MapPinIcon } from "../../components/svg-icons/MapPinIcon";
 import { BookOpenIcon } from "../../components/svg-icons/BookOpenIcon";
 import { TagIcon } from "../../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../../components/svg-icons/LanguageIcon";
+import BookReview from "@/app/components/BookReview";
 
 interface BookDetails {
   id: number;
@@ -195,6 +196,11 @@ export default function BookDetails({ params }: PageProps) {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Add Reviews Section */}
+          <div className="p-6">
+            <BookReview bookId={unwrappedParams.id} />
           </div>
         </div>
       </div>
