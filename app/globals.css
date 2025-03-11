@@ -3,6 +3,7 @@
 @import "tailwindcss/utilities";
 
 :root {
+  /* Existing theme variables */
   --background: #f5f5f5;
   --foreground: #171717;
   --primaryColor: #007304;
@@ -16,13 +17,28 @@
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
+  --gray-300: #d1d5db; /* Added explicitly */
   --gray-500: #6b7280;
   --gray-700: #374151;
   --gray-800: #1f2937;
   --card-background: #ffffff;
+
+  /* Button styling */
+  --btn-secondary-border: #d1d5db; /* gray-300 */
+  --btn-secondary-text: #374151; /* gray-700 */
+  --btn-secondary-bg-hover: #f9fafb; /* gray-50 */
+
+  /* Tag styling for light theme */
+  --genre-bg: #dbeafe;
+  --genre-text: #1e40af;
+  --subject-bg: #dcfce7;
+  --subject-text: #166534;
+  --domain-bg: #f3e8ff;
+  --domain-text: #6b21a8;
 }
 
 .dark {
+  /* Existing dark theme variables */
   --background: #242424;
   --foreground: #ffffff;
   --primaryColor: #00a305;
@@ -36,10 +52,24 @@
   --gray-50: #1a1a1a;
   --gray-100: #2a2a2a;
   --gray-200: #383838;
+  --gray-300: #424242; /* Added explicitly */
   --gray-500: #717171;
   --gray-700: #e5e5e5;
   --gray-800: #f5f5f5;
   --card-background: #2a2a2a;
+
+  /* Button styling for dark theme */
+  --btn-secondary-border: #424242; /* gray-300 in dark mode */
+  --btn-secondary-text: #e5e5e5; /* gray-700 in dark mode */
+  --btn-secondary-bg-hover: #383838; /* slightly lighter than background */
+
+  /* Tag styling for dark theme */
+  --genre-bg: #1e3a8a;
+  --genre-text: #bfdbfe;
+  --subject-bg: #14532d;
+  --subject-text: #bbf7d0;
+  --domain-bg: #581c87;
+  --domain-text: #e9d5ff;
 }
 
 body {
