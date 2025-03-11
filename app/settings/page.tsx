@@ -264,7 +264,7 @@ export default function Settings() {
     if (!file || !user) return;
 
     // File validation
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 1024 * 1024; // 1MB
     const allowedTypes = ["image/jpeg", "image/png"];
 
     if (file.size > maxSize) {
