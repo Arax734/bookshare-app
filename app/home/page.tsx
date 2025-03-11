@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// Replace the heroicons import with your custom icon imports
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
 import { MapPinIcon } from "../components/svg-icons/MapPinIcon";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { TagIcon } from "../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
-import { HashtagIcon } from "../components/svg-icons/HashtagIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 interface Marc {
@@ -50,6 +48,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchType, setSearchType] = useState<"title" | "author" | "isbn">(
+    "title"
+  );
+  const [hasMoreResults, setHasMoreResults] = useState<boolean>(true);
 
   const fetchBooks = async (url: string, append: boolean = false) => {
     try {
@@ -68,9 +70,12 @@ export default function Home() {
         const limit = bnUrl.searchParams.get("limit") || "10";
         const sinceId = bnUrl.searchParams.get("sinceId") || "";
 
-        // Construct URL for our API route
+        // Construct URL for our API route with search parameters
         apiUrl = `/api/books?limit=${limit}`;
-        if (search) apiUrl += `&search=${encodeURIComponent(search)}`;
+        if (search) {
+          apiUrl += `&search=${encodeURIComponent(search)}`;
+          apiUrl += `&searchType=${searchType}`; // Add search type
+        }
         if (sinceId) apiUrl += `&sinceId=${sinceId}`;
       }
 
@@ -83,21 +88,47 @@ export default function Home() {
       const data: ApiResponse = await response.json();
 
       if (data.bibs && Array.isArray(data.bibs)) {
+        // Filter only books
+        const booksOnly = data.bibs.filter(
+          (item) =>
+            item.kind?.toLowerCase().includes("książka") ||
+            item.kind?.toLowerCase().includes("książki") ||
+            item.kind?.toLowerCase() === "book" ||
+            item.kind?.toLowerCase() === "books"
+        );
+
         if (append) {
-          setBooks((prevBooks) => [...prevBooks, ...data.bibs]);
+          if (booksOnly.length === 0) {
+            setHasMoreResults(false);
+            return;
+          }
+          setBooks((prevBooks) => [...prevBooks, ...booksOnly]);
         } else {
-          setBooks(data.bibs);
+          setBooks(booksOnly);
+          setHasMoreResults(booksOnly.length >= 10);
         }
 
-        // Update nextPage to use our API instead
+        // Update nextPage while preserving search parameters
         if (data.nextPage) {
           const nextPageUrl = new URL(data.nextPage);
           const sinceId = nextPageUrl.searchParams.get("sinceId");
-          setNextPage(
-            sinceId ? `/api/books?limit=10&sinceId=${sinceId}` : null
-          );
+          let newNextPage = `/api/books?limit=10`;
+
+          if (sinceId) {
+            newNextPage += `&sinceId=${sinceId}`;
+          }
+
+          // Preserve search parameters in next page URL
+          if (searchQuery) {
+            newNextPage += `&search=${encodeURIComponent(
+              searchQuery
+            )}&searchType=${searchType}`;
+          }
+
+          setNextPage(newNextPage);
         } else {
           setNextPage(null);
+          setHasMoreResults(false);
         }
       } else {
         throw new Error("Nieprawidłowy format danych");
@@ -121,7 +152,9 @@ export default function Home() {
     e.preventDefault();
     if (searchQuery.trim()) {
       fetchBooks(
-        `/api/books?limit=10&search=${encodeURIComponent(searchQuery)}`
+        `/api/books?limit=10&searchType=${searchType}&search=${encodeURIComponent(
+          searchQuery
+        )}`
       );
     }
   };
@@ -157,27 +190,70 @@ export default function Home() {
         Biblioteka książek
       </h1>
 
-      {/* Enhanced search form */}
+      {/* Updated search form */}
       <form onSubmit={handleSearch} className="mb-8">
-        <div className="flex gap-2 max-w-lg mx-auto">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Szukaj według tytułu, autora, ISBN..."
-            className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
-          />
-          <button
-            type="submit"
-            className="px-5 py-3 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors shadow-sm font-medium"
-          >
-            Szukaj
-          </button>
+        <div className="flex flex-col gap-3 max-w-lg mx-auto">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                searchType === "title"
+                  ? "Wyszukaj po tytule..."
+                  : searchType === "author"
+                  ? "Wyszukaj po autorze..."
+                  : "Wyszukaj po ISBN..."
+              }
+              className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+            />
+            <button
+              type="submit"
+              className="px-5 py-3 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors shadow-sm font-medium whitespace-nowrap"
+            >
+              Szukaj
+            </button>
+          </div>
+          <div className="flex justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSearchType("title")}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                searchType === "title"
+                  ? "bg-[var(--primaryColor)] text-white"
+                  : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+              }`}
+            >
+              Tytuł
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchType("author")}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                searchType === "author"
+                  ? "bg-[var(--primaryColor)] text-white"
+                  : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+              }`}
+            >
+              Autor
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchType("isbn")}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                searchType === "isbn"
+                  ? "bg-[var(--primaryColor)] text-white"
+                  : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+              }`}
+            >
+              ISBN
+            </button>
+          </div>
         </div>
       </form>
 
       {books.length === 0 ? (
-        <div className="text-center p-10 bg-gray-50 rounded-xl">
+        <div className="text-center p-10 rounded-xl">
           <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500 text-lg">Nie znaleziono książek</p>
           <p className="text-gray-400 mt-2">
@@ -313,21 +389,38 @@ export default function Home() {
       )}
 
       {nextPage && (
-        <div className="mt-10 text-center">
-          <button
-            className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-3 px-6 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={loadMoreBooks}
-            disabled={isLoadingMore}
-          >
-            {isLoadingMore ? (
-              <span className="flex items-center justify-center">
-                <span className="animate-spin h-5 w-5 mr-2 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
-                Ładowanie...
-              </span>
-            ) : (
-              "Pokaż więcej książek"
-            )}
-          </button>
+        <div className="mt-10 text-center space-y-4">
+          {hasMoreResults ? (
+            <button
+              className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-3 px-6 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={loadMoreBooks}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? (
+                <span className="flex items-center justify-center">
+                  <span className="animate-spin h-5 w-5 mr-2 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
+                  Ładowanie...
+                </span>
+              ) : (
+                "Pokaż więcej książek"
+              )}
+            </button>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-[var(--gray-700)]">
+                Nie znaleziono więcej wyników dla podanych kryteriów
+              </p>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  fetchBooks("/api/books?limit=10");
+                }}
+                className="mt-2 text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] transition-colors"
+              >
+                Wróć do wszystkich książek
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
