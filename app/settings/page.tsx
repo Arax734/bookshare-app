@@ -70,66 +70,9 @@ export default function Settings() {
 
   if (isLoading) {
     return (
-      <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
-        <div className="max-w-2xl mx-auto">
-          {/* Page Title Skeleton */}
-          <div className="h-8 w-48 bg-[var(--gray-200)] rounded animate-pulse mb-6" />
-
-          {/* General Settings Card Skeleton */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 animate-pulse">
-            {/* Card Title */}
-            <div className="h-7 w-40 bg-[var(--gray-200)] rounded mb-4" />
-
-            {/* Avatar Section */}
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-20 h-20 rounded-xl bg-[var(--gray-200)]" />
-              <div className="h-9 w-32 bg-[var(--gray-200)] rounded-full" />
-            </div>
-
-            {/* Form Fields */}
-            <div className="space-y-4">
-              {/* Name Input */}
-              <div>
-                <div className="h-5 w-32 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
-              </div>
-
-              {/* Email Input */}
-              <div>
-                <div className="h-5 w-24 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
-              </div>
-
-              {/* Phone Input */}
-              <div>
-                <div className="h-5 w-36 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
-              </div>
-
-              {/* Bio Textarea */}
-              <div>
-                <div className="h-5 w-20 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-32 bg-[var(--gray-200)] rounded-xl" />
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-4">
-                <div className="h-10 bg-[var(--gray-200)] rounded-xl" />
-              </div>
-            </div>
-          </div>
-
-          {/* Security Card Skeleton */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 animate-pulse">
-            <div className="h-7 w-36 bg-[var(--gray-200)] rounded mb-4" />
-            <div className="space-y-4">
-              {/* Security Buttons */}
-              <div className="h-12 bg-[var(--gray-200)] rounded-xl" />
-              <div className="h-12 bg-[var(--gray-200)] rounded-xl" />
-            </div>
-          </div>
-        </div>
-      </main>
+      <div className="p-4 flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primaryColor)]"></div>
+      </div>
     );
   }
 

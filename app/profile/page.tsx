@@ -19,50 +19,9 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <main className="container mx-auto px-4 py-8 bg-[var(--background)] transition-all duration-200">
-        <div className="max-w-2xl mx-auto">
-          {/* Profile Header Card Skeleton */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 animate-pulse">
-            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-              {/* Profile Image Skeleton */}
-              <div className="w-32 h-32 rounded-2xl bg-[var(--gray-200)]" />
-              {/* Profile Info Skeleton */}
-              <div className="flex-1 text-center md:text-left space-y-3">
-                <div className="h-8 w-48 bg-[var(--gray-200)] rounded-lg mx-auto md:mx-0" />
-                <div className="h-5 w-36 bg-[var(--gray-200)] rounded mx-auto md:mx-0" />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Information Card Skeleton */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 mb-8 animate-pulse">
-            <div className="h-7 w-40 bg-[var(--gray-200)] rounded mb-4" />
-            <div className="space-y-4">
-              <div>
-                <div className="h-5 w-20 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-6 w-48 bg-[var(--gray-200)] rounded" />
-              </div>
-              <div>
-                <div className="h-5 w-24 bg-[var(--gray-200)] rounded mb-2" />
-                <div className="h-6 w-32 bg-[var(--gray-200)] rounded" />
-              </div>
-            </div>
-          </div>
-
-          {/* Statistics Card Skeleton */}
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-md p-6 animate-pulse">
-            <div className="h-7 w-32 bg-[var(--gray-200)] rounded mb-4" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="p-21 bg-[var(--gray-200)] rounded-xl">
-                  <div className="h-8 w-12 bg-[var(--gray-200)] rounded mb-2 mx-auto" />
-                  <div className="h-5 w-24 bg-[var(--gray-200)] rounded mx-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
+      <div className="p-4 flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primaryColor)]"></div>
+      </div>
     );
   }
 

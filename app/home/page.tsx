@@ -156,7 +156,7 @@ export default function Home() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
+      <h1 className="text-3xl font-bold mb-8 text-center text-[var(--gray-800)]">
         Biblioteka książek
       </h1>
 
@@ -168,7 +168,7 @@ export default function Home() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Szukaj według tytułu, autora, ISBN..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[var(--primaryColor)] focus:border-[var(--primaryColor)] focus:outline-none transition-all"
+            className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
           />
           <button
             type="submit"
@@ -192,7 +192,7 @@ export default function Home() {
           {books.map((book) => (
             <div
               key={book.id}
-              className="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg border border-gray-100"
+              className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
             >
               {/* Book card header with title */}
               <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
@@ -209,16 +209,16 @@ export default function Home() {
                 {/* Author and year section */}
                 <div className="flex items-start mb-4 pb-4 border-b border-gray-100">
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800 mb-1">
+                    <p className="font-semibold text-[var(--gray-800)] mb-1">
                       {book.author || "Nieznany autor"}
                     </p>
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-[var(--gray-700)]">
                       <CalendarIcon className="h-4 w-4 mr-1" />
                       <span>{book.publicationYear || "Rok nieznany"}</span>
                     </div>
                   </div>
                   {book.isbnIssn && (
-                    <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-800">
+                    <div className="bg-[var(--gray-200)] px-3 py-1 rounded-full text-xs font-medium text-[var(--gray-800)]">
                       ISBN: {book.isbnIssn}
                     </div>
                   )}
@@ -230,10 +230,10 @@ export default function Home() {
                   <div className="flex items-start">
                     <MapPinIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-800 font-medium">
+                      <p className="text-sm text-[var(--gray-800)] font-medium">
                         Wydawca i miejsce
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[var(--gray-700)]">
                         {book.publisher || "Nieznany wydawca"}
                         {book.placeOfPublication &&
                           `, ${book.placeOfPublication}`}
@@ -245,8 +245,10 @@ export default function Home() {
                   <div className="flex items-start">
                     <LanguageIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-800 font-medium">Język</p>
-                      <p className="text-sm text-gray-600 capitalize">
+                      <p className="text-sm text-[var(--gray-800)] font-medium">
+                        Język
+                      </p>
+                      <p className="text-sm text-[var(--gray-700)] capitalize">
                         {book.language || "Nieokreślony"}
                       </p>
                     </div>
@@ -256,22 +258,40 @@ export default function Home() {
                   <div className="flex items-start">
                     <TagIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-800 font-medium">
+                      <p className="text-sm text-gray-800 font-medium dark:text-gray-200">
                         Kategorie
                       </p>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {book.genre && (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md">
+                          <span
+                            className="text-xs px-2 py-1 rounded-md"
+                            style={{
+                              backgroundColor: "var(--genre-bg)",
+                              color: "var(--genre-text)",
+                            }}
+                          >
                             {book.genre}
                           </span>
                         )}
                         {book.subject && (
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-md">
+                          <span
+                            className="text-xs px-2 py-1 rounded-md"
+                            style={{
+                              backgroundColor: "var(--subject-bg)",
+                              color: "var(--subject-text)",
+                            }}
+                          >
                             {book.subject}
                           </span>
                         )}
                         {book.domain && (
-                          <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-md">
+                          <span
+                            className="text-xs px-2 py-1 rounded-md"
+                            style={{
+                              backgroundColor: "var(--domain-bg)",
+                              color: "var(--domain-text)",
+                            }}
+                          >
                             {book.domain}
                           </span>
                         )}
@@ -285,7 +305,7 @@ export default function Home() {
                   <button className="flex-1 bg-[var(--primaryColor)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium">
                     Zobacz szczegóły
                   </button>
-                  <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button className="border border-[var(--btn-secondary-border)] text-[var(--btn-secondary-text)] px-4 py-2 rounded-lg hover:bg-[var(--btn-secondary-bg-hover)] transition-colors">
                     Zapisz
                   </button>
                 </div>
@@ -298,7 +318,7 @@ export default function Home() {
       {nextPage && (
         <div className="mt-10 text-center">
           <button
-            className="bg-white border border-gray-300 shadow-sm text-gray-800 font-medium py-3 px-6 rounded-lg transition-all hover:bg-gray-50 hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-3 px-6 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={loadMoreBooks}
             disabled={isLoadingMore}
           >
