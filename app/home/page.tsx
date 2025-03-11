@@ -7,6 +7,7 @@ import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { TagIcon } from "../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
+import Link from "next/link";
 
 interface Marc {
   leader: string;
@@ -375,9 +376,12 @@ export default function Home() {
 
                 {/* Action buttons */}
                 <div className="mt-6 flex gap-2">
-                  <button className="flex-1 bg-[var(--primaryColor)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium">
+                  <Link
+                    href={`/books/${book.id}`}
+                    className="flex-1 bg-[var(--primaryColor)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium text-center"
+                  >
                     Zobacz szczegóły
-                  </button>
+                  </Link>
                   <button className="border border-[var(--btn-secondary-border)] text-[var(--btn-secondary-text)] px-4 py-2 rounded-lg hover:bg-[var(--btn-secondary-bg-hover)] transition-colors">
                     Zapisz
                   </button>
