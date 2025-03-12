@@ -7,6 +7,7 @@ interface ItemCount {
   count: number;
 }
 
+// Update the Book interface
 interface Book {
   id: string;
   title: string;
@@ -14,8 +15,44 @@ interface Book {
   genre: string;
   language: string;
   publicationYear: number;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
+// Update the helper function to handle both string and number IDs
+function padBookId(id: string | number): string {
+  const idString = String(id);
+  return idString.padStart(14, "0");
+}
+
+// Add this helper function to fetch and calculate ratings
+async function getBookRatings(
+  bookId: string
+): Promise<{ average: number; total: number } | null> {
+  try {
+    const reviewsQuery = query(
+      collection(db, "reviews"),
+      where("bookId", "==", bookId)
+    );
+
+    const reviewsSnapshot = await getDocs(reviewsQuery);
+    const reviews = reviewsSnapshot.docs.map((doc) => doc.data().rating);
+
+    if (reviews.length === 0) return null;
+
+    const average =
+      reviews.reduce((sum, rating) => sum + rating, 0) / reviews.length;
+    return {
+      average: Number(average.toFixed(1)),
+      total: reviews.length,
+    };
+  } catch (error) {
+    console.error("Error fetching ratings:", error);
+    return null;
+  }
+}
+
+// Modify the fetchSimilarBooks function
 async function fetchSimilarBooks(params: {
   author?: string;
   genre?: string;
@@ -40,7 +77,23 @@ async function fetchSimilarBooks(params: {
   if (!response.ok) return [];
 
   const data = await response.json();
-  return data.bibs || [];
+
+  // Add ratings to each book
+  const booksWithRatings = await Promise.all(
+    (data.bibs || []).map(async (book: any) => {
+      const bookId = padBookId(book.id || "");
+      const ratings = await getBookRatings(bookId);
+
+      return {
+        ...book,
+        id: bookId,
+        averageRating: ratings?.average || null,
+        totalReviews: ratings?.total || 0,
+      };
+    })
+  );
+
+  return booksWithRatings;
 }
 
 // Add this helper function after the existing imports
@@ -64,7 +117,6 @@ export async function GET(request: NextRequest) {
   try {
     // Get user's reviewed books first
     const reviewedBookIds = await getUserReviewedBookIds(userId);
-    console.log(reviewedBookIds);
     const reviewsQuery = query(
       collection(db, "reviews"),
       where("userId", "==", userId),
@@ -76,9 +128,8 @@ export async function GET(request: NextRequest) {
       bookId: doc.data().bookId,
       rating: doc.data().rating,
     }));
-    console.log(highlyRatedBooks);
     const bookDetailsPromises = highlyRatedBooks.map(async ({ bookId }) => {
-      const paddedId = bookId.padStart(14, "0");
+      const paddedId = padBookId(bookId || "");
       const url = `https://data.bn.org.pl/api/institutions/bibs.json?id=${paddedId}`;
 
       const response = await fetch(url);
@@ -87,9 +138,13 @@ export async function GET(request: NextRequest) {
       const data = await response.json();
       if (!data.bibs?.[0]) return null;
 
+      const ratings = await getBookRatings(paddedId);
+
       return {
-        id: bookId,
+        id: paddedId,
         ...data.bibs[0],
+        averageRating: ratings?.average || null,
+        totalReviews: ratings?.total || 0,
       };
     });
 
@@ -137,8 +192,6 @@ export async function GET(request: NextRequest) {
     const topAuthors = getTopItems(validBooks, "author");
     const topLanguages = getTopItems(validBooks, "language");
     const topDecades = getTopDecades(validBooks);
-
-    console.log(topGenres);
 
     const similarBooksPromises = {
       byGenre: Promise.all(
