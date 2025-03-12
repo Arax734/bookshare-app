@@ -21,14 +21,14 @@ import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 
 export interface Review {
-  id: string; // Firestore document ID
-  bookId: string; // ID of the book
-  rating: number; // 1-10 rating
-  comment: string; // Review text
-  userId: string; // Firebase Auth user ID
-  userEmail: string; // User's email
-  userName?: string; // Optional display name
-  createdAt: Timestamp; // Creation date
+  id: string;
+  bookId: string;
+  rating: number;
+  comment: string;
+  userId: string;
+  userEmail: string;
+  userName?: string;
+  createdAt: Timestamp;
   userPhotoURL?: string;
   userDisplayName?: string;
 }
@@ -46,7 +46,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
   const [hoveredStar, setHoveredStar] = useState(0);
   const [userReview, setUserReview] = useState<Review | null>(null);
 
-  // Pad the bookId with zeros
   const paddedBookId = bookId.padStart(14, "0");
 
   useEffect(() => {
@@ -81,7 +80,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "reviews"), {
-        bookId: paddedBookId, // Use padded bookId when saving
+        bookId: paddedBookId,
         rating,
         comment,
         userId: user.uid,
@@ -212,7 +211,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
               {review.userId === user?.uid && (
                 <button
                   onClick={() => handleDeleteReview(review.id)}
-                  className="absolute bottom-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors rounded-full hover:bg-red-50"
+                  className="absolute bottom-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors rounded-full hover:bg-[var(--gray-200)]"
                   title="Usuń opinię"
                 >
                   <svg
