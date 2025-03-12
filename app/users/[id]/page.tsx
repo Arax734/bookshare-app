@@ -15,6 +15,7 @@ import defaultAvatar from "@/public/images/default-avatar.png";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import Link from "next/link";
 
 interface Review {
   id: string;
@@ -26,6 +27,8 @@ interface Review {
   userDisplayName?: string;
   userPhotoURL?: string;
   createdAt: any; // You can use Timestamp from firebase if needed
+  bookTitle?: string;
+  bookAuthor?: string;
 }
 
 interface UserProfile {
@@ -41,6 +44,14 @@ interface UserProfile {
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+const fetchBookDetails = async (bookId: string) => {
+  const paddedId = bookId.padStart(14, "0");
+  const response = await fetch(`/api/books/${paddedId}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data;
+};
 
 export default function UserProfile({ params }: PageProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -78,6 +89,18 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
+        // Fetch book details for each review
+        const reviewsWithBooks = await Promise.all(
+          reviewsData.map(async (review) => {
+            const bookDetails = await fetchBookDetails(review.bookId);
+            return {
+              ...review,
+              bookTitle: bookDetails?.title || "Książka niedostępna",
+              bookAuthor: bookDetails?.author || "Autor nieznany",
+            };
+          })
+        );
+
         setUser({
           id: unwrappedParams.id,
           email: userInfo?.userEmail || userData?.email,
@@ -93,7 +116,7 @@ export default function UserProfile({ params }: PageProps) {
             new Date().toISOString(),
         });
 
-        setReviews(reviewsData);
+        setReviews(reviewsWithBooks);
       } catch (error) {
         console.error("Error fetching user profile:", error);
         setError("Nie udało się załadować profilu użytkownika");
@@ -225,32 +248,49 @@ export default function UserProfile({ params }: PageProps) {
               {reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 hover:shadow-md"
+                  className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    {[...Array(10)].map((_, index) => (
-                      <svg
-                        key={index}
-                        className={`w-4 h-4 ${
-                          index + 1 <= review.rating
-                            ? "text-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                    <span className="text-[var(--gray-700)] ml-2">
-                      {review.rating}/10
-                    </span>
-                  </div>
-                  {review.comment && (
-                    <p className="text-[var(--gray-800)] mt-2">
-                      {review.comment}
+                  <div className="flex flex-col space-y-2">
+                    <Link
+                      href={`/books/${review.bookId}`}
+                      className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                    >
+                      {review.bookTitle}
+                    </Link>
+                    <p className="text-sm text-[var(--gray-500)]">
+                      {review.bookAuthor}
                     </p>
-                  )}
+                    <div className="flex items-center gap-2">
+                      {[...Array(10)].map((_, index) => (
+                        <svg
+                          key={index}
+                          className={`w-4 h-4 ${
+                            index + 1 <= review.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                      <span className="text-[var(--gray-700)] ml-2">
+                        {review.rating}/10
+                      </span>
+                    </div>
+                    {review.comment && (
+                      <p className="text-[var(--gray-800)] mt-2">
+                        {review.comment}
+                      </p>
+                    )}
+                    <p className="text-xs text-[var(--gray-500)] mt-2">
+                      {review.createdAt &&
+                        format(review.createdAt.toDate(), "d MMMM yyyy", {
+                          locale: pl,
+                        })}
+                    </p>
+                  </div>
                 </div>
               ))}
               {reviews.length === 0 && (
