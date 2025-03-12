@@ -49,6 +49,11 @@ interface Book {
   totalReviews?: number;
 }
 
+// Add this after other interfaces
+interface ExpandedSections {
+  [key: string]: boolean;
+}
+
 export default function Home() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +63,9 @@ export default function Home() {
     byLanguage: [],
     byDecade: [],
   });
+  const [expandedSections, setExpandedSections] = useState<ExpandedSections>(
+    {}
+  );
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -80,6 +88,15 @@ export default function Home() {
 
     fetchRecommendations();
   }, [user]);
+
+  // Add toggle function
+  const toggleSection = (categoryType: string, category: string) => {
+    const key = `${categoryType}-${category}`;
+    setExpandedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const renderBookCard = (book: Book) => (
     <div
@@ -207,19 +224,47 @@ export default function Home() {
               Polecane w Twoich ulubionych gatunkach
             </h2>
             <div className="space-y-8">
-              {recommendations.byGenre.map((group) => (
-                <div
-                  key={group.category}
-                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
-                    {group.category}
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {group.books.map((book) => renderBookCard(book))}
+              {recommendations.byGenre.map((group) => {
+                const isExpanded =
+                  expandedSections[`genre-${group.category}`] ?? true;
+                return (
+                  <div
+                    key={group.category}
+                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                  >
+                    <button
+                      onClick={() => toggleSection("genre", group.category)}
+                      className="w-full flex items-center justify-between text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        {group.category}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 transform transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
+                        isExpanded ? "mt-4" : "hidden"
+                      }`}
+                    >
+                      {group.books.map((book) => renderBookCard(book))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -230,19 +275,47 @@ export default function Home() {
               Więcej od Twoich ulubionych autorów
             </h2>
             <div className="space-y-8">
-              {recommendations.byAuthor.map((group) => (
-                <div
-                  key={group.category}
-                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
-                    {group.category}
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {group.books.map((book) => renderBookCard(book))}
+              {recommendations.byAuthor.map((group) => {
+                const isExpanded =
+                  expandedSections[`author-${group.category}`] ?? true;
+                return (
+                  <div
+                    key={group.category}
+                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                  >
+                    <button
+                      onClick={() => toggleSection("author", group.category)}
+                      className="w-full flex items-center justify-between text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        {group.category}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 transform transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
+                        isExpanded ? "mt-4" : "hidden"
+                      }`}
+                    >
+                      {group.books.map((book) => renderBookCard(book))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -253,19 +326,47 @@ export default function Home() {
               Książki w preferowanych językach
             </h2>
             <div className="space-y-8">
-              {recommendations.byLanguage.map((group) => (
-                <div
-                  key={group.category}
-                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
-                    {group.category}
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {group.books.map((book) => renderBookCard(book))}
+              {recommendations.byLanguage.map((group) => {
+                const isExpanded =
+                  expandedSections[`language-${group.category}`] ?? true;
+                return (
+                  <div
+                    key={group.category}
+                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                  >
+                    <button
+                      onClick={() => toggleSection("language", group.category)}
+                      className="w-full flex items-center justify-between text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        {group.category}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 transform transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
+                        isExpanded ? "mt-4" : "hidden"
+                      }`}
+                    >
+                      {group.books.map((book) => renderBookCard(book))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -276,19 +377,47 @@ export default function Home() {
               Z okresu, który Cię interesuje
             </h2>
             <div className="space-y-8">
-              {recommendations.byDecade.map((group) => (
-                <div
-                  key={group.category}
-                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
-                    {group.category}
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {group.books.map((book) => renderBookCard(book))}
+              {recommendations.byDecade.map((group) => {
+                const isExpanded =
+                  expandedSections[`decade-${group.category}`] ?? true;
+                return (
+                  <div
+                    key={group.category}
+                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                  >
+                    <button
+                      onClick={() => toggleSection("decade", group.category)}
+                      className="w-full flex items-center justify-between text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        {group.category}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 transform transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
+                        isExpanded ? "mt-4" : "hidden"
+                      }`}
+                    >
+                      {group.books.map((book) => renderBookCard(book))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
