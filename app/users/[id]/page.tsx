@@ -18,6 +18,7 @@ import { pl } from "date-fns/locale";
 import Link from "next/link";
 import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
 import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
+import { parsePhoneNumber } from "libphonenumber-js";
 
 interface Review {
   id: string;
@@ -60,6 +61,19 @@ export default function UserProfile({ params }: PageProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const formatPhoneNumber = (phone: string | undefined) => {
+    if (!phone) return "Nie podano";
+    try {
+      const phoneNumber = parsePhoneNumber(phone);
+      if (phoneNumber) {
+        return phoneNumber.formatInternational();
+      }
+      return phone;
+    } catch {
+      return phone;
+    }
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -174,7 +188,7 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                   <div className="flex items-center text-[var(--gray-500)]">
                     <PhoneIcon className="w-5 h-5 mr-2" />
-                    <span>{user.phoneNumber || "Nie podano"}</span>
+                    <span>{formatPhoneNumber(user.phoneNumber)}</span>
                   </div>
                 </div>
               </div>

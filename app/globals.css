@@ -136,7 +136,7 @@ button {
 }
 
 .phone-input-container .form-control {
-  @apply w-full px-4 py-2 rounded-xl z-20 border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 h-auto pl-[65px] !important;
+  @apply w-full px-4 py-2 rounded-xl z-20 border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 h-auto pl-[65px] font-[Montserrat] antialiased !important;
 }
 
 .phone-input-container .form-control:focus + div.flag-dropdown {
@@ -183,7 +183,7 @@ button {
 }
 
 .phone-input-container .country-list .country {
-  @apply text-[var(--foreground)] z-30 !important;
+  @apply text-[var(--foreground)] z-30 font-[Montserrat] antialiased !important;
 }
 
 .phone-input-container .country-list .country:hover {
