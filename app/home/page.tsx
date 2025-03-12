@@ -6,17 +6,16 @@ import { db } from "@/firebase/config";
 import { useAuth } from "../hooks/useAuth";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
-import { TagIcon } from "../components/svg-icons/TagIcon";
-import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
-import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import Link from "next/link";
+import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
+import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
+import { TagIcon } from "../components/svg-icons/TagIcon";
 
 interface Review {
   bookId: string;
   rating: number;
 }
 
-// Add averageRating and totalReviews to Book interface
 interface Book {
   id: string;
   title: string;
@@ -158,7 +157,6 @@ export default function Home() {
     fetchRecommendations();
   }, [user]);
 
-  // Update the renderBookCard function to include ratings
   const renderBookCard = (book: Book) => (
     <div
       key={book.id}
