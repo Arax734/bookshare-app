@@ -16,6 +16,7 @@ interface Review {
   rating: number;
 }
 
+// Add averageRating and totalReviews to Book interface
 interface Book {
   id: string;
   title: string;
@@ -24,6 +25,8 @@ interface Book {
   language: string;
   publicationYear: number;
   coverUrl?: string;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 interface RecommendationGroups {
@@ -42,6 +45,26 @@ export default function Home() {
     byLanguage: {},
     byYear: {},
   });
+
+  // Add this function to fetch ratings
+  const fetchBookRatings = async (bookId: string) => {
+    const paddedId = bookId.padStart(14, "0");
+    const q = query(collection(db, "reviews"), where("bookId", "==", paddedId));
+
+    const querySnapshot = await getDocs(q);
+    const reviews = querySnapshot.docs.map((doc) => doc.data());
+
+    if (reviews.length === 0) return { average: 0, total: 0 };
+
+    const sum = reviews.reduce(
+      (acc: number, review: any) => acc + review.rating,
+      0
+    );
+    return {
+      average: Number((sum / reviews.length).toFixed(1)),
+      total: reviews.length,
+    };
+  };
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -63,13 +86,22 @@ export default function Home() {
           (review) => review.rating >= 7
         );
 
-        // Fetch books for highly rated reviews
+        // Update the book fetching part in fetchRecommendations
         const booksData = await Promise.all(
           highlyRatedReviews.map(async (review) => {
             const response = await fetch(`/api/books/${review.bookId}`);
             if (!response.ok) return null;
             const book = await response.json();
-            return { ...book, id: review.bookId } as Book;
+
+            // Fetch ratings for the book
+            const ratings = await fetchBookRatings(review.bookId);
+
+            return {
+              ...book,
+              id: review.bookId,
+              averageRating: ratings.average,
+              totalReviews: ratings.total,
+            } as Book;
           })
         );
 
@@ -126,6 +158,7 @@ export default function Home() {
     fetchRecommendations();
   }, [user]);
 
+  // Update the renderBookCard function to include ratings
   const renderBookCard = (book: Book) => (
     <div
       key={book.id}
@@ -140,7 +173,7 @@ export default function Home() {
 
       {/* Main content */}
       <div className="p-5">
-        {/* Author and year section */}
+        {/* Author and year section with ratings */}
         <div className="flex items-start mb-4 pb-4 border-b border-gray-100">
           <div className="flex-1">
             <p className="font-semibold text-[var(--gray-800)] mb-1">
@@ -149,6 +182,30 @@ export default function Home() {
             <div className="flex items-center text-[var(--gray-700)]">
               <CalendarIcon className="h-4 w-4 mr-1" />
               <span>{book.publicationYear || "Rok nieznany"}</span>
+            </div>
+
+            {/* Add rating display */}
+            <div className="flex items-center mt-2 gap-2">
+              <div className="flex items-center">
+                <svg
+                  className="w-5 h-5 text-yellow-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="ml-1 text-sm font-medium text-[var(--gray-700)]">
+                  {book.averageRating
+                    ? `${book.averageRating}/10`
+                    : "Brak ocen"}
+                </span>
+              </div>
+              {book.totalReviews ? (
+                <span className="text-sm text-[var(--gray-500)]">
+                  ({book.totalReviews}{" "}
+                  {book.totalReviews === 1 ? "opinia" : "opinii"})
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
