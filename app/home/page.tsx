@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, getDocs, where } from "firebase/firestore";
-import { db } from "@/firebase/config";
 import { useAuth } from "../hooks/useAuth";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
@@ -11,9 +9,32 @@ import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import { TagIcon } from "../components/svg-icons/TagIcon";
 
-interface Review {
-  bookId: string;
-  rating: number;
+// Update interfaces
+interface RecommendationItem {
+  category: string;
+  books: any[];
+}
+
+interface RecommendationResponse {
+  recommendations: {
+    byGenre: RecommendationItem[];
+    byAuthor: RecommendationItem[];
+    byLanguage: RecommendationItem[];
+    byDecade: RecommendationItem[];
+  };
+  stats: {
+    genres: { item: string; count: number }[];
+    authors: { item: string; count: number }[];
+    languages: { item: string; count: number }[];
+    decades: { item: string; count: number }[];
+  };
+}
+
+interface RecommendationGroups {
+  byGenre: RecommendationItem[];
+  byAuthor: RecommendationItem[];
+  byLanguage: RecommendationItem[];
+  byDecade: RecommendationItem[];
 }
 
 interface Book {
@@ -28,125 +49,28 @@ interface Book {
   totalReviews?: number;
 }
 
-interface RecommendationGroups {
-  byGenre: { [key: string]: Book[] };
-  byAuthor: { [key: string]: Book[] };
-  byLanguage: { [key: string]: Book[] };
-  byYear: { [key: string]: Book[] };
-}
-
 export default function Home() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<RecommendationGroups>({
-    byGenre: {},
-    byAuthor: {},
-    byLanguage: {},
-    byYear: {},
+    byGenre: [],
+    byAuthor: [],
+    byLanguage: [],
+    byDecade: [],
   });
-
-  // Add this function to fetch ratings
-  const fetchBookRatings = async (bookId: string) => {
-    const paddedId = bookId.padStart(14, "0");
-    const q = query(collection(db, "reviews"), where("bookId", "==", paddedId));
-
-    const querySnapshot = await getDocs(q);
-    const reviews = querySnapshot.docs.map((doc) => doc.data());
-
-    if (reviews.length === 0) return { average: 0, total: 0 };
-
-    const sum = reviews.reduce(
-      (acc: number, review: any) => acc + review.rating,
-      0
-    );
-    return {
-      average: Number((sum / reviews.length).toFixed(1)),
-      total: reviews.length,
-    };
-  };
 
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!user) return;
 
       try {
-        // Fetch user's reviews
-        const reviewsQuery = query(
-          collection(db, "reviews"),
-          where("userId", "==", user.uid)
-        );
-        const reviewsSnapshot = await getDocs(reviewsQuery);
-        const reviews = reviewsSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-        })) as Review[];
+        const response = await fetch(`/api/recommendations?userId=${user.uid}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch recommendations");
+        }
 
-        // Group highly rated books (rating >= 7)
-        const highlyRatedReviews = reviews.filter(
-          (review) => review.rating >= 7
-        );
-
-        // Update the book fetching part in fetchRecommendations
-        const booksData = await Promise.all(
-          highlyRatedReviews.map(async (review) => {
-            const response = await fetch(`/api/books/${review.bookId}`);
-            if (!response.ok) return null;
-            const book = await response.json();
-
-            // Fetch ratings for the book
-            const ratings = await fetchBookRatings(review.bookId);
-
-            return {
-              ...book,
-              id: review.bookId,
-              averageRating: ratings.average,
-              totalReviews: ratings.total,
-            } as Book;
-          })
-        );
-
-        const validBooks = booksData.filter(
-          (book): book is Book => book !== null
-        );
-
-        // Group recommendations
-        const grouped = validBooks.reduce<RecommendationGroups>(
-          (acc, book) => {
-            // Group by genre
-            if (book.genre) {
-              acc.byGenre[book.genre] = acc.byGenre[book.genre] || [];
-              acc.byGenre[book.genre].push(book);
-            }
-
-            // Group by author
-            if (book.author) {
-              acc.byAuthor[book.author] = acc.byAuthor[book.author] || [];
-              acc.byAuthor[book.author].push(book);
-            }
-
-            // Group by language
-            if (book.language) {
-              acc.byLanguage[book.language] =
-                acc.byLanguage[book.language] || [];
-              acc.byLanguage[book.language].push(book);
-            }
-
-            // Group by decade
-            const decade = Math.floor(book.publicationYear / 10) * 10;
-            const decadeKey = `${decade}s`;
-            acc.byYear[decadeKey] = acc.byYear[decadeKey] || [];
-            acc.byYear[decadeKey].push(book);
-
-            return acc;
-          },
-          {
-            byGenre: {},
-            byAuthor: {},
-            byLanguage: {},
-            byYear: {},
-          }
-        );
-
-        setRecommendations(grouped);
+        const data: RecommendationResponse = await response.json();
+        setRecommendations(data.recommendations);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
       } finally {
@@ -277,59 +201,87 @@ export default function Home() {
           </p>
         </div>
 
-        {Object.keys(recommendations.byGenre).length > 0 && (
+        {recommendations.byGenre.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
               Polecane w Twoich ulubionych gatunkach
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(recommendations.byGenre).map(([genre, books]) =>
-                books.map((book) => renderBookCard(book))
-              )}
+              {recommendations.byGenre.map((group) => (
+                <div key={group.category}>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                    {group.category}
+                  </h3>
+                  <div className="space-y-4">
+                    {group.books.map((book) => renderBookCard(book))}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
-        {Object.keys(recommendations.byAuthor).length > 0 && (
+        {recommendations.byAuthor.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
               Więcej od Twoich ulubionych autorów
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(recommendations.byAuthor).map(([author, books]) =>
-                books.map((book) => renderBookCard(book))
-              )}
+              {recommendations.byAuthor.map((group) => (
+                <div key={group.category}>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                    {group.category}
+                  </h3>
+                  <div className="space-y-4">
+                    {group.books.map((book) => renderBookCard(book))}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
-        {Object.keys(recommendations.byLanguage).length > 0 && (
+        {recommendations.byLanguage.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
               Książki w preferowanych językach
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(recommendations.byLanguage).map(
-                ([language, books]) => books.map((book) => renderBookCard(book))
-              )}
+              {recommendations.byLanguage.map((group) => (
+                <div key={group.category}>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                    {group.category}
+                  </h3>
+                  <div className="space-y-4">
+                    {group.books.map((book) => renderBookCard(book))}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
-        {Object.keys(recommendations.byYear).length > 0 && (
+        {recommendations.byDecade.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
               Z okresu, który Cię interesuje
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(recommendations.byYear).map(([year, books]) =>
-                books.map((book) => renderBookCard(book))
-              )}
+              {recommendations.byDecade.map((group) => (
+                <div key={group.category}>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                    {group.category}
+                  </h3>
+                  <div className="space-y-4">
+                    {group.books.map((book) => renderBookCard(book))}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
-        {!Object.keys(recommendations.byGenre).length && (
+        {!recommendations.byGenre.length && (
           <div className="text-center py-12">
             <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
