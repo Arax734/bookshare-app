@@ -203,16 +203,19 @@ export default function Home() {
 
         {recommendations.byGenre.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Polecane w Twoich ulubionych gatunkach
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
               {recommendations.byGenre.map((group) => (
-                <div key={group.category}>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                <div
+                  key={group.category}
+                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                >
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
                     {group.category}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {group.books.map((book) => renderBookCard(book))}
                   </div>
                 </div>
@@ -223,16 +226,19 @@ export default function Home() {
 
         {recommendations.byAuthor.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Więcej od Twoich ulubionych autorów
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
               {recommendations.byAuthor.map((group) => (
-                <div key={group.category}>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                <div
+                  key={group.category}
+                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                >
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
                     {group.category}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {group.books.map((book) => renderBookCard(book))}
                   </div>
                 </div>
@@ -243,16 +249,19 @@ export default function Home() {
 
         {recommendations.byLanguage.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Książki w preferowanych językach
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
               {recommendations.byLanguage.map((group) => (
-                <div key={group.category}>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                <div
+                  key={group.category}
+                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                >
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
                     {group.category}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {group.books.map((book) => renderBookCard(book))}
                   </div>
                 </div>
@@ -263,16 +272,19 @@ export default function Home() {
 
         {recommendations.byDecade.length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Z okresu, który Cię interesuje
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
               {recommendations.byDecade.map((group) => (
-                <div key={group.category}>
-                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">
+                <div
+                  key={group.category}
+                  className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                >
+                  <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 pb-2 border-b border-[var(--gray-200)]">
                     {group.category}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {group.books.map((book) => renderBookCard(book))}
                   </div>
                 </div>

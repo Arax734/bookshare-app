@@ -35,18 +35,14 @@ async function fetchSimilarBooks(params: {
 }
 
 export async function GET(request: NextRequest) {
-  console.log("Starting recommendations fetch...");
   const searchParams = request.nextUrl.searchParams;
   const userId = searchParams.get("userId");
 
   if (!userId) {
-    console.log("No userId provided");
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
   }
 
   try {
-    console.log("Fetching highly rated books for user:", userId);
-    // Fetch user's highly rated books from Firestore
     const reviewsQuery = query(
       collection(db, "reviews"),
       where("userId", "==", userId),
@@ -58,10 +54,6 @@ export async function GET(request: NextRequest) {
       bookId: doc.data().bookId,
       rating: doc.data().rating,
     }));
-    console.log("Found highly rated books:", highlyRatedBooks.length);
-
-    // Fetch book details from BN API for each highly rated book
-    console.log("Fetching book details from BN API...");
     const bookDetailsPromises = highlyRatedBooks.map(async ({ bookId }) => {
       const paddedId = bookId.padStart(14, "0");
       const url = `https://data.bn.org.pl/api/institutions/bibs.json?id=${paddedId}`;
@@ -80,7 +72,6 @@ export async function GET(request: NextRequest) {
 
     const books = await Promise.all(bookDetailsPromises);
     const validBooks = books.filter((book) => book !== null);
-    console.log("Valid books found:", validBooks.length);
 
     // Helper function to count and sort items
     const getTopItems = (
@@ -124,15 +115,6 @@ export async function GET(request: NextRequest) {
     const topLanguages = getTopItems(validBooks, "language");
     const topDecades = getTopDecades(validBooks);
 
-    console.log("Top categories found:", {
-      genres: topGenres,
-      authors: topAuthors,
-      languages: topLanguages,
-      decades: topDecades,
-    });
-
-    // Fetch similar books based on top items
-    console.log("Fetching similar books...");
     const similarBooksPromises = {
       byGenre: Promise.all(
         topGenres.map(async ({ item, count }) => {
@@ -181,13 +163,6 @@ export async function GET(request: NextRequest) {
         similarBooksPromises.byLanguage,
         similarBooksPromises.byDecade,
       ]);
-
-    console.log("Similar books stats:", {
-      genreBooks: genreBooks.length,
-      authorBooks: authorBooks.length,
-      languageBooks: languageBooks.length,
-      decadeBooks: decadeBooks.length,
-    });
 
     return NextResponse.json({
       recommendations: {
