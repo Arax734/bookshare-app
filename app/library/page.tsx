@@ -9,7 +9,7 @@ import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Link from "next/link";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/firebase/config"; // Import your Firebase configuration
+import { db } from "@/firebase/config";
 
 interface Marc {
   leader: string;
