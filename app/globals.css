@@ -129,3 +129,67 @@ button {
 .animate-slide-down {
   animation: slideDown 0.3s ease-out forwards;
 }
+
+/* Phone Input Custom Styles */
+.phone-input-container {
+  @apply w-full;
+}
+
+.phone-input-container .form-control {
+  @apply w-full px-4 py-2 rounded-xl z-20 border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 h-auto pl-[65px] !important;
+}
+
+.phone-input-container .form-control:focus + div.flag-dropdown {
+  border-right: 2px solid var(--primaryColorLight) !important;
+}
+
+.phone-input-container .flag-dropdown {
+  @apply w-14 z-30 hover:bg-[var(--gray-100)] transition-colors duration-200 !important;
+  background: rgba(0, 0, 0, 0) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0) !important;
+  border-right: 2px solid var(--gray-200) !important;
+  transition: border-right-color 0.2s ease !important;
+}
+
+.phone-input-container .flag-dropdown:hover {
+  background: rgba(0, 0, 0, 0) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0) !important;
+  border-right: 2px solid var(--gray-200) !important;
+}
+
+.phone-input-container .flag-dropdown.open {
+  @apply z-30 rounded-lg w-14 !important;
+}
+
+.phone-input-container .selected-flag {
+  @apply pl-4 z-30 w-full !important;
+  background: none !important;
+  border-top: 1px solid rgba(0, 0, 0, 0) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0) !important;
+}
+
+.phone-input-container .flag-dropdown.open {
+  border-radius: 0 !important;
+}
+
+.phone-input-container .country-list {
+  @apply bg-[var(--background)] border-[var(--gray-200)] z-30 rounded-b-xl shadow-lg !important;
+}
+
+.phone-input-container .country-list .country {
+  @apply text-[var(--foreground)] z-30 !important;
+}
+
+.phone-input-container .country-list .country:hover {
+  @apply bg-[var--gray-100] z-30 !important;
+}
+
+.phone-input-container .country-list .country.highlight {
+  @apply bg-[var(--gray-100)] z-30 !important;
+}

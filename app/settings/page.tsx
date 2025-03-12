@@ -26,7 +26,10 @@ import {
   doc,
   deleteDoc,
   updateDoc, // Add this import
+  getDoc, // Add this import
 } from "firebase/firestore";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 export default function Settings() {
   const { user, signInWithGoogle, signInWithFacebook } = useAuth();
@@ -54,6 +57,12 @@ export default function Settings() {
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Add new state variables
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [bio, setBio] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPhoneValid, setIsPhoneValid] = useState(true);
+
   useEffect(() => {
     if (user !== undefined) {
       setIsLoading(false);
@@ -79,12 +88,64 @@ export default function Settings() {
     }
   }, []);
 
+  // Add useEffect to load initial data
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setPhoneNumber(userData.phoneNumber || "");
+          setBio(userData.bio || "");
+        }
+      }
+    };
+
+    loadUserData();
+  }, [user]);
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
+  // Add phone validation function
+  const validatePhoneNumber = (phone: string) => {
+    // Remove spaces and special characters
+    const cleanPhone = phone.replace(/\D/g, "");
+    // Basic validation - at least 9 digits after country code
+    return cleanPhone.length >= 11;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
+    if (!validatePhoneNumber(phoneNumber)) {
+      setError("Wprowadź poprawny numer telefonu");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const userDocRef = doc(db, "users", user.uid);
+
+      await updateDoc(userDocRef, {
+        phoneNumber,
+        bio,
+      });
+
+      localStorage.setItem(
+        "showSuccessMessage",
+        "Dane zostały zaktualizowane pomyślnie!"
+      );
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setError("Wystąpił błąd podczas aktualizacji profilu");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
@@ -401,14 +462,28 @@ export default function Settings() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Numer telefonu
                     </label>
-                    <input
-                      type="tel"
-                      defaultValue={user?.phoneNumber || ""}
-                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                    <PhoneInput
+                      country={"pl"}
+                      value={phoneNumber}
+                      onChange={(phone: string) => {
+                        setPhoneNumber(phone);
+                        setIsPhoneValid(validatePhoneNumber(phone));
+                      }}
+                      inputProps={{
+                        required: true,
+                      }}
+                      containerClass="phone-input-container"
+                      enableSearch={false}
+                      disableSearchIcon={true}
                     />
+                    {!isPhoneValid && phoneNumber && (
+                      <p className="mt-1 text-sm text-red-500">
+                        Wprowadź poprawny numer telefonu
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -416,6 +491,8 @@ export default function Settings() {
                       Bio
                     </label>
                     <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
                       rows={4}
                       className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
                       placeholder="Napisz coś o sobie..."
@@ -425,9 +502,10 @@ export default function Settings() {
                   <div className="pt-4 transition-all duration-200">
                     <button
                       type="submit"
-                      className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105"
+                      disabled={isSaving}
+                      className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                      Zapisz zmiany
+                      {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
                     </button>
                   </div>
                 </div>
