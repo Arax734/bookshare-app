@@ -211,7 +211,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
           .map((review) => (
             <div
               key={review.id}
-              className="bg-[var(--background)] p-4 rounded-lg border border-[var(--gray-200)] relative"
+              className="bg-[var(--background)] shadow p-4 rounded-lg border border-[var(--gray-200)] relative"
             >
               {/* Add delete button in top-right corner for user's review */}
               {review.userId === user?.uid && (

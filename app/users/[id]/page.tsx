@@ -16,6 +16,8 @@ import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import Link from "next/link";
+import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
+import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 
 interface Review {
   id: string;
@@ -153,11 +155,11 @@ export default function UserProfile({ params }: PageProps) {
               </div>
 
               {/* Profile Info */}
-              <div className="flex-1 text-center md:text-left transition-all duration-200">
+              <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
                 <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
                   {user.displayName}
                 </h1>
-                <p className="text-[var(--gray-500)] text-sm font-medium mt-1 transition-colors duration-200">
+                <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
                   Dołączył(a):{" "}
                   {user.creationTime
                     ? format(new Date(user.creationTime), "d MMMM yyyy", {
@@ -165,33 +167,16 @@ export default function UserProfile({ params }: PageProps) {
                       })
                     : "Data niedostępna"}
                 </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information Card */}
-        <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
-          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
-            <h2 className="text-xl font-bold">Dane kontaktowe</h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="transition-colors duration-200">
-                <label className="block text-sm font-semibold text-[var(--foreground)] transition-colors duration-200">
-                  Email
-                </label>
-                <p className="mt-1 text-[var(--gray-800)] transition-colors duration-200">
-                  {user.email}
-                </p>
-              </div>
-              <div className="transition-colors duration-200">
-                <label className="block text-sm font-semibold text-[var(--foreground)] transition-colors duration-200">
-                  Telefon
-                </label>
-                <p className="mt-1 text-[var(--gray-800)] transition-colors duration-200">
-                  {user.phoneNumber || "Nie podano"}
-                </p>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center text-[var(--gray-500)]">
+                    <EnvelopeIcon className="w-5 h-5 mr-2" />
+                    <span>{user.email}</span>
+                  </div>
+                  <div className="flex items-center text-[var(--gray-500)]">
+                    <PhoneIcon className="w-5 h-5 mr-2" />
+                    <span>{user.phoneNumber || "Nie podano"}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

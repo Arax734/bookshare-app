@@ -183,7 +183,7 @@ export default function Navbar() {
           >
             <div className="py-1">
               <a
-                href="/profile"
+                href={user ? `/users/${user.uid}` : "/login"}
                 className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
               >
                 <UserCircleIcon width={20} height={20} className="mr-3" />
