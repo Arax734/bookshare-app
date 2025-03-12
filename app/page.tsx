@@ -14,6 +14,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "./hooks/useAuth";
 import { updateProfile } from "firebase/auth";
 import Link from "next/link";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase/config";
+import { serverTimestamp } from "firebase/firestore";
 
 const schema = yup.object().shape({
   firstName: yup
@@ -53,13 +56,43 @@ export default function Register() {
     resolver: yupResolver(schema),
   });
 
+  const createUserDocument = async (
+    userId: string,
+    userData: {
+      email: string;
+      displayName: string;
+      photoURL?: string;
+    }
+  ) => {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: userData.email,
+        displayName: userData.displayName,
+        photoURL: userData.photoURL || null,
+        phoneNumber: "",
+        createdAt: serverTimestamp(),
+      });
+    }
+  };
+
   const onSubmit = async (data: FormInputs) => {
     try {
       const res = await registerUser(data.email, data.password);
       if (res) {
+        const displayName = `${data.firstName} ${data.lastName}`;
         await updateProfile(res, {
-          displayName: `${data.firstName} ${data.lastName}`,
+          displayName: displayName,
         });
+
+        // Create user document in Firestore
+        await createUserDocument(res.uid, {
+          email: data.email,
+          displayName: displayName,
+        });
+
         console.log("Użytkownik zarejestrowany:", res);
         router.push("/home");
       }
@@ -75,6 +108,13 @@ export default function Register() {
     try {
       const user = await signInWithGoogle();
       if (user) {
+        // Create user document for Google sign-in
+        await createUserDocument(user.uid, {
+          email: user.email!,
+          displayName: user.displayName!,
+          photoURL: user.photoURL!,
+        });
+
         console.log("Zalogowano przez Google:", user);
         router.push("/home");
       }
@@ -88,6 +128,13 @@ export default function Register() {
     try {
       const user = await signInWithFacebook();
       if (user) {
+        // Create user document for Facebook sign-in
+        await createUserDocument(user.uid, {
+          email: user.email!,
+          displayName: user.displayName!,
+          photoURL: user.photoURL!,
+        });
+
         console.log("Zalogowano przez Facebook:", user);
         router.push("/home");
       }
