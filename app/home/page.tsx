@@ -1,8 +1,214 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, getDocs, where } from "firebase/firestore";
+import { db } from "@/firebase/config";
+import { useAuth } from "../hooks/useAuth";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
+import { TagIcon } from "../components/svg-icons/TagIcon";
+import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
+import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
+import Link from "next/link";
+
+interface Review {
+  bookId: string;
+  rating: number;
+}
+
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  genre: string;
+  language: string;
+  publicationYear: number;
+  coverUrl?: string;
+}
+
+interface RecommendationGroups {
+  byGenre: { [key: string]: Book[] };
+  byAuthor: { [key: string]: Book[] };
+  byLanguage: { [key: string]: Book[] };
+  byYear: { [key: string]: Book[] };
+}
 
 export default function Home() {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<RecommendationGroups>({
+    byGenre: {},
+    byAuthor: {},
+    byLanguage: {},
+    byYear: {},
+  });
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user's reviews
+        const reviewsQuery = query(
+          collection(db, "reviews"),
+          where("userId", "==", user.uid)
+        );
+        const reviewsSnapshot = await getDocs(reviewsQuery);
+        const reviews = reviewsSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+        })) as Review[];
+
+        // Group highly rated books (rating >= 7)
+        const highlyRatedReviews = reviews.filter(
+          (review) => review.rating >= 7
+        );
+
+        // Fetch books for highly rated reviews
+        const booksData = await Promise.all(
+          highlyRatedReviews.map(async (review) => {
+            const response = await fetch(`/api/books/${review.bookId}`);
+            if (!response.ok) return null;
+            const book = await response.json();
+            return { ...book, id: review.bookId } as Book;
+          })
+        );
+
+        const validBooks = booksData.filter(
+          (book): book is Book => book !== null
+        );
+
+        // Group recommendations
+        const grouped = validBooks.reduce<RecommendationGroups>(
+          (acc, book) => {
+            // Group by genre
+            if (book.genre) {
+              acc.byGenre[book.genre] = acc.byGenre[book.genre] || [];
+              acc.byGenre[book.genre].push(book);
+            }
+
+            // Group by author
+            if (book.author) {
+              acc.byAuthor[book.author] = acc.byAuthor[book.author] || [];
+              acc.byAuthor[book.author].push(book);
+            }
+
+            // Group by language
+            if (book.language) {
+              acc.byLanguage[book.language] =
+                acc.byLanguage[book.language] || [];
+              acc.byLanguage[book.language].push(book);
+            }
+
+            // Group by decade
+            const decade = Math.floor(book.publicationYear / 10) * 10;
+            const decadeKey = `${decade}s`;
+            acc.byYear[decadeKey] = acc.byYear[decadeKey] || [];
+            acc.byYear[decadeKey].push(book);
+
+            return acc;
+          },
+          {
+            byGenre: {},
+            byAuthor: {},
+            byLanguage: {},
+            byYear: {},
+          }
+        );
+
+        setRecommendations(grouped);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecommendations();
+  }, [user]);
+
+  const renderBookCard = (book: Book) => (
+    <div
+      key={book.id}
+      className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+    >
+      {/* Book card header with title */}
+      <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+        <h2 className="text-xl font-bold line-clamp-2" title={book.title}>
+          {book.title || "Tytuł niedostępny"}
+        </h2>
+      </div>
+
+      {/* Main content */}
+      <div className="p-5">
+        {/* Author and year section */}
+        <div className="flex items-start mb-4 pb-4 border-b border-gray-100">
+          <div className="flex-1">
+            <p className="font-semibold text-[var(--gray-800)] mb-1">
+              {book.author || "Nieznany autor"}
+            </p>
+            <div className="flex items-center text-[var(--gray-700)]">
+              <CalendarIcon className="h-4 w-4 mr-1" />
+              <span>{book.publicationYear || "Rok nieznany"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Details grid */}
+        <div className="grid grid-cols-1 gap-3">
+          {/* Language */}
+          <div className="flex items-start">
+            <LanguageIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-[var(--gray-800)] font-medium">
+                Język
+              </p>
+              <p className="text-sm text-[var(--gray-700)] capitalize">
+                {book.language || "Nieokreślony"}
+              </p>
+            </div>
+          </div>
+
+          {/* Genre */}
+          <div className="flex items-start">
+            <TagIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-gray-800 font-medium dark:text-gray-200">
+                Gatunek
+              </p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {book.genre && (
+                  <span
+                    className="text-xs px-2 py-1 rounded-md"
+                    style={{
+                      backgroundColor: "var(--genre-bg)",
+                      color: "var(--genre-text)",
+                    }}
+                  >
+                    {book.genre}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="mt-6 flex gap-2">
+          <Link
+            href={`/books/${book.id}`}
+            className="flex-1 bg-[var(--primaryColor)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium text-center"
+          >
+            Zobacz szczegóły
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <main className="container mx-auto px-4 py-8 bg-[var(--background)] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -16,45 +222,74 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Genre-based Recommendations */}
-        <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-            Polecane w Twoich ulubionych gatunkach
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Recommendation cards will go here */}
-          </div>
-        </section>
+        {Object.keys(recommendations.byGenre).length > 0 && (
+          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+              Polecane w Twoich ulubionych gatunkach
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(recommendations.byGenre).map(([genre, books]) =>
+                books.map((book) => renderBookCard(book))
+              )}
+            </div>
+          </section>
+        )}
 
-        {/* Author-based Recommendations */}
-        <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-            Więcej od Twoich ulubionych autorów
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Recommendation cards will go here */}
-          </div>
-        </section>
+        {Object.keys(recommendations.byAuthor).length > 0 && (
+          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+              Więcej od Twoich ulubionych autorów
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(recommendations.byAuthor).map(([author, books]) =>
+                books.map((book) => renderBookCard(book))
+              )}
+            </div>
+          </section>
+        )}
 
-        {/* Language-based Recommendations */}
-        <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-            Książki w preferowanych językach
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Recommendation cards will go here */}
-          </div>
-        </section>
+        {Object.keys(recommendations.byLanguage).length > 0 && (
+          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+              Książki w preferowanych językach
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(recommendations.byLanguage).map(
+                ([language, books]) => books.map((book) => renderBookCard(book))
+              )}
+            </div>
+          </section>
+        )}
 
-        {/* Publication Year Recommendations */}
-        <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-            Z okresu, który Cię interesuje
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Recommendation cards will go here */}
+        {Object.keys(recommendations.byYear).length > 0 && (
+          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
+              Z okresu, który Cię interesuje
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(recommendations.byYear).map(([year, books]) =>
+                books.map((book) => renderBookCard(book))
+              )}
+            </div>
+          </section>
+        )}
+
+        {!Object.keys(recommendations.byGenre).length && (
+          <div className="text-center py-12">
+            <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
+              Brak spersonalizowanych rekomendacji
+            </h2>
+            <p className="text-[var(--gray-500)] max-w-md mx-auto">
+              Aby otrzymać spersonalizowane rekomendacje:
+            </p>
+            <ul className="text-[var(--gray-500)] mt-4 space-y-2">
+              <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
+              <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
+              <li>• Sprawdź książki różnych autorów</li>
+            </ul>
           </div>
-        </section>
+        )}
       </div>
     </main>
   );
