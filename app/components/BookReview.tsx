@@ -19,6 +19,7 @@ import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 export interface Review {
   id: string;
@@ -38,6 +39,7 @@ interface BookReviewProps {
 }
 
 export default function BookReview({ bookId }: BookReviewProps) {
+  const router = useRouter();
   const [user] = useAuthState(auth);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -115,6 +117,10 @@ export default function BookReview({ bookId }: BookReviewProps) {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (sum / reviews.length).toFixed(1);
+  };
+
+  const handleUserClick = (userId: string) => {
+    router.push(`/users/${userId}`);
   };
 
   return (
@@ -232,7 +238,10 @@ export default function BookReview({ bookId }: BookReviewProps) {
 
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                  <div
+                    className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleUserClick(review.userId)}
+                  >
                     <Image
                       src={review.userPhotoURL || defaultAvatar}
                       alt="User avatar"
@@ -241,7 +250,10 @@ export default function BookReview({ bookId }: BookReviewProps) {
                     />
                   </div>
                   <div>
-                    <p className="font-medium text-[var(--gray-800)]">
+                    <p
+                      className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] cursor-pointer transition-colors"
+                      onClick={() => handleUserClick(review.userId)}
+                    >
                       {review.userDisplayName || "Użytkownik anonimowy"}
                     </p>
                     <div className="flex items-center space-x-2 text-sm text-[var(--gray-500)]">

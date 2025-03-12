@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { db } from "@/firebase/config";
 import Image from "next/image";
 import {
   EmailAuthProvider,
@@ -17,6 +18,15 @@ import {
 } from "firebase/storage";
 import { storage } from "@/firebase/config";
 import LoadingSpinner from "../components/LoadingSpinner";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc, // Add this import
+} from "firebase/firestore";
 
 export default function Settings() {
   const { user, signInWithGoogle, signInWithFacebook } = useAuth();
@@ -84,7 +94,7 @@ export default function Settings() {
     if (!user) return;
 
     try {
-      // Add App Check error handling
+      // Re-authenticate user
       try {
         if (authMethod === "password") {
           const credential = EmailAuthProvider.credential(
@@ -107,9 +117,23 @@ export default function Settings() {
           const imageRef = ref(storage, `avatars/${user.uid}`);
           await deleteObject(imageRef);
         } catch (storageError) {
-          // Ignore error if image doesn't exist
           console.log("No profile image to delete or already deleted");
         }
+
+        // Delete all user's reviews
+        const reviewsQuery = query(
+          collection(db, "reviews"),
+          where("userId", "==", user.uid)
+        );
+        const reviewsSnapshot = await getDocs(reviewsQuery);
+        const deleteReviewsPromises = reviewsSnapshot.docs.map((doc) =>
+          deleteDoc(doc.ref)
+        );
+        await Promise.all(deleteReviewsPromises);
+
+        // Delete user document from users collection
+        const userDocRef = doc(db, "users", user.uid);
+        await deleteDoc(userDocRef);
 
         // Delete user account
         await user.delete();
@@ -221,16 +245,32 @@ export default function Settings() {
       setIsUploading(true);
       setUploadError("");
 
-      // Add App Check error handling
       try {
+        // Upload image to Storage
         const imageRef = ref(storage, `avatars/${user.uid}`);
         await uploadBytes(imageRef, file);
         const downloadURL = await getDownloadURL(imageRef);
 
-        // Update user profile
+        // Update Auth profile
         await updateProfile(user, {
           photoURL: downloadURL,
         });
+
+        // Update Firestore document
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          photoURL: downloadURL,
+        });
+
+        // Force refresh the auth state
+        await user.reload();
+
+        // Store success message and reload page
+        localStorage.setItem(
+          "showSuccessMessage",
+          "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
+        );
+        window.location.reload();
       } catch (error: any) {
         if (
           error.code === "storage/unauthorized" ||
@@ -241,18 +281,6 @@ export default function Settings() {
         }
         throw error;
       }
-
-      // Force refresh the auth state to update the navbar
-      await user.reload();
-
-      // Refresh the page and show success message after reload
-      window.location.reload();
-
-      // Success message will be shown after page reload
-      localStorage.setItem(
-        "showSuccessMessage",
-        "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
-      );
     } catch (error) {
       console.error("Error uploading image:", error);
       setUploadError("Wystąpił błąd podczas przesyłania zdjęcia");
