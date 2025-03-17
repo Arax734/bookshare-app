@@ -182,6 +182,9 @@ export default function Navbar() {
               <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
               <div className="relative w-9 h-9 rounded-full overflow-hidden">
                 <div className="w-full h-full bg-[var(--gray-300)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-[var(--gray-400)] border-t-transparent rounded-full animate-spin"></div>
+                </div>
               </div>
               <div className="absolute right-3 bottom-2 flex items-center justify-center">
                 <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
@@ -197,32 +200,18 @@ export default function Navbar() {
                 {userData?.displayName || user?.displayName || "Użytkownik"}
               </span>
               <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]">
-                {!isImageReady && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-1">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
                 {userData?.photoURL && (
                   <Image
                     src={userData.photoURL}
                     alt="Profile"
                     fill
-                    className={`object-cover transition-opacity duration-200 ${
+                    className={`object-cover transition-opacity ${
                       isImageReady ? "opacity-100" : "opacity-0"
                     }`}
                     onLoadingComplete={() => {
                       setIsImageLoading(false);
                       setIsImageReady(true);
                     }}
-                    priority
-                  />
-                )}
-                {!userData?.photoURL && isImageReady && (
-                  <Image
-                    src={defaultAvatar}
-                    alt="Default Profile"
-                    fill
-                    className="object-cover"
                     priority
                   />
                 )}
