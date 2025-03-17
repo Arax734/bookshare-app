@@ -122,7 +122,18 @@ export default function Settings() {
 
   // Add useEffect to check for form changes
   useEffect(() => {
-    const hasChanges = phoneNumber !== initialPhoneNumber || bio !== initialBio;
+    const hasPhoneChanged = phoneNumber !== initialPhoneNumber;
+    const hasBioChanged = bio !== initialBio;
+    const hasChanges = hasPhoneChanged || hasBioChanged;
+
+    console.log("Form changes:", {
+      hasPhoneChanged,
+      hasBioChanged,
+      phoneNumber,
+      initialPhoneNumber,
+      bio,
+      initialBio,
+    });
 
     setIsFormChanged(hasChanges);
   }, [phoneNumber, bio, initialPhoneNumber, initialBio]);
@@ -168,9 +179,13 @@ export default function Settings() {
   // Modify the handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !isFormChanged) return;
 
-    if (!validatePhoneNumber(phoneNumber)) {
+    // Only validate phone number if it has changed
+    if (
+      phoneNumber !== initialPhoneNumber &&
+      !validatePhoneNumber(phoneNumber)
+    ) {
       setError("Wprowadź poprawny numer telefonu");
       return;
     }
@@ -178,11 +193,17 @@ export default function Settings() {
     try {
       setIsSaving(true);
       const userDocRef = doc(db, "users", user.uid);
+      const updateData: { [key: string]: string } = {};
 
-      await updateDoc(userDocRef, {
-        phoneNumber: formatPhoneForSaving(phoneNumber),
-        bio,
-      });
+      // Only include changed fields in the update
+      if (phoneNumber !== initialPhoneNumber) {
+        updateData.phoneNumber = formatPhoneForSaving(phoneNumber);
+      }
+      if (bio !== initialBio) {
+        updateData.bio = bio;
+      }
+
+      await updateDoc(userDocRef, updateData);
 
       localStorage.setItem(
         "showSuccessMessage",
@@ -487,17 +508,6 @@ export default function Settings() {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   {/* Form inputs without transitions */}
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
-                      Imię i nazwisko
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={user?.displayName || ""}
-                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Email

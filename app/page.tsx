@@ -61,7 +61,7 @@ export default function Register() {
     userData: {
       email: string;
       displayName: string;
-      photoURL?: string;
+      photoURL?: string | null;
     }
   ) => {
     const userRef = doc(db, "users", userId);
@@ -70,9 +70,10 @@ export default function Register() {
     if (!userSnap.exists()) {
       await setDoc(userRef, {
         email: userData.email,
-        displayName: userData.displayName,
+        displayName: userData.displayName || "Użytkownik",
         photoURL: userData.photoURL || null,
         phoneNumber: "",
+        bio: "",
         createdAt: serverTimestamp(),
       });
     }
