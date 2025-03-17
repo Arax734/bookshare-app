@@ -32,7 +32,12 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 export default function Settings() {
-  const { user, signInWithGoogle, signInWithFacebook } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    signInWithGoogle,
+    signInWithFacebook,
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [password, setPassword] = useState("");
@@ -69,12 +74,6 @@ export default function Settings() {
   const [isFormChanged, setIsFormChanged] = useState(false);
 
   useEffect(() => {
-    if (user !== undefined) {
-      setIsLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (user?.providerData[0]?.providerId) {
       const provider = user.providerData[0].providerId;
       if (provider === "password") setAuthMethod("password");
@@ -96,7 +95,9 @@ export default function Settings() {
   // Modify the useEffect that loads initial data
   useEffect(() => {
     const loadUserData = async () => {
-      if (user) {
+      if (!user || authLoading) return;
+
+      try {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
@@ -109,11 +110,15 @@ export default function Settings() {
           setInitialPhoneNumber(phone);
           setInitialBio(userBio);
         }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadUserData();
-  }, [user]);
+  }, [user, authLoading]);
 
   // Add useEffect to check for form changes
   useEffect(() => {
@@ -122,8 +127,13 @@ export default function Settings() {
     setIsFormChanged(hasChanges);
   }, [phoneNumber, bio, initialPhoneNumber, initialBio]);
 
-  if (isLoading) {
-    return <LoadingSpinner />;
+  // Show loading spinner while authenticating or loading user data
+  if (authLoading || isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   // Add phone validation function

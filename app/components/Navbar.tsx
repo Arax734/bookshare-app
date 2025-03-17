@@ -48,6 +48,10 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
+      // Remove the session cookie
+      await fetch("/api/auth/session", {
+        method: "DELETE",
+      });
       router.push("/login");
     } catch (error) {
       console.error("Błąd wylogowania:", error);
@@ -55,6 +59,9 @@ export default function Navbar() {
   };
 
   const defaultAvatar = "/images/default-avatar.png";
+
+  // Show loading skeleton if loading or no user
+  const showSkeleton = isLoading || !user;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 shadow flex justify-between items-center bg-secondary p-2 px-10">
@@ -140,7 +147,7 @@ export default function Navbar() {
         </button>
 
         <div className="relative">
-          {isLoading ? (
+          {showSkeleton ? (
             <div className="flex items-center space-x-3 bg-[var(--primaryColor)] rounded-full px-4 py-2 animate-pulse">
               <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
               <div className="relative w-9 h-9 rounded-full overflow-hidden">
