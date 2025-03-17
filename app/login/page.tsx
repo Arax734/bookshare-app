@@ -29,12 +29,13 @@ const schema = yup.object().shape({
 
 type FormInputs = yup.InferType<typeof schema>;
 
+// Add this helper function at the top of the file
 const createUserDocument = async (
   userId: string,
   userData: {
     email: string;
     displayName: string;
-    photoURL?: string | null;
+    photoURL?: string;
   }
 ) => {
   const userRef = doc(db, "users", userId);
@@ -46,7 +47,6 @@ const createUserDocument = async (
       displayName: userData.displayName || "Użytkownik",
       photoURL: userData.photoURL || null,
       phoneNumber: "",
-      bio: "", // Add empty bio field
       createdAt: serverTimestamp(),
     });
   }
@@ -72,16 +72,16 @@ export default function Login() {
     }
   }, [user, router]);
 
-  // Then update the onSubmit handler
   const onSubmit = async (data: FormInputs) => {
     try {
       setErrorMessage("");
       const res = await signInUser(data.email.trim(), data.password);
       if (res) {
+        // Check and create user document if needed
         await createUserDocument(res.uid, {
           email: res.email!,
           displayName: res.displayName || "Użytkownik",
-          photoURL: res.photoURL, // No need to explicitly set null
+          photoURL: res.photoURL || null,
         });
         console.log("Zalogowano pomyślnie:", res);
         router.push("/home");
