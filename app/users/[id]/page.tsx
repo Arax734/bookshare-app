@@ -19,6 +19,7 @@ import Link from "next/link";
 import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
 import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
+import { QuoteIcon } from "@/app/components/svg-icons/QuoteIcon";
 
 interface Review {
   id: string;
@@ -42,6 +43,7 @@ interface UserProfile {
   reviews?: number;
   phoneNumber?: string;
   creationTime?: string;
+  bio?: string; // Add bio field
 }
 
 interface PageProps {
@@ -130,6 +132,7 @@ export default function UserProfile({ params }: PageProps) {
           creationTime:
             userData?.createdAt?.toDate()?.toISOString() ||
             new Date().toISOString(),
+          bio: userData?.bio,
         });
 
         setReviews(reviewsWithBooks);
@@ -157,41 +160,58 @@ export default function UserProfile({ params }: PageProps) {
             <h2 className="text-xl font-bold">Profil użytkownika</h2>
           </div>
           <div className="p-6">
-            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-              {/* Profile Image */}
-              <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
-                <Image
-                  src={user.photoURL || defaultAvatar}
-                  alt="Profile"
-                  fill
-                  className="object-cover shadow-lg transition-shadow duration-200"
-                />
-              </div>
+            <div className="flex flex-col space-y-6">
+              {/* Profile Image and Info */}
+              <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                {/* Profile Image */}
+                <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
+                  <Image
+                    src={user.photoURL || defaultAvatar}
+                    alt="Profile"
+                    fill
+                    className="object-cover shadow-lg transition-shadow duration-200"
+                  />
+                </div>
 
-              {/* Profile Info */}
-              <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
-                <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
-                  {user.displayName}
-                </h1>
-                <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
-                  Dołączył(a):{" "}
-                  {user.creationTime
-                    ? format(new Date(user.creationTime), "d MMMM yyyy", {
-                        locale: pl,
-                      })
-                    : "Data niedostępna"}
-                </p>
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center text-[var(--gray-500)]">
-                    <EnvelopeIcon className="w-5 h-5 mr-2" />
-                    <span>{user.email}</span>
-                  </div>
-                  <div className="flex items-center text-[var(--gray-500)]">
-                    <PhoneIcon className="w-5 h-5 mr-2" />
-                    <span>{formatPhoneNumber(user.phoneNumber)}</span>
+                {/* Profile Info */}
+                <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
+                  <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
+                    {user.displayName}
+                  </h1>
+                  <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
+                    Dołączył(a):{" "}
+                    {user.creationTime
+                      ? format(new Date(user.creationTime), "d MMMM yyyy", {
+                          locale: pl,
+                        })
+                      : "Data niedostępna"}
+                  </p>
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center text-[var(--gray-500)]">
+                      <EnvelopeIcon className="w-5 h-5 mr-2" />
+                      <span>{user.email}</span>
+                    </div>
+                    <div className="flex items-center text-[var(--gray-500)]">
+                      <PhoneIcon className="w-5 h-5 mr-2" />
+                      <span>{formatPhoneNumber(user.phoneNumber)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Bio Section */}
+              {user.bio && (
+                <div className="relative mt-4 w-full">
+                  <div className="bg-[var(--background)] rounded-xl p-4 shadow-sm border border-[var(--gray-200)]">
+                    <h3 className="text-sm font-medium text-[var(--gray-700)] mb-2">
+                      O mnie
+                    </h3>
+                    <p className="text-sm leading-relaxed text-[var(--gray-600)] italic relative">
+                      {user.bio}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -12,6 +12,8 @@ import { FacebookIcon } from "../components/svg-icons/FacebookIcon";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/firebase/config";
 
 const schema = yup.object().shape({
   email: yup
@@ -26,6 +28,29 @@ const schema = yup.object().shape({
 });
 
 type FormInputs = yup.InferType<typeof schema>;
+
+const createUserDocument = async (
+  userId: string,
+  userData: {
+    email: string;
+    displayName: string;
+    photoURL?: string | null;
+  }
+) => {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      email: userData.email,
+      displayName: userData.displayName || "Użytkownik",
+      photoURL: userData.photoURL || null,
+      phoneNumber: "",
+      bio: "", // Add empty bio field
+      createdAt: serverTimestamp(),
+    });
+  }
+};
 
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
@@ -47,11 +72,17 @@ export default function Login() {
     }
   }, [user, router]);
 
+  // Then update the onSubmit handler
   const onSubmit = async (data: FormInputs) => {
     try {
       setErrorMessage("");
       const res = await signInUser(data.email.trim(), data.password);
       if (res) {
+        await createUserDocument(res.uid, {
+          email: res.email!,
+          displayName: res.displayName || "Użytkownik",
+          photoURL: res.photoURL, // No need to explicitly set null
+        });
         console.log("Zalogowano pomyślnie:", res);
         router.push("/home");
       }
@@ -74,11 +105,13 @@ export default function Login() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        if (user.metadata.creationTime === user.metadata.lastSignInTime) {
-          console.log("Utworzono nowe konto przez Google:", user);
-        } else {
-          console.log("Zalogowano przez Google:", user);
-        }
+        // Check and create user document if needed
+        await createUserDocument(user.uid, {
+          email: user.email!,
+          displayName: user.displayName!,
+          photoURL: user.photoURL!,
+        });
+        console.log("Zalogowano przez Google:", user);
         router.push("/home");
       }
     } catch (e) {
@@ -91,6 +124,12 @@ export default function Login() {
     try {
       const user = await signInWithFacebook();
       if (user) {
+        // Check and create user document if needed
+        await createUserDocument(user.uid, {
+          email: user.email!,
+          displayName: user.displayName!,
+          photoURL: user.photoURL!,
+        });
         console.log("Zalogowano przez Facebook:", user);
         router.push("/home");
       }
