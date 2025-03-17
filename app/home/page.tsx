@@ -55,7 +55,7 @@ interface ExpandedSections {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<RecommendationGroups>({
     byGenre: [],
@@ -201,8 +201,13 @@ export default function Home() {
     </div>
   );
 
-  if (isLoading) {
-    return <LoadingSpinner />;
+  // Show loading spinner while authenticating or loading data
+  if (authLoading || isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (

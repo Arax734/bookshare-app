@@ -54,12 +54,27 @@ const getAuthErrorMessage = (errorCode: string) => {
 };
 
 export const useAuth = () => {
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Get ID token
+        const token = await user.getIdToken();
+
+        // Store token in cookie
+        await fetch("/api/auth/session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
+      }
+
       setUser(user);
+      setLoading(false);
     });
 
     return () => unsubscribe();
