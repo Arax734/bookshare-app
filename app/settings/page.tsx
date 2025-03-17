@@ -31,7 +31,15 @@ import {
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
+interface UserData {
+  displayName?: string;
+  photoURL?: string;
+  phoneNumber?: string;
+  bio?: string;
+}
+
 export default function Settings() {
+  const [userData, setUserData] = useState<UserData | null>(null);
   const {
     user,
     loading: authLoading,
@@ -73,6 +81,9 @@ export default function Settings() {
   const [initialBio, setInitialBio] = useState("");
   const [isFormChanged, setIsFormChanged] = useState(false);
 
+  // Add new state for image loading
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
   useEffect(() => {
     if (user?.providerData[0]?.providerId) {
       const provider = user.providerData[0].providerId;
@@ -101,10 +112,12 @@ export default function Settings() {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const phone = userData.phoneNumber || "";
-          const userBio = userData.bio || "";
+          const data = userDoc.data() as UserData;
+          setUserData(data);
 
+          // Set other form states
+          const phone = data.phoneNumber || "";
+          const userBio = data.bio || "";
           setPhoneNumber(phone);
           setBio(userBio);
           setInitialPhoneNumber(phone);
@@ -354,6 +367,7 @@ export default function Settings() {
     }
   };
 
+  // Update the handleImageUpload function
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -363,7 +377,7 @@ export default function Settings() {
     const allowedTypes = ["image/jpeg", "image/png"];
 
     if (file.size > maxSize) {
-      setUploadError("Plik jest za duży. Maksymalny rozmiar to 5MB.");
+      setUploadError("Plik jest za duży. Maksymalny rozmiar to 1MB.");
       return;
     }
 
@@ -376,42 +390,23 @@ export default function Settings() {
       setIsUploading(true);
       setUploadError("");
 
-      try {
-        // Upload image to Storage
-        const imageRef = ref(storage, `avatars/${user.uid}`);
-        await uploadBytes(imageRef, file);
-        const downloadURL = await getDownloadURL(imageRef);
+      // Upload image to Storage
+      const imageRef = ref(storage, `avatars/${user.uid}`);
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
 
-        // Update Auth profile
-        await updateProfile(user, {
-          photoURL: downloadURL,
-        });
+      // Update only Firestore document
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        photoURL: downloadURL,
+      });
 
-        // Update Firestore document
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          photoURL: downloadURL,
-        });
-
-        // Force refresh the auth state
-        await user.reload();
-
-        // Store success message and reload page
-        localStorage.setItem(
-          "showSuccessMessage",
-          "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
-        );
-        window.location.reload();
-      } catch (error: any) {
-        if (
-          error.code === "storage/unauthorized" ||
-          error.code === "appcheck/invalid-token"
-        ) {
-          setUploadError("Błąd weryfikacji. Spróbuj ponownie później.");
-          return;
-        }
-        throw error;
-      }
+      // Store success message and reload page
+      localStorage.setItem(
+        "showSuccessMessage",
+        "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
+      );
+      window.location.reload();
     } catch (error) {
       console.error("Error uploading image:", error);
       setUploadError("Wystąpił błąd podczas przesyłania zdjęcia");
@@ -472,17 +467,19 @@ export default function Settings() {
             <div className="p-6">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden">
+                  {(isImageLoading || isUploading) && (
+                    <div className="absolute inset-0 bg-[var(--gray-200)] bg-opacity-50 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-[var(--primaryColorLight)] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                   <Image
-                    src={user?.photoURL || defaultAvatar}
+                    src={userData?.photoURL || defaultAvatar}
                     alt="Profile"
                     fill
                     className="object-cover transition-all duration-200 shadow"
+                    onLoadingComplete={() => setIsImageLoading(false)}
+                    priority
                   />
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
                 </div>
 
                 <input
@@ -495,7 +492,7 @@ export default function Settings() {
 
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={authMethod !== "password" || isUploading}
+                  disabled={isUploading}
                   className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                 >
                   {isUploading ? "Weryfikacja..." : "Zmień zdjęcie"}

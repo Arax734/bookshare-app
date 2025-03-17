@@ -11,15 +11,23 @@ import { SettingsIcon } from "./svg-icons/SettingsIcon";
 import { useTheme } from "../contexts/ThemeContext";
 import { SunIcon } from "./svg-icons/SunIcon";
 import { MoonIcon } from "./svg-icons/MoonIcon";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase/config";
 
 export default function Navbar() {
   const router = useRouter();
   const { logout, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImageReady, setIsImageReady] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { theme, toggleTheme } = useTheme();
+  const [userData, setUserData] = useState<{
+    displayName?: string;
+    photoURL?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user !== undefined) {
@@ -44,6 +52,28 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  useEffect(() => {
+    setIsImageLoading(true);
+    setIsImageReady(false);
+  }, [userData?.photoURL]);
 
   const handleLogout = async () => {
     try {
@@ -164,15 +194,38 @@ export default function Navbar() {
               className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] rounded-full px-4 py-2 transition-colors duration-200"
             >
               <span className="text-white">
-                {user?.displayName || "Użytkownik"}
+                {userData?.displayName || user?.displayName || "Użytkownik"}
               </span>
-              <div className="relative w-9 h-9 rounded-full overflow-hidden">
-                <Image
-                  src={user?.photoURL || defaultAvatar}
-                  alt="Profile"
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]">
+                {!isImageReady && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-1">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                {userData?.photoURL && (
+                  <Image
+                    src={userData.photoURL}
+                    alt="Profile"
+                    fill
+                    className={`object-cover transition-opacity duration-200 ${
+                      isImageReady ? "opacity-100" : "opacity-0"
+                    }`}
+                    onLoadingComplete={() => {
+                      setIsImageLoading(false);
+                      setIsImageReady(true);
+                    }}
+                    priority
+                  />
+                )}
+                {!userData?.photoURL && isImageReady && (
+                  <Image
+                    src={defaultAvatar}
+                    alt="Default Profile"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                )}
               </div>
               <div className="absolute right-3 bottom-2 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
                 <ArrowDownIcon width={10} height={10} fill="black" />
