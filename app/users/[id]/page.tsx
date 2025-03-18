@@ -57,6 +57,19 @@ const fetchBookDetails = async (bookId: string) => {
   return data;
 };
 
+const getHighResProfileImage = (photoURL: string | undefined) => {
+  if (!photoURL) return defaultAvatar;
+
+  // Handle Google Photos URL
+  if (photoURL.includes("googleusercontent.com")) {
+    // Remove =s96-c parameter and add =s400-c for higher resolution
+    return photoURL.replace(/=s\d+-c/, "=s400-c");
+  }
+
+  // Handle other providers or return original URL
+  return photoURL;
+};
+
 export default function UserProfile({ params }: PageProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -158,10 +171,11 @@ export default function UserProfile({ params }: PageProps) {
                 {/* Profile Image */}
                 <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
                   <Image
-                    src={user.photoURL || defaultAvatar}
+                    src={getHighResProfileImage(user.photoURL)}
                     alt="Profile"
                     fill
                     className="object-cover shadow-lg transition-shadow duration-200"
+                    quality={100}
                   />
                 </div>
 
