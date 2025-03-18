@@ -64,7 +64,25 @@ export default function Home() {
     byDecade: [],
   });
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>(
-    {}
+    () => {
+      const initial: ExpandedSections = {};
+
+      // Pre-populate with true values for each section
+      recommendations.byGenre.forEach((group) => {
+        initial[`genre-${group.category}`] = true;
+      });
+      recommendations.byAuthor.forEach((group) => {
+        initial[`author-${group.category}`] = true;
+      });
+      recommendations.byLanguage.forEach((group) => {
+        initial[`language-${group.category}`] = true;
+      });
+      recommendations.byDecade.forEach((group) => {
+        initial[`decade-${group.category}`] = true;
+      });
+
+      return initial;
+    }
   );
 
   useEffect(() => {
@@ -88,6 +106,34 @@ export default function Home() {
 
     fetchRecommendations();
   }, [user]);
+
+  // Update useEffect to reinitialize expandedSections when recommendations change
+  useEffect(() => {
+    setExpandedSections((prev) => {
+      const newState = { ...prev };
+      recommendations.byGenre.forEach((group) => {
+        if (!(`genre-${group.category}` in newState)) {
+          newState[`genre-${group.category}`] = true;
+        }
+      });
+      recommendations.byAuthor.forEach((group) => {
+        if (!(`author-${group.category}` in newState)) {
+          newState[`author-${group.category}`] = true;
+        }
+      });
+      recommendations.byLanguage.forEach((group) => {
+        if (!(`language-${group.category}` in newState)) {
+          newState[`language-${group.category}`] = true;
+        }
+      });
+      recommendations.byDecade.forEach((group) => {
+        if (!(`decade-${group.category}` in newState)) {
+          newState[`decade-${group.category}`] = true;
+        }
+      });
+      return newState;
+    });
+  }, [recommendations]);
 
   // Add toggle function
   const toggleSection = (categoryType: string, category: string) => {
@@ -223,226 +269,261 @@ export default function Home() {
           </p>
         </div>
 
-        {recommendations.byGenre.length > 0 && (
+        {/* Only render sections that have books */}
+        {recommendations.byGenre.filter((group) => group.books.length > 0)
+          .length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Polecane w Twoich ulubionych gatunkach
             </h2>
             <div className="space-y-8">
-              {recommendations.byGenre.map((group) => {
-                const isExpanded =
-                  expandedSections[`genre-${group.category}`] ?? true;
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("genre", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
+              {recommendations.byGenre
+                .filter((group) => group.books.length > 0)
+                .map((group) => {
+                  const isExpanded =
+                    expandedSections[`genre-${group.category}`] ?? true;
+                  return (
                     <div
-                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
-                        isExpanded ? "mt-4" : "hidden"
-                      }`}
+                      key={group.category}
+                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
                     >
-                      {group.books.map((book) => renderBookCard(book))}
+                      <button
+                        onClick={() => toggleSection("genre", group.category)}
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                          {group.category}
+                        </h3>
+                        <svg
+                          className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                            isExpanded ? "rotate-180" : "rotate-0"
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                          isExpanded
+                            ? "max-h-[2000px] opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                          {group.books.map((book) => renderBookCard(book))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </section>
         )}
 
-        {recommendations.byAuthor.length > 0 && (
+        {recommendations.byAuthor.filter((group) => group.books.length > 0)
+          .length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Więcej od Twoich ulubionych autorów
             </h2>
             <div className="space-y-8">
-              {recommendations.byAuthor.map((group) => {
-                const isExpanded =
-                  expandedSections[`author-${group.category}`] ?? true;
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("author", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
+              {recommendations.byAuthor
+                .filter((group) => group.books.length > 0)
+                .map((group) => {
+                  const isExpanded =
+                    expandedSections[`author-${group.category}`] ?? true;
+                  return (
                     <div
-                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
-                        isExpanded ? "mt-4" : "hidden"
-                      }`}
+                      key={group.category}
+                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
                     >
-                      {group.books.map((book) => renderBookCard(book))}
+                      <button
+                        onClick={() => toggleSection("author", group.category)}
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                          {group.category}
+                        </h3>
+                        <svg
+                          className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                            isExpanded ? "rotate-180" : "rotate-0"
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                          isExpanded
+                            ? "max-h-[2000px] opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                          {group.books.map((book) => renderBookCard(book))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </section>
         )}
 
-        {recommendations.byLanguage.length > 0 && (
+        {recommendations.byLanguage.filter((group) => group.books.length > 0)
+          .length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Książki w preferowanych językach
             </h2>
             <div className="space-y-8">
-              {recommendations.byLanguage.map((group) => {
-                const isExpanded =
-                  expandedSections[`language-${group.category}`] ?? true;
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("language", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
+              {recommendations.byLanguage
+                .filter((group) => group.books.length > 0)
+                .map((group) => {
+                  const isExpanded =
+                    expandedSections[`language-${group.category}`] ?? true;
+                  return (
                     <div
-                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
-                        isExpanded ? "mt-4" : "hidden"
-                      }`}
+                      key={group.category}
+                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
                     >
-                      {group.books.map((book) => renderBookCard(book))}
+                      <button
+                        onClick={() =>
+                          toggleSection("language", group.category)
+                        }
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                          {group.category}
+                        </h3>
+                        <svg
+                          className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                            isExpanded ? "rotate-180" : "rotate-0"
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                          isExpanded
+                            ? "max-h-[2000px] opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                          {group.books.map((book) => renderBookCard(book))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </section>
         )}
 
-        {recommendations.byDecade.length > 0 && (
+        {recommendations.byDecade.filter((group) => group.books.length > 0)
+          .length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
               Z okresu, który Cię interesuje
             </h2>
             <div className="space-y-8">
-              {recommendations.byDecade.map((group) => {
-                const isExpanded =
-                  expandedSections[`decade-${group.category}`] ?? true;
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("decade", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
+              {recommendations.byDecade
+                .filter((group) => group.books.length > 0)
+                .map((group) => {
+                  const isExpanded =
+                    expandedSections[`decade-${group.category}`] ?? true;
+                  return (
                     <div
-                      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-200 ${
-                        isExpanded ? "mt-4" : "hidden"
-                      }`}
+                      key={group.category}
+                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
                     >
-                      {group.books.map((book) => renderBookCard(book))}
+                      <button
+                        onClick={() => toggleSection("decade", group.category)}
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                          {group.category}
+                        </h3>
+                        <svg
+                          className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                            isExpanded ? "rotate-180" : "rotate-0"
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                          isExpanded
+                            ? "max-h-[2000px] opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                          {group.books.map((book) => renderBookCard(book))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </section>
         )}
 
-        {!recommendations.byGenre.length && (
-          <div className="text-center py-12">
-            <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
-              Brak spersonalizowanych rekomendacji
-            </h2>
-            <p className="text-[var(--gray-500)] max-w-md mx-auto">
-              Aby otrzymać spersonalizowane rekomendacje:
-            </p>
-            <ul className="text-[var(--gray-500)] mt-4 space-y-2">
-              <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
-              <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
-              <li>• Sprawdź książki różnych autorów</li>
-            </ul>
-          </div>
-        )}
+        {/* No recommendations message */}
+        {!recommendations.byGenre.some((group) => group.books.length > 0) &&
+          !recommendations.byAuthor.some((group) => group.books.length > 0) &&
+          !recommendations.byLanguage.some((group) => group.books.length > 0) &&
+          !recommendations.byDecade.some((group) => group.books.length > 0) && (
+            <div className="text-center py-12">
+              <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
+                Brak spersonalizowanych rekomendacji
+              </h2>
+              <p className="text-[var(--gray-500)] max-w-md mx-auto">
+                Aby otrzymać spersonalizowane rekomendacje:
+              </p>
+              <ul className="text-[var(--gray-500)] mt-4 space-y-2">
+                <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
+                <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
+                <li>• Sprawdź książki różnych autorów</li>
+              </ul>
+            </div>
+          )}
       </div>
     </main>
   );

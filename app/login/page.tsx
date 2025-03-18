@@ -35,7 +35,7 @@ const createUserDocument = async (
   userData: {
     email: string;
     displayName: string;
-    photoURL?: string;
+    photoURL?: string | null;
   }
 ) => {
   const userRef = doc(db, "users", userId);
