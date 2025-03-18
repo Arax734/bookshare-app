@@ -19,7 +19,6 @@ import Link from "next/link";
 import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
 import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
-import { QuoteIcon } from "@/app/components/svg-icons/QuoteIcon";
 
 interface Review {
   id: string;
@@ -82,9 +81,16 @@ export default function UserProfile({ params }: PageProps) {
       try {
         const unwrappedParams = await params;
 
-        // First try to get user data from users collection
+        // Get user data from Firestore
         const userDocRef = doc(db, "users", unwrappedParams.id);
         const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+          setError("Nie znaleziono użytkownika");
+          return;
+        }
+
+        const userData = userDoc.data();
 
         // Get reviews
         const reviewsQuery = query(
@@ -97,15 +103,6 @@ export default function UserProfile({ params }: PageProps) {
           id: doc.id,
           ...doc.data(),
         })) as Review[];
-
-        const userInfo = reviewsData[0];
-
-        if (!userDoc.exists() && !userInfo) {
-          setError("Nie znaleziono użytkownika");
-          return;
-        }
-
-        const userData = userDoc.data();
 
         // Fetch book details for each review
         const reviewsWithBooks = await Promise.all(
@@ -121,18 +118,13 @@ export default function UserProfile({ params }: PageProps) {
 
         setUser({
           id: unwrappedParams.id,
-          email: userInfo?.userEmail || userData?.email,
-          displayName:
-            userInfo?.userDisplayName ||
-            userData?.displayName ||
-            "Użytkownik anonimowy",
-          photoURL: userInfo?.userPhotoURL || userData?.photoURL,
+          email: userData.email,
+          displayName: userData.displayName || "Użytkownik anonimowy",
+          photoURL: userData.photoURL,
           reviews: reviewsData.length,
-          phoneNumber: userData?.phoneNumber,
-          creationTime:
-            userData?.createdAt?.toDate()?.toISOString() ||
-            new Date().toISOString(),
-          bio: userData?.bio,
+          phoneNumber: userData.phoneNumber,
+          creationTime: userData.createdAt?.toDate()?.toISOString(),
+          bio: userData.bio,
         });
 
         setReviews(reviewsWithBooks);

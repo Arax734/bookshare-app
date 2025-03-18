@@ -13,6 +13,7 @@ import {
   Timestamp,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import Image from "next/image";
@@ -38,6 +39,11 @@ interface BookReviewProps {
   bookId: string;
 }
 
+interface UserData {
+  photoURL?: string;
+  displayName?: string;
+}
+
 export default function BookReview({ bookId }: BookReviewProps) {
   const router = useRouter();
   const [user] = useAuthState(auth);
@@ -47,6 +53,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [userReview, setUserReview] = useState<Review | null>(null);
+  const [usersData, setUsersData] = useState<{ [key: string]: UserData }>({});
 
   const paddedBookId = bookId.padStart(14, "0");
 
@@ -74,6 +81,30 @@ export default function BookReview({ bookId }: BookReviewProps) {
 
     return () => unsubscribe();
   }, [paddedBookId, user]);
+
+  useEffect(() => {
+    const fetchUsersData = async () => {
+      const userIds = [...new Set(reviews.map((review) => review.userId))];
+      const userData: { [key: string]: UserData } = {};
+
+      for (const userId of userIds) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", userId));
+          if (userDoc.exists()) {
+            userData[userId] = userDoc.data() as UserData;
+          }
+        } catch (error) {
+          console.error(`Error fetching user data for ${userId}:`, error);
+        }
+      }
+
+      setUsersData(userData);
+    };
+
+    if (reviews.length > 0) {
+      fetchUsersData();
+    }
+  }, [reviews]);
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,7 +274,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
                     onClick={() => handleUserClick(review.userId)}
                   >
                     <Image
-                      src={review.userPhotoURL || defaultAvatar}
+                      src={usersData[review.userId]?.photoURL || defaultAvatar}
                       alt="User avatar"
                       fill
                       className="object-cover"

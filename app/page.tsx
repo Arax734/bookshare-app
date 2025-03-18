@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -46,7 +46,7 @@ type FormInputs = yup.InferType<typeof schema>;
 export default function Register() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-  const { registerUser, signInWithGoogle, signInWithFacebook, loading } =
+  const { registerUser, signInWithGoogle, signInWithFacebook, loading, user } =
     useAuth();
   const {
     register,
@@ -55,6 +55,12 @@ export default function Register() {
   } = useForm<FormInputs>({
     resolver: yupResolver(schema),
   });
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/home");
+    }
+  }, [user, router]);
 
   const createUserDocument = async (
     userId: string,
