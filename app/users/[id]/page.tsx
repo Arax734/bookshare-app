@@ -9,6 +9,9 @@ import {
   getDocs,
   doc,
   getDoc,
+  limit,
+  orderBy,
+  startAfter,
 } from "firebase/firestore";
 import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
@@ -75,6 +78,10 @@ export default function UserProfile({ params }: PageProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const REVIEWS_PER_PAGE = 5;
 
   const formatPhoneNumber = (phone: string | undefined) => {
     if (!phone) return "Nie podano";
@@ -93,8 +100,6 @@ export default function UserProfile({ params }: PageProps) {
     const fetchUserProfile = async () => {
       try {
         const unwrappedParams = await params;
-
-        // Get user data from Firestore
         const userDocRef = doc(db, "users", unwrappedParams.id);
         const userDoc = await getDoc(userDocRef);
 
@@ -105,10 +110,12 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
-        // Get reviews
+        // Get reviews with ordering
         const reviewsQuery = query(
           collection(db, "reviews"),
-          where("userId", "==", unwrappedParams.id)
+          where("userId", "==", unwrappedParams.id),
+          orderBy("createdAt", "desc"), // Add ordering
+          limit(REVIEWS_PER_PAGE)
         );
 
         const reviewsSnapshot = await getDocs(reviewsQuery);
@@ -117,7 +124,14 @@ export default function UserProfile({ params }: PageProps) {
           ...doc.data(),
         })) as Review[];
 
-        // Fetch book details for each review
+        // Get total count separately
+        const totalReviewsQuery = query(
+          collection(db, "reviews"),
+          where("userId", "==", unwrappedParams.id)
+        );
+        const totalReviewsSnapshot = await getDocs(totalReviewsQuery);
+
+        // Fetch book details for initial reviews
         const reviewsWithBooks = await Promise.all(
           reviewsData.map(async (review) => {
             const bookDetails = await fetchBookDetails(review.bookId);
@@ -129,18 +143,20 @@ export default function UserProfile({ params }: PageProps) {
           })
         );
 
+        // In the fetchUserProfile function, update the setUser call:
         setUser({
           id: unwrappedParams.id,
           email: userData.email,
           displayName: userData.displayName || "Użytkownik anonimowy",
           photoURL: userData.photoURL,
-          reviews: reviewsData.length,
+          reviews: totalReviewsSnapshot.size,
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
         });
 
-        setReviews(reviewsWithBooks);
+        setReviews(reviewsData); // Store all fetched reviews
+        setDisplayedReviews(reviewsWithBooks); // Show only loaded reviews
       } catch (error) {
         console.error("Error fetching user profile:", error);
         setError("Nie udało się załadować profilu użytkownika");
@@ -151,6 +167,50 @@ export default function UserProfile({ params }: PageProps) {
 
     fetchUserProfile();
   }, [params]);
+
+  const loadMoreReviews = async () => {
+    if (isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const unwrappedParams = await params;
+      const lastReview = reviews[reviews.length - 1];
+
+      const nextReviewsQuery = query(
+        collection(db, "reviews"),
+        where("userId", "==", unwrappedParams.id),
+        orderBy("createdAt", "desc"),
+        startAfter(lastReview.createdAt),
+        limit(REVIEWS_PER_PAGE)
+      );
+
+      const nextReviewsSnapshot = await getDocs(nextReviewsQuery);
+      const nextReviewsData = nextReviewsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Review[];
+
+      // Fetch book details for new reviews
+      const nextReviewsWithBooks = await Promise.all(
+        nextReviewsData.map(async (review) => {
+          const bookDetails = await fetchBookDetails(review.bookId);
+          return {
+            ...review,
+            bookTitle: bookDetails?.title || "Książka niedostępna",
+            bookAuthor: bookDetails?.author || "Autor nieznany",
+          };
+        })
+      );
+
+      setReviews([...reviews, ...nextReviewsWithBooks]);
+      setDisplayedReviews([...displayedReviews, ...nextReviewsWithBooks]);
+      setCurrentPage(currentPage + 1);
+    } catch (error) {
+      console.error("Error loading more reviews:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-500">{error}</div>;
@@ -270,7 +330,7 @@ export default function UserProfile({ params }: PageProps) {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {reviews.map((review) => (
+              {displayedReviews.map((review) => (
                 <div
                   key={review.id}
                   className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
@@ -318,7 +378,25 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
               ))}
-              {reviews.length === 0 && (
+              {user?.reviews && displayedReviews.length < user.reviews && (
+                <button
+                  onClick={loadMoreReviews}
+                  disabled={isLoadingMore}
+                  className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                  text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                  disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <span>Ładowanie...</span>
+                    </>
+                  ) : (
+                    `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviews})`
+                  )}
+                </button>
+              )}
+              {displayedReviews.length === 0 && (
                 <p className="text-center text-[var(--gray-500)]">
                   Brak opinii do wyświetlenia
                 </p>
