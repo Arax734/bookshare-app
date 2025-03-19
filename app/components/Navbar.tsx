@@ -28,6 +28,8 @@ export default function Navbar() {
     displayName?: string;
     photoURL?: string;
   } | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [delayedTooltip, setDelayedTooltip] = useState<string | null>(null);
 
   useEffect(() => {
     if (user !== undefined) {
@@ -75,6 +77,24 @@ export default function Navbar() {
     setIsImageReady(false);
   }, [userData?.photoURL]);
 
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (activeTooltip) {
+      timeoutId = setTimeout(() => {
+        setDelayedTooltip(activeTooltip);
+      }, 200); // 200ms delay before showing tooltip
+    } else {
+      setDelayedTooltip(null);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [activeTooltip]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -94,164 +114,205 @@ export default function Navbar() {
   const showSkeleton = isLoading || !user;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 shadow flex justify-between items-center bg-secondary p-2 px-10">
-      <a href="/home" className="flex items-center space-x-3">
-        <Image
-          src="/bookshare-logo-text.svg"
-          alt="BookShare"
-          width={150}
-          height={75}
-          className="max-[500px]:hidden"
-        />
-        <Image
-          src="/bookshare-logo2.svg"
-          alt="BookShare"
-          width={72}
-          height={72}
-          className="hidden max-[500px]:block"
-        />
-      </a>
-
-      <div className="hidden md:flex items-center space-x-6">
-        <a
-          href="/home"
-          className="text-foreground hover:text-primary flex items-center space-x-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 transition-all duration-200"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-          </svg>
-          <span className="font-medium transition-all duration-200">
-            Główna
-          </span>
-        </a>
-        <a
-          href="/library"
-          className="text-foreground hover:text-primary flex items-center space-x-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 transition-all duration-200"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-          </svg>
-          <span className="font-medium transition-all duration-200">
-            Biblioteka
-          </span>
-        </a>
-        <a
-          href="/exchange"
-          className="text-foreground hover:text-primary flex items-center space-x-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 transition-all duration-200"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
-          </svg>
-          <span className="font-medium transition-all duration-200">
-            Wymiana
-          </span>
+    <nav className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary">
+      {/* Absolute positioned logo section */}
+      <div className="absolute left-10 top-1/2 -translate-y-1/2">
+        <a href="/home" className="flex items-center space-x-3">
+          <Image
+            src="/bookshare-logo-text.svg"
+            alt="BookShare"
+            width={136}
+            height={75}
+            className="max-[500px]:hidden m-1"
+          />
+          <Image
+            src="/bookshare-logo2.svg"
+            alt="BookShare"
+            width={68}
+            height={68}
+            className="hidden max-[500px]:block m-1"
+          />
         </a>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={toggleTheme}
-          className="text-foreground hover:text-primary transition-all duration-200 p-2 rounded-full hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700"
-          aria-label="Toggle theme"
-        >
-          {theme === "light" ? (
-            <MoonIcon className="h-7 w-7 transition-all duration-200 hover:rotate-12" />
-          ) : (
-            <SunIcon className="h-7 w-7 transition-all duration-200 hover:rotate-90" />
-          )}
-        </button>
+      {/* Centered navigation */}
+      <div className="flex justify-center items-center h-full">
+        <div className="hidden md:flex items-center h-full space-x-4">
+          <div className="relative h-5/6 mx-3">
+            <a
+              href="/home"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              onMouseEnter={() => setActiveTooltip("home")}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-7 w-7"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </a>
+            {delayedTooltip === "home" && (
+              <div
+                className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
+                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
+                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+              >
+                Główna
+              </div>
+            )}
+          </div>
 
-        <div className="relative">
-          {showSkeleton ? (
-            <div className="flex items-center space-x-3 bg-[var(--primaryColor)] rounded-full px-4 py-2 animate-pulse">
-              <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
-              <div className="relative w-9 h-9 rounded-full overflow-hidden">
-                <div className="w-full h-full bg-[var(--gray-300)]" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-[var(--gray-400)] border-t-transparent rounded-full animate-spin"></div>
+          <div className="relative h-5/6 mx-3">
+            <a
+              href="/library"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              onMouseEnter={() => setActiveTooltip("library")}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-7 w-7"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+              </svg>
+            </a>
+            {delayedTooltip === "library" && (
+              <div
+                className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
+                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow opacity-0
+                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+              >
+                Biblioteka
+              </div>
+            )}
+          </div>
+
+          <div className="relative h-5/6 mx-3">
+            <a
+              href="/exchange"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              onMouseEnter={() => setActiveTooltip("exchange")}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-7 w-7"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+              </svg>
+            </a>
+            {delayedTooltip === "exchange" && (
+              <div
+                className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
+                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
+                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+              >
+                Wymiana
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Absolute positioned right section */}
+      <div className="absolute right-10 top-1/2 -translate-y-1/2">
+        <div className="flex items-center">
+          <button
+            onClick={toggleTheme}
+            className="text-foreground hover:text-primary transition-all duration-200 p-2 mr-5 rounded-full hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700"
+            aria-label="Toggle theme"
+          >
+            {theme === "light" ? (
+              <MoonIcon className="h-7 w-7 transition-all duration-200 hover:rotate-12" />
+            ) : (
+              <SunIcon className="h-7 w-7 transition-all duration-200 hover:rotate-90" />
+            )}
+          </button>
+
+          <div className="relative">
+            {showSkeleton ? (
+              <div className="flex items-center space-x-3 bg-[var(--primaryColor)] rounded-full px-4 py-2 animate-pulse">
+                <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
+                <div className="relative w-9 h-9 rounded-full overflow-hidden">
+                  <div className="w-full h-full bg-[var(--gray-300)]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-[var(--gray-400)] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                </div>
+                <div className="absolute right-3 bottom-2 flex items-center justify-center">
+                  <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
                 </div>
               </div>
-              <div className="absolute right-3 bottom-2 flex items-center justify-center">
-                <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
-              </div>
-            </div>
-          ) : (
-            <button
-              ref={buttonRef}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] rounded-full px-4 py-2 transition-colors duration-200"
-            >
-              <span className="text-white">
-                {userData?.displayName || user?.displayName || "Użytkownik"}
-              </span>
-              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]">
-                {userData?.photoURL && (
-                  <Image
-                    src={userData.photoURL}
-                    alt="Profile"
-                    fill
-                    className={`object-cover transition-opacity ${
-                      isImageReady ? "opacity-100" : "opacity-0"
-                    }`}
-                    onLoadingComplete={() => {
-                      setIsImageLoading(false);
-                      setIsImageReady(true);
-                    }}
-                    priority
-                  />
-                )}
-              </div>
-              <div className="absolute right-3 bottom-2 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
-                <ArrowDownIcon width={10} height={10} fill="black" />
-              </div>
-            </button>
-          )}
-
-          <div
-            ref={menuRef}
-            className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
-              isMenuOpen
-                ? "opacity-100 scale-100 translate-y-0"
-                : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-            }`}
-          >
-            <div className="py-1">
-              <a
-                href={user ? `/users/${user.uid}` : "/login"}
-                className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
-              >
-                <UserCircleIcon width={20} height={20} className="mr-3" />
-                <span className="font-medium">Profil</span>
-              </a>
-              <a
-                href="/settings"
-                className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
-              >
-                <SettingsIcon width={20} height={20} className="mr-3" />
-                <span className="font-medium">Ustawienia</span>
-              </a>
+            ) : (
               <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                ref={buttonRef}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] rounded-full px-4 py-2 transition-colors duration-200"
               >
-                <LogoutIcon width={20} height={20} className="mr-3" />
-                <span className="font-medium">Wyloguj się</span>
+                <span className="text-white">
+                  {userData?.displayName || user?.displayName || "Użytkownik"}
+                </span>
+                <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]">
+                  {userData?.photoURL && (
+                    <Image
+                      src={userData.photoURL}
+                      alt="Profile"
+                      fill
+                      className={`object-cover transition-opacity ${
+                        isImageReady ? "opacity-100" : "opacity-0"
+                      }`}
+                      onLoadingComplete={() => {
+                        setIsImageLoading(false);
+                        setIsImageReady(true);
+                      }}
+                      priority
+                    />
+                  )}
+                </div>
+                <div className="absolute right-3 bottom-2 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
+                  <ArrowDownIcon width={10} height={10} fill="black" />
+                </div>
               </button>
+            )}
+
+            <div
+              ref={menuRef}
+              className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
+                isMenuOpen
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              }`}
+            >
+              <div className="py-1">
+                <a
+                  href={user ? `/users/${user.uid}` : "/login"}
+                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                >
+                  <UserCircleIcon width={20} height={20} className="mr-3" />
+                  <span className="font-medium">Profil</span>
+                </a>
+                <a
+                  href="/settings"
+                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                >
+                  <SettingsIcon width={20} height={20} className="mr-3" />
+                  <span className="font-medium">Ustawienia</span>
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                >
+                  <LogoutIcon width={20} height={20} className="mr-3" />
+                  <span className="font-medium">Wyloguj się</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

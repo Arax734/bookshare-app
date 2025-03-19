@@ -78,6 +78,10 @@ body {
   font-family: var(--font-montserrat), system-ui, sans-serif;
 }
 
+nav {
+  height: 4.5rem;
+}
+
 main {
   background: var(--gray-50);
 }
@@ -192,4 +196,15 @@ button {
 
 .phone-input-container .country-list .country.highlight {
   @apply bg-[var(--gray-100)] z-30 !important;
+}
+
+@keyframes tooltipAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
 }
