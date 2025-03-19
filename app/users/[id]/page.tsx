@@ -42,10 +42,11 @@ interface UserProfile {
   email: string;
   displayName?: string;
   photoURL?: string;
-  reviews?: number;
+  reviewsCount: number; // Changed from reviews
+  averageRating: number; // Added field
   phoneNumber?: string;
   creationTime?: string;
-  bio?: string; // Add bio field
+  bio?: string;
 }
 
 interface PageProps {
@@ -149,7 +150,8 @@ export default function UserProfile({ params }: PageProps) {
           email: userData.email,
           displayName: userData.displayName || "Użytkownik anonimowy",
           photoURL: userData.photoURL,
-          reviews: totalReviewsSnapshot.size,
+          reviewsCount: userData.reviewsCount || 0,
+          averageRating: userData.averageRating || 0.0,
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
@@ -292,19 +294,11 @@ export default function UserProfile({ params }: PageProps) {
               {[
                 {
                   label: "Opinii",
-                  value: user.reviews || 0,
+                  value: user.reviewsCount,
                 },
                 {
                   label: "Średnia ocen",
-                  value:
-                    reviews.length > 0
-                      ? (
-                          reviews.reduce(
-                            (acc, review) => acc + review.rating,
-                            0
-                          ) / reviews.length
-                        ).toFixed(1)
-                      : "0.0",
+                  value: user.averageRating.toFixed(1),
                 },
               ].map((stat) => (
                 <div
@@ -378,24 +372,25 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
               ))}
-              {user?.reviews && displayedReviews.length < user.reviews && (
-                <button
-                  onClick={loadMoreReviews}
-                  disabled={isLoadingMore}
-                  className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
-                  text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                  disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      <span>Ładowanie...</span>
-                    </>
-                  ) : (
-                    `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviews})`
-                  )}
-                </button>
-              )}
+              {user?.reviewsCount &&
+                displayedReviews.length < user.reviewsCount && (
+                  <button
+                    onClick={loadMoreReviews}
+                    disabled={isLoadingMore}
+                    className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+    text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+    disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        <span>Ładowanie...</span>
+                      </>
+                    ) : (
+                      `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviewsCount})`
+                    )}
+                  </button>
+                )}
               {displayedReviews.length === 0 && (
                 <p className="text-center text-[var(--gray-500)]">
                   Brak opinii do wyświetlenia
