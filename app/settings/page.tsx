@@ -281,6 +281,14 @@ export default function Settings() {
 
         // Delete user account
         await user.delete();
+
+        // Remove the session cookie
+        await fetch("/api/auth/session", {
+          method: "DELETE",
+        });
+
+        // Redirect to home page after successful deletion
+        window.location.href = "/";
       } catch (error: any) {
         if (
           error.code === "auth/unauthorized-domain" ||
