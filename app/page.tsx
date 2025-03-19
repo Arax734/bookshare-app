@@ -176,7 +176,7 @@ export default function Register() {
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
                 <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                  <UserIcon width={20} height={20} fill="gray" />
+                  <UserIcon />
                   <input
                     className="w-full focus:outline-none ml-3"
                     {...register("firstName")}
@@ -193,7 +193,7 @@ export default function Register() {
 
               <div className="flex-1">
                 <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                  <UserIcon width={20} height={20} fill="gray" />
+                  <UserIcon />
                   <input
                     className="w-full focus:outline-none ml-3"
                     {...register("lastName")}
