@@ -121,7 +121,7 @@ export default function Navbar() {
           <Image
             src="/bookshare-logo-text.svg"
             alt="BookShare"
-            width={136}
+            width={105}
             height={75}
             className="max-[500px]:hidden m-1"
           />
@@ -138,7 +138,7 @@ export default function Navbar() {
       {/* Centered navigation */}
       <div className="flex justify-center items-center h-full">
         <div className="hidden md:flex items-center h-full space-x-4">
-          <div className="relative h-5/6 mx-3">
+          <div className="relative h-5/6">
             <a
               href="/home"
               className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
@@ -165,7 +165,7 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="relative h-5/6 mx-3">
+          <div className="relative h-5/6">
             <a
               href="/library"
               className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
@@ -192,7 +192,7 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="relative h-5/6 mx-3">
+          <div className="relative h-5/6">
             <a
               href="/exchange"
               className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
@@ -238,15 +238,20 @@ export default function Navbar() {
 
           <div className="relative">
             {showSkeleton ? (
-              <div className="flex items-center space-x-3 bg-[var(--primaryColor)] rounded-full px-4 py-2 animate-pulse">
-                <div className="w-24 h-6 bg-[var(--gray-300)] rounded-full" />
-                <div className="relative w-9 h-9 rounded-full overflow-hidden">
+              <div className="flex items-center space-x-3 bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 animate-pulse">
+                {/* Name placeholder */}
+                <div className="w-24 h-5 bg-[var(--gray-300)] rounded-full" />
+
+                {/* Avatar placeholder */}
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <div className="w-full h-full bg-[var(--gray-300)]" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-4 h-4 border-2 border-[var(--gray-400)] border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 </div>
-                <div className="absolute right-3 bottom-2 flex items-center justify-center">
+
+                {/* Arrow placeholder */}
+                <div className="absolute right-3 bottom-1 flex items-center justify-center">
                   <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
                 </div>
               </div>
@@ -254,12 +259,12 @@ export default function Navbar() {
               <button
                 ref={buttonRef}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] rounded-full px-4 py-2 transition-colors duration-200"
+                className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 transition-colors duration-200"
               >
-                <span className="text-white">
+                <span className="text-white text-base">
                   {userData?.displayName || user?.displayName || "Użytkownik"}
                 </span>
-                <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--gray-300)]">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-[var(--gray-300)]">
                   {userData?.photoURL && (
                     <Image
                       src={userData.photoURL}
@@ -276,7 +281,7 @@ export default function Navbar() {
                     />
                   )}
                 </div>
-                <div className="absolute right-3 bottom-2 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
+                <div className="absolute right-3 bottom-1 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
                   <ArrowDownIcon width={10} height={10} fill="black" />
                 </div>
               </button>
