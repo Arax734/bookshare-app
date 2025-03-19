@@ -14,6 +14,8 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  updateDoc,
+  runTransaction,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import Image from "next/image";
@@ -112,15 +114,42 @@ export default function BookReview({ bookId }: BookReviewProps) {
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, "reviews"), {
-        bookId: paddedBookId,
-        rating,
-        comment,
-        userId: user.uid,
-        userEmail: user.email,
-        userPhotoURL: user.photoURL,
-        userDisplayName: user.displayName,
-        createdAt: serverTimestamp(),
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        throw new Error("User document not found");
+      }
+
+      await runTransaction(db, async (transaction) => {
+        const userData = userDoc.data();
+        const currentReviewsCount = userData.reviewsCount || 0;
+        const currentTotalRating =
+          (userData.averageRating || 0) * currentReviewsCount;
+
+        // Calculate new values
+        const newReviewsCount = currentReviewsCount + 1;
+        const newAverageRating =
+          (currentTotalRating + rating) / newReviewsCount;
+
+        // Update user document
+        transaction.update(userRef, {
+          reviewsCount: newReviewsCount,
+          averageRating: Number(newAverageRating.toFixed(1)),
+        });
+
+        // Add new review
+        const reviewRef = doc(collection(db, "reviews"));
+        transaction.set(reviewRef, {
+          bookId: paddedBookId,
+          rating,
+          comment,
+          userId: user.uid,
+          userEmail: user.email,
+          userPhotoURL: user.photoURL,
+          userDisplayName: user.displayName,
+          createdAt: serverTimestamp(),
+        });
       });
 
       setRating(0);
@@ -136,7 +165,40 @@ export default function BookReview({ bookId }: BookReviewProps) {
     if (!user) return;
 
     try {
-      await deleteDoc(doc(db, "reviews", reviewId));
+      const userRef = doc(db, "users", user.uid);
+      const reviewRef = doc(db, "reviews", reviewId);
+
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        const reviewDoc = await transaction.get(reviewRef);
+
+        if (!userDoc.exists() || !reviewDoc.exists()) {
+          throw new Error("Document not found");
+        }
+
+        const userData = userDoc.data();
+        const reviewData = reviewDoc.data();
+        const currentReviewsCount = userData.reviewsCount || 0;
+        const currentTotalRating =
+          (userData.averageRating || 0) * currentReviewsCount;
+
+        // Calculate new values
+        const newReviewsCount = currentReviewsCount - 1;
+        const newAverageRating =
+          newReviewsCount > 0
+            ? (currentTotalRating - reviewData.rating) / newReviewsCount
+            : 0;
+
+        // Update user document
+        transaction.update(userRef, {
+          reviewsCount: newReviewsCount,
+          averageRating: Number(newAverageRating.toFixed(1)),
+        });
+
+        // Delete review
+        transaction.delete(reviewRef);
+      });
+
       setUserReview(null);
     } catch (error) {
       console.error("Error deleting review:", error);

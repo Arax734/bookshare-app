@@ -81,6 +81,8 @@ export default function Register() {
         phoneNumber: "",
         bio: "",
         createdAt: serverTimestamp(),
+        reviewsCount: 0,
+        averageRating: 0.0,
       });
     }
   };
