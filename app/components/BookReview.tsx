@@ -62,9 +62,25 @@ export default function BookReview({ bookId }: BookReviewProps) {
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const [totalReviews, setTotalReviews] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [averageRating, setAverageRating] = useState<number>(0);
   const REVIEWS_PER_PAGE = 5;
 
   const paddedBookId = bookId.padStart(14, "0");
+
+  const calculateNewAverage = (
+    currentTotal: number,
+    currentCount: number,
+    ratingChange: number,
+    isAdding: boolean
+  ): number => {
+    if (isAdding) {
+      return (currentTotal + ratingChange) / (currentCount + 1);
+    } else {
+      return currentCount > 1
+        ? (currentTotal - ratingChange) / (currentCount - 1)
+        : 0;
+    }
+  };
 
   useEffect(() => {
     if (!paddedBookId || !user) return;
@@ -137,6 +153,37 @@ export default function BookReview({ bookId }: BookReviewProps) {
     }
   }, [reviews]);
 
+  useEffect(() => {
+    if (!paddedBookId) return;
+
+    const calculateStats = async () => {
+      try {
+        const reviewsQuery = query(
+          collection(db, "reviews"),
+          where("bookId", "==", paddedBookId)
+        );
+
+        const snapshot = await getDocs(reviewsQuery);
+        const reviews = snapshot.docs.map((doc) => doc.data());
+
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce(
+            (sum, review) => sum + (review.rating || 0),
+            0
+          );
+          const average = totalRating / reviews.length;
+          setAverageRating(Number(average.toFixed(1)));
+        } else {
+          setAverageRating(0);
+        }
+      } catch (error) {
+        console.error("Error calculating average rating:", error);
+      }
+    };
+
+    calculateStats();
+  }, [paddedBookId]);
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !rating) return;
@@ -181,6 +228,23 @@ export default function BookReview({ bookId }: BookReviewProps) {
         });
       });
 
+      // After successful transaction, recalculate average from all reviews
+      const reviewsQuery = query(
+        collection(db, "reviews"),
+        where("bookId", "==", paddedBookId)
+      );
+
+      const snapshot = await getDocs(reviewsQuery);
+      const allReviews = snapshot.docs.map((doc) => doc.data());
+      const totalRating = allReviews.reduce(
+        (sum, review) => sum + (review.rating || 0),
+        0
+      );
+      const newAverage =
+        allReviews.length > 0 ? totalRating / allReviews.length : 0;
+      setAverageRating(Number(newAverage.toFixed(1)));
+      setTotalReviews(allReviews.length);
+
       setRating(0);
       setComment("");
     } catch (error) {
@@ -194,6 +258,9 @@ export default function BookReview({ bookId }: BookReviewProps) {
     if (!user) return;
 
     try {
+      const reviewToDelete = reviews.find((r) => r.id === reviewId);
+      if (!reviewToDelete) return;
+
       const userRef = doc(db, "users", user.uid);
       const reviewRef = doc(db, "reviews", reviewId);
 
@@ -228,24 +295,33 @@ export default function BookReview({ bookId }: BookReviewProps) {
         transaction.delete(reviewRef);
       });
 
+      // After successful transaction, recalculate average from all reviews
+      const reviewsQuery = query(
+        collection(db, "reviews"),
+        where("bookId", "==", paddedBookId)
+      );
+
+      const snapshot = await getDocs(reviewsQuery);
+      const allReviews = snapshot.docs.map((doc) => doc.data());
+      const totalRating = allReviews.reduce(
+        (sum, review) => sum + (review.rating || 0),
+        0
+      );
+      const newAverage =
+        allReviews.length > 0 ? totalRating / allReviews.length : 0;
+      setAverageRating(Number(newAverage.toFixed(1)));
+      setTotalReviews(allReviews.length);
+
       setUserReview(null);
     } catch (error) {
       console.error("Error deleting review:", error);
     }
   };
 
-  // Add function to calculate average rating
-  const calculateAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return (sum / reviews.length).toFixed(1);
-  };
-
   const handleUserClick = (userId: string) => {
     router.push(`/users/${userId}`);
   };
 
-  // Add loadMoreReviews function
   const loadMoreReviews = async () => {
     if (isLoadingMore) return;
 
@@ -295,7 +371,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
 
   return (
     <div className="border-t border-[var(--gray-200)] pt-6">
-      {/* Add average rating section */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-[var(--gray-800)]">
           Opinie czytelników
@@ -310,12 +385,12 @@ export default function BookReview({ bookId }: BookReviewProps) {
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
             <span className="text-xl font-bold text-[var(--gray-800)]">
-              {calculateAverageRating()}
+              {averageRating || "0"}
             </span>
             <span className="text-sm text-[var(--gray-500)]">/10</span>
           </div>
           <div className="text-sm text-[var(--gray-500)]">
-            ({reviews.length} {reviews.length === 1 ? "opinia" : "opinii"})
+            ({totalReviews} {totalReviews === 1 ? "opinia" : "opinii"})
           </div>
         </div>
       </div>
@@ -381,7 +456,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
             key={review.id}
             className="bg-[var(--background)] shadow p-4 rounded-lg border border-[var(--gray-200)] relative"
           >
-            {/* Add delete button in top-right corner for user's review */}
             {review.userId === user?.uid && (
               <button
                 onClick={() => handleDeleteReview(review.id)}

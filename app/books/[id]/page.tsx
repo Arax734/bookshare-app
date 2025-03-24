@@ -10,6 +10,10 @@ import { BookOpenIcon } from "../../components/svg-icons/BookOpenIcon";
 import { TagIcon } from "../../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../../components/svg-icons/LanguageIcon";
 import BookReview from "@/app/components/BookReview";
+import { UserIcon } from "@/app/components/svg-icons/UserIcon";
+import { splitAuthors } from "@/app/utils/stringUtils";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/firebase/config";
 
 interface BookDetails {
   id: number;
@@ -28,6 +32,8 @@ interface BookDetails {
     leader: string;
     fields: Array<any>;
   };
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 interface PageProps {
@@ -40,6 +46,8 @@ export default function BookDetails({ params }: PageProps) {
   const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -70,6 +78,37 @@ export default function BookDetails({ params }: PageProps) {
     };
 
     fetchBookDetails();
+  }, [unwrappedParams.id]);
+
+  useEffect(() => {
+    const fetchReviewsStats = async () => {
+      if (!unwrappedParams.id) return;
+
+      try {
+        const reviewsQuery = query(
+          collection(db, "reviews"),
+          where("bookId", "==", unwrappedParams.id)
+        );
+
+        const reviewsSnapshot = await getDocs(reviewsQuery);
+        const reviews = reviewsSnapshot.docs.map((doc) => doc.data());
+
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce(
+            (sum, review) => sum + (review.rating || 0),
+            0
+          );
+          const average = totalRating / reviews.length;
+          setAverageRating(Number(average.toFixed(1)));
+        }
+
+        setTotalReviews(reviews.length);
+      } catch (error) {
+        console.error("Error fetching reviews stats:", error);
+      }
+    };
+
+    fetchReviewsStats();
   }, [unwrappedParams.id]);
 
   if (isLoading) return <LoadingSpinner />;
@@ -115,91 +154,115 @@ export default function BookDetails({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Book Header */}
-        <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-6 text-white">
-            <h1 className="text-2xl font-bold mb-2">{book.title}</h1>
-            <p className="text-lg opacity-90">{book.author}</p>
+        <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
+          {/* Header with title and rating */}
+          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4">
+            <div className="flex justify-between items-start">
+              <h1 className="text-xl font-bold text-white">{book.title}</h1>
+            </div>
           </div>
 
-          {/* Book Details */}
-          <div className="p-6 space-y-6">
-            {/* Main Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DetailItem
-                icon={<CalendarIcon className="h-5 w-5" />}
-                label="Rok wydania"
-                value={book.publicationYear}
-              />
-              <DetailItem
-                icon={<MapPinIcon className="h-5 w-5" />}
-                label="Wydawca"
-                value={`${book.publisher}${
-                  book.placeOfPublication ? `, ${book.placeOfPublication}` : ""
-                }`}
-              />
-              <DetailItem
-                icon={<LanguageIcon className="h-5 w-5" />}
-                label="Język"
-                value={book.language}
-              />
-              <DetailItem
-                icon={<TagIcon className="h-5 w-5" />}
-                label="Gatunek"
-                value={book.genre}
-              />
+          {/* Main content */}
+          <div className="p-4 space-y-4">
+            {/* Authors section */}
+            <div className="bg-[var(--gray-50)] rounded-lg p-3">
+              <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
+                <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
+                Autorzy
+              </h3>
+              {book.author ? (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {splitAuthors(book.author).map((author, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center text-sm text-[var(--gray-700)] truncate"
+                      title={author}
+                    >
+                      <span className="w-1.5 h-1.5 bg-[var(--primaryColor)] rounded-full mr-2 flex-shrink-0"></span>
+                      <span className="truncate">{author}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--gray-500)] italic">
+                  Nieznany autor
+                </p>
+              )}
             </div>
 
-            {/* Additional Details */}
-            <div className="border-t border-[var(--gray-200)] pt-6">
-              <h2 className="text-xl font-semibold mb-4 text-[var(--gray-800)]">
-                Dodatkowe informacje
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {book.subject && (
-                  <div className="col-span-2">
-                    <h3 className="text-sm font-medium text-[var(--gray-700)]">
-                      Tematyka
-                    </h3>
-                    <p className="mt-1 text-[var(--gray-800)]">
-                      {book.subject}
-                    </p>
-                  </div>
-                )}
-                {book.domain && (
-                  <div>
-                    <h3 className="text-sm font-medium text-[var(--gray-700)]">
-                      Dziedzina
-                    </h3>
-                    <p className="mt-1 text-[var(--gray-800)]">{book.domain}</p>
-                  </div>
-                )}
-                {book.isbnIssn && (
-                  <div>
-                    <h3 className="text-sm font-medium text-[var(--gray-700)]">
-                      ISBN/ISSN
-                    </h3>
-                    <p className="mt-1 text-[var(--gray-800)]">
-                      {book.isbnIssn}
-                    </p>
-                  </div>
-                )}
-                {book.nationalBibliographyNumber && (
-                  <div>
-                    <h3 className="text-sm font-medium text-[var(--gray-700)]">
-                      Numer bibliografii narodowej
-                    </h3>
-                    <p className="mt-1 text-[var(--gray-800)]">
-                      {book.nationalBibliographyNumber}
-                    </p>
-                  </div>
-                )}
+            {/* Publication details in compact grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <div className="flex items-center mb-1">
+                  <CalendarIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+                  <h3 className="font-medium text-[var(--gray-800)]">Rok</h3>
+                </div>
+                <p className="text-[var(--gray-700)]">
+                  {book.publicationYear || "—"}
+                </p>
+              </div>
+
+              <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <div className="flex items-center mb-1">
+                  <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+                  <h3 className="font-medium text-[var(--gray-800)]">Język</h3>
+                </div>
+                <p className="text-[var(--gray-700)] capitalize">
+                  {book.language || "—"}
+                </p>
               </div>
             </div>
+
+            {/* Categories as compact tags */}
+            {(book.genre || book.subject || book.domain) && (
+              <div className="flex flex-wrap gap-1">
+                {book.genre && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+                    {book.genre}
+                  </span>
+                )}
+                {book.subject && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">
+                    {book.subject}
+                  </span>
+                )}
+                {book.domain && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">
+                    {book.domain}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Additional Details */}
+            {(book.isbnIssn || book.nationalBibliographyNumber) && (
+              <div className="border-t border-[var(--gray-100)] pt-4 mt-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {book.isbnIssn && (
+                    <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                      <h3 className="font-medium text-[var(--gray-700)] mb-1">
+                        ISBN/ISSN
+                      </h3>
+                      <p className="text-[var(--gray-800)]">{book.isbnIssn}</p>
+                    </div>
+                  )}
+                  {book.nationalBibliographyNumber && (
+                    <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                      <h3 className="font-medium text-[var(--gray-700)] mb-1">
+                        Nr bibl. narodowej
+                      </h3>
+                      <p className="text-[var(--gray-800)]">
+                        {book.nationalBibliographyNumber}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Add Reviews Section */}
-          <div className="p-6">
+          {/* Reviews Section */}
+          <div className="border-t border-[var(--gray-100)] p-4">
             <BookReview bookId={unwrappedParams.id} />
           </div>
         </div>
