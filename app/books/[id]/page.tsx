@@ -34,6 +34,14 @@ interface BookDetails {
   };
   averageRating?: number;
   totalReviews?: number;
+  kind: string;
+  formOfWork: string;
+  subjectPlace: string;
+  subjectTime: string;
+  languageOfOriginal: string;
+  zone: string;
+  createdDate: string;
+  updatedDate: string;
 }
 
 interface PageProps {
@@ -213,6 +221,33 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Publisher and Location section */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <div className="flex items-center mb-1">
+                  <BookOpenIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+                  <h3 className="font-medium text-[var(--gray-800)]">
+                    Wydawca
+                  </h3>
+                </div>
+                <p className="text-[var(--gray-700)]">
+                  {book.publisher || "—"}
+                </p>
+              </div>
+
+              <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <div className="flex items-center mb-1">
+                  <MapPinIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+                  <h3 className="font-medium text-[var(--gray-800)]">
+                    Miejsce wydania
+                  </h3>
+                </div>
+                <p className="text-[var(--gray-700)]">
+                  {book.placeOfPublication?.split(":")[0].trim() || "—"}
+                </p>
+              </div>
+            </div>
+
             {/* Categories as compact tags */}
             {(book.genre || book.subject || book.domain) && (
               <div className="flex flex-wrap gap-1">
@@ -254,6 +289,50 @@ export default function BookDetails({ params }: PageProps) {
                       <p className="text-[var(--gray-800)]">
                         {book.nationalBibliographyNumber}
                       </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Additional Metadata */}
+            {(book.kind ||
+              book.formOfWork ||
+              book.subjectPlace ||
+              book.subjectTime) && (
+              <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
+                  <TagIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
+                  Dodatkowe informacje
+                </h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {book.kind && (
+                    <div className="text-sm text-[var(--gray-700)]">
+                      <span className="font-medium">Rodzaj: </span>
+                      {book.kind}
+                    </div>
+                  )}
+                  {book.formOfWork && (
+                    <div className="text-sm text-[var(--gray-700)]">
+                      <span className="font-medium">Forma: </span>
+                      {book.formOfWork
+                        .toLowerCase()
+                        .split(" ")
+                        .filter((word) => word !== "i")
+                        .join(", ")
+                        .replace(/,$/, "")}
+                    </div>
+                  )}
+                  {book.subjectPlace && (
+                    <div className="text-sm text-[var(--gray-700)]">
+                      <span className="font-medium">Zakres terytorialny: </span>
+                      {book.subjectPlace}
+                    </div>
+                  )}
+                  {book.subjectTime && (
+                    <div className="text-sm text-[var(--gray-700)]">
+                      <span className="font-medium">Zakres czasowy: </span>
+                      {book.subjectTime}
                     </div>
                   )}
                 </div>
