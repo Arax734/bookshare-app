@@ -114,7 +114,10 @@ export default function Navbar() {
   const showSkeleton = isLoading || !user;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary">
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary"
+      id="mainNav"
+    >
       {/* Absolute positioned logo section */}
       <div className="absolute left-10 top-1/2 -translate-y-1/2">
         <a href="/home" className="flex items-center space-x-3">
