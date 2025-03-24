@@ -349,23 +349,3 @@ export default function BookDetails({ params }: PageProps) {
     </div>
   );
 }
-
-function DetailItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start space-x-3">
-      <div className="text-[var(--gray-500)]">{icon}</div>
-      <div>
-        <p className="text-sm font-medium text-[var(--gray-700)]">{label}</p>
-        <p className="text-[var(--gray-800)]">{value || "Brak danych"}</p>
-      </div>
-    </div>
-  );
-}
