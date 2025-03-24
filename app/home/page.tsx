@@ -8,6 +8,8 @@ import Link from "next/link";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import { TagIcon } from "../components/svg-icons/TagIcon";
+import { UserIcon } from "../components/svg-icons/UserIcon";
+import { splitAuthors } from "../utils/stringUtils";
 
 // Update interfaces
 interface RecommendationItem {
@@ -147,102 +149,101 @@ export default function Home() {
   const renderBookCard = (book: Book) => (
     <div
       key={book.id}
-      className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-[var(--gray-100)] flex flex-col"
     >
-      {/* Book card header with title */}
-      <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
-        <h2 className="text-xl font-bold line-clamp-2" title={book.title}>
-          {book.title || "Tytuł niedostępny"}
-        </h2>
+      {/* Header with title and rating */}
+      <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4">
+        <div className="flex justify-between items-start gap-2">
+          <h2
+            className="text-lg font-bold text-white line-clamp-2 flex-1"
+            title={book.title}
+          >
+            {book.title || "Tytuł niedostępny"}
+          </h2>
+          <div className="flex items-center bg-white/10 backdrop-blur-sm px-2 py-1 rounded-lg shrink-0">
+            <svg
+              className="w-4 h-4 text-yellow-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <span className="ml-1 text-white text-sm font-medium">
+              {book.averageRating ? `${book.averageRating}` : "Brak"}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="p-5">
-        {/* Author and year section with ratings */}
-        <div className="flex items-start mb-4 pb-4 border-b border-gray-100">
-          <div className="flex-1">
-            <p className="font-semibold text-[var(--gray-800)] mb-1">
-              {book.author || "Nieznany autor"}
-            </p>
-            <div className="flex items-center text-[var(--gray-700)]">
-              <CalendarIcon className="h-4 w-4 mr-1" />
-              <span>{book.publicationYear || "Rok nieznany"}</span>
-            </div>
-
-            {/* Add rating display */}
-            <div className="flex items-center mt-2 gap-2">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+      <div className="p-4 space-y-4 flex-1">
+        {/* Authors section */}
+        <div className="bg-[var(--gray-50)] rounded-lg p-3">
+          <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
+            <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
+            Autorzy
+          </h3>
+          {book.author ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {splitAuthors(book.author).map((author, index) => (
+                <div
+                  key={index}
+                  className="flex items-center text-sm text-[var(--gray-700)] truncate"
+                  title={author}
                 >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="ml-1 text-sm font-medium text-[var(--gray-700)]">
-                  {book.averageRating
-                    ? `${book.averageRating}/10`
-                    : "Brak ocen"}
-                </span>
-              </div>
-              {book.totalReviews ? (
-                <span className="text-sm text-[var(--gray-500)]">
-                  ({book.totalReviews}{" "}
-                  {book.totalReviews === 1 ? "opinia" : "opinii"})
-                </span>
-              ) : null}
+                  <span className="w-1.5 h-1.5 bg-[var(--primaryColor)] rounded-full mr-2 flex-shrink-0"></span>
+                  <span className="truncate">{author}</span>
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="text-sm text-[var(--gray-500)] italic">
+              Nieznany autor
+            </p>
+          )}
+        </div>
+
+        {/* Publication details in compact grid */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="bg-[var(--gray-50)] rounded-lg p-3">
+            <div className="flex items-center mb-1">
+              <CalendarIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+              <h3 className="font-medium text-[var(--gray-800)]">Rok</h3>
+            </div>
+            <p className="text-[var(--gray-700)]">
+              {book.publicationYear || "—"}
+            </p>
+          </div>
+
+          <div className="bg-[var(--gray-50)] rounded-lg p-3">
+            <div className="flex items-center mb-1">
+              <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+              <h3 className="font-medium text-[var(--gray-800)]">Język</h3>
+            </div>
+            <p className="text-[var(--gray-700)] capitalize">
+              {book.language || "—"}
+            </p>
           </div>
         </div>
 
-        {/* Details grid */}
-        <div className="grid grid-cols-1 gap-3">
-          {/* Language */}
-          <div className="flex items-start">
-            <LanguageIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm text-[var(--gray-800)] font-medium">
-                Język
-              </p>
-              <p className="text-sm text-[var(--gray-700)] capitalize">
-                {book.language || "Nieokreślony"}
-              </p>
-            </div>
+        {/* Categories as compact tags */}
+        {book.genre && (
+          <div className="flex flex-wrap gap-1">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+              {book.genre}
+            </span>
           </div>
+        )}
+      </div>
 
-          {/* Genre */}
-          <div className="flex items-start">
-            <TagIcon className="h-5 w-5 mr-2 text-gray-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm text-gray-800 font-medium dark:text-gray-200">
-                Gatunek
-              </p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {book.genre && (
-                  <span
-                    className="text-xs px-2 py-1 rounded-md"
-                    style={{
-                      backgroundColor: "var(--genre-bg)",
-                      color: "var(--genre-text)",
-                    }}
-                  >
-                    {book.genre}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="mt-6 flex gap-2">
-          <Link
-            href={`/books/${book.id}`}
-            className="flex-1 bg-[var(--primaryColor)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium text-center"
-          >
-            Zobacz szczegóły
-          </Link>
-        </div>
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-[var(--gray-100)] flex items-center justify-between bg-[var(--gray-50)]">
+        <Link
+          href={`/books/${book.id}`}
+          className="px-3 py-1.5 bg-[var(--primaryColor)] text-white text-sm rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
+        >
+          Zobacz szczegóły
+        </Link>
       </div>
     </div>
   );
