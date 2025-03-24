@@ -403,11 +403,26 @@ export default function Settings() {
       await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(imageRef);
 
-      // Update only Firestore document
+      // Update user document in Firestore
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         photoURL: downloadURL,
       });
+
+      // Update all user's reviews with new photo URL
+      const reviewsQuery = query(
+        collection(db, "reviews"),
+        where("userId", "==", user.uid)
+      );
+      const reviewsSnapshot = await getDocs(reviewsQuery);
+
+      const updateReviewsPromises = reviewsSnapshot.docs.map((reviewDoc) =>
+        updateDoc(reviewDoc.ref, {
+          userPhotoURL: downloadURL,
+        })
+      );
+
+      await Promise.all(updateReviewsPromises);
 
       // Store success message and reload page
       localStorage.setItem(
@@ -416,8 +431,8 @@ export default function Settings() {
       );
       window.location.reload();
     } catch (error) {
-      console.error("Error uploading image:", error);
-      setUploadError("Wystąpił błąd podczas przesyłania zdjęcia");
+      console.error("Error updating profile photo:", error);
+      setUploadError("Wystąpił błąd podczas aktualizacji zdjęcia profilowego");
     } finally {
       setIsUploading(false);
     }
@@ -617,7 +632,7 @@ export default function Settings() {
                   >
                     <path
                       fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                       clipRule="evenodd"
                     />
                   </svg>
