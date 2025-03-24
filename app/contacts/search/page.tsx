@@ -8,14 +8,13 @@ import {
   getDocs,
   addDoc,
   Timestamp,
-  or,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/app/hooks/useAuth";
 import Image from "next/image";
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
-import ContactsLoadingSpinner from "../components/ContactsLoadingSpinner";
 
 interface UserContact {
   id?: string;
@@ -25,74 +24,28 @@ interface UserContact {
   status: "pending" | "accepted";
 }
 
+// Update the UserSearchResult interface
 interface UserSearchResult {
   id: string;
   email: string;
   displayName: string;
   photoURL?: string;
   phoneNumber?: string;
+  pendingInvite?: PendingInvite;
 }
 
-interface ExtendedUserContact extends UserContact {
-  contactPhotoURL?: string;
-  contactDisplayName?: string;
-  contactEmail?: string;
+interface PendingInvite {
+  id: string;
+  userId: string;
+  status: "pending";
 }
 
-export default function Contacts() {
+export default function Search() {
   const { user } = useAuth();
-  const [contacts, setContacts] = useState<ExtendedUserContact[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const defaultAvatar = "/images/default-avatar.png";
-
-  // Update the contact fetching logic in useEffect
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchContacts = async () => {
-      try {
-        setIsLoading(true);
-        const contactsQuery = query(
-          collection(db, "userContacts"),
-          where("userId", "==", user.uid)
-        );
-
-        const querySnapshot = await getDocs(contactsQuery);
-        const contactsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as UserContact[];
-
-        // Fetch user data for each contact
-        const contactsWithUserData = await Promise.all(
-          contactsData.map(async (contact) => {
-            // Fix: Use doc() instead of collection() for single document
-            const userDocRef = doc(db, "users", contact.contactId);
-            const userDocSnap = await getDoc(userDocRef);
-            const userData = userDocSnap.data();
-
-            return {
-              ...contact,
-              contactPhotoURL: userData?.photoURL || null,
-              contactDisplayName: userData?.displayName || "Użytkownik",
-              contactEmail: userData?.email || "Brak emaila",
-            };
-          })
-        );
-
-        setContacts(contactsWithUserData);
-      } catch (error) {
-        console.error("Error fetching contacts:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchContacts();
-  }, [user]);
 
   const searchUsers = async (searchText: string) => {
     if (!user || !searchText.trim() || searchText.length < 3) {
@@ -112,6 +65,20 @@ export default function Contacts() {
       const existingContactsSnapshot = await getDocs(existingContactsQuery);
       const existingContactIds = new Set(
         existingContactsSnapshot.docs.map((doc) => doc.data().contactId)
+      );
+
+      // Get pending invites
+      const pendingInvitesQuery = query(
+        collection(db, "userContacts"),
+        where("contactId", "==", user.uid),
+        where("status", "==", "pending")
+      );
+      const pendingInvitesSnapshot = await getDocs(pendingInvitesQuery);
+      const pendingInvites = new Map(
+        pendingInvitesSnapshot.docs.map((doc) => [
+          doc.data().userId,
+          { id: doc.id, ...doc.data() },
+        ])
       );
 
       // Search queries
@@ -140,7 +107,10 @@ export default function Contacts() {
       ]);
 
       // Combine and deduplicate results, excluding existing contacts
-      const results = new Map<string, UserSearchResult>();
+      const results = new Map<
+        string,
+        UserSearchResult & { pendingInvite?: PendingInvite }
+      >();
 
       [
         ...emailSnapshot.docs,
@@ -155,7 +125,8 @@ export default function Contacts() {
           results.set(doc.id, {
             id: doc.id,
             ...doc.data(),
-          } as UserSearchResult);
+            pendingInvite: pendingInvites.get(doc.id),
+          } as UserSearchResult & { pendingInvite?: PendingInvite });
         }
       });
 
@@ -202,23 +173,29 @@ export default function Contacts() {
         status: "pending",
       });
 
-      // Refresh contacts list
-      const contactsQuery = query(
-        collection(db, "userContacts"),
-        where("userId", "==", user.uid)
-      );
-      const querySnapshot = await getDocs(contactsQuery);
-      const updatedContacts = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as UserContact[];
-      setContacts(updatedContacts);
-
       // Clear search results
       setSearchResults([]);
       setSearchQuery("");
     } catch (error) {
       console.error("Error adding contact:", error);
+      // Here you might want to add proper error handling/notification
+    }
+  };
+
+  const acceptInvite = async (inviteId: string) => {
+    if (!user) return;
+
+    try {
+      await updateDoc(doc(db, "userContacts", inviteId), {
+        status: "accepted",
+      });
+
+      // Update search results to remove the accepted invite
+      setSearchResults((prevResults) =>
+        prevResults.filter((result) => result.pendingInvite?.id !== inviteId)
+      );
+    } catch (error) {
+      console.error("Error accepting invite:", error);
     }
   };
 
@@ -226,73 +203,30 @@ export default function Contacts() {
     <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="relative">
-          <h2 className="text-2xl font-semibold text-[var(--gray-800)] mb-4">
-            Twoje kontakty ({contacts.length})
-          </h2>
-
-          {isLoading ? (
-            <ContactsLoadingSpinner />
-          ) : (
-            <>
-              {contacts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {contacts.map((contact) => (
-                    <div
-                      key={contact.id}
-                      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col items-center text-center">
-                        <Link
-                          href={`/users/${contact.contactId}`}
-                          className="hover:opacity-80 transition-opacity relative w-16 h-16 mb-3"
-                        >
-                          <Image
-                            src={contact.contactPhotoURL || defaultAvatar}
-                            alt={contact.contactDisplayName || ""}
-                            className="rounded-full object-cover"
-                            fill
-                            sizes="64px"
-                          />
-                        </Link>
-                        <div>
-                          <Link
-                            href={`/users/${contact.contactId}`}
-                            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-lg mb-1"
-                          >
-                            {contact.contactDisplayName}
-                          </Link>
-                          <p className="text-sm text-[var(--gray-500)] mb-2">
-                            {contact.contactEmail}
-                          </p>
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full inline-block
-                  ${
-                    contact.status === "pending"
-                      ? "bg-yellow-50 text-yellow-600"
-                      : "bg-green-50 text-green-600"
-                  }`}
-                          >
-                            {contact.status === "pending"
-                              ? "Oczekujące"
-                              : "Zaakceptowane"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 rounded-lg">
-                  <p className="text-[var(--gray-500)]">
-                    Nie masz jeszcze żadnych kontaktów
-                  </p>
-                  <p className="text-sm text-[var(--gray-400)] mt-2">
-                    Użyj wyszukiwarki powyżej, aby dodać nowe kontakty
-                  </p>
-                </div>
-              )}
-            </>
-          )}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                searchUsers(e.target.value);
+              }}
+              placeholder="Szukaj użytkowników po emailu, imieniu lub numerze telefonu..."
+              className="pl-10 w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+            />
+            <svg
+              className="w-5 h-5 text-[var(--gray-400)] absolute left-3 top-1/2 -translate-y-1/2"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </div>
         </div>
         {/* Search results */}
         {searchResults.length > 0 && (
@@ -332,13 +266,24 @@ export default function Contacts() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => addContact(result.email)}
-                    className="px-4 py-2 bg-[var(--primaryColor)] text-white rounded-lg
-                     hover:bg-[var(--primaryColorLight)] transition-colors"
-                  >
-                    Dodaj do kontaktów
-                  </button>
+                  {result.pendingInvite ? (
+                    <button
+                      onClick={() =>
+                        result.pendingInvite &&
+                        acceptInvite(result.pendingInvite.id)
+                      }
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      Zaakceptuj zaproszenie
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => addContact(result.email)}
+                      className="px-4 py-2 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors"
+                    >
+                      Dodaj do kontaktów
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
