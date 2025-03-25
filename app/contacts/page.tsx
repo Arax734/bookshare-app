@@ -249,8 +249,15 @@ export default function Contacts() {
   const renderContactCard = (contact: ExtendedUserContact) => (
     <div
       key={contact.id}
-      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow"
+      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow relative"
     >
+      {contact.status === "pending" && (
+        <div className="absolute top-2 right-2">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600">
+            Oczekujące
+          </span>
+        </div>
+      )}
       <div className="flex flex-col items-center text-center">
         <Link
           href={`/users/${
@@ -278,19 +285,9 @@ export default function Contacts() {
           >
             {contact.contactDisplayName}
           </Link>
-          <p className="text-sm text-[var(--gray-500)] mb-2">
+          <p className="text-sm text-[var(--gray-500)]">
             {contact.contactEmail}
           </p>
-          <span
-            className={`text-xs px-3 py-1 rounded-full inline-block
-              ${
-                contact.status === "pending"
-                  ? "bg-yellow-50 text-yellow-600"
-                  : "bg-green-50 text-green-600"
-              }`}
-          >
-            {contact.status === "pending" ? "Oczekujące" : "Zaakceptowane"}
-          </span>
         </div>
       </div>
     </div>
@@ -301,7 +298,9 @@ export default function Contacts() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="relative">
           <h2 className="text-2xl font-semibold text-[var(--gray-800)] mb-4">
-            Twoje kontakty ({contacts.length})
+            Twoje kontakty (
+            {contacts.filter((contact) => contact.status === "accepted").length}
+            )
           </h2>
 
           {isLoading ? (
