@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useNotifications } from "@/app/contexts/NotificationsContext";
 
 interface Invitation {
   id: string;
@@ -31,6 +32,7 @@ interface Invitation {
 
 export default function Friends() {
   const { user } = useAuth();
+  const { refreshPendingInvites } = useNotifications();
   const [invites, setInvites] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const defaultAvatar = "/images/default-avatar.png";
@@ -93,6 +95,9 @@ export default function Friends() {
       setInvites((prevInvites) =>
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
+
+      // After successful acceptance
+      refreshPendingInvites();
     } catch (error) {
       console.error("Error accepting invite:", error);
     }
@@ -108,6 +113,9 @@ export default function Friends() {
       setInvites((prevInvites) =>
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
+
+      // After successful rejection
+      refreshPendingInvites();
     } catch (error) {
       console.error("Error rejecting invite:", error);
     }

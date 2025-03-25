@@ -20,6 +20,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import { useNotifications } from "../contexts/NotificationsContext";
 
 export default function Navbar() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function Navbar() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const defaultAvatar = "/images/default-avatar.png";
-  const [pendingInvites, setPendingInvites] = useState(0);
+  const { pendingInvites, setPendingInvites } = useNotifications();
 
   useEffect(() => {
     if (user !== undefined) {
@@ -119,7 +120,7 @@ export default function Navbar() {
     };
 
     fetchPendingInvites();
-  }, [user]);
+  }, [user, setPendingInvites]);
 
   const handleLogout = async () => {
     try {
