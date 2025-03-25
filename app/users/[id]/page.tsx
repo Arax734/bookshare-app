@@ -12,6 +12,8 @@ import {
   limit,
   orderBy,
   startAfter,
+  addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
@@ -22,6 +24,7 @@ import Link from "next/link";
 import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
 import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
+import { useAuth } from "@/app/hooks/useAuth";
 
 interface Review {
   id: string;
@@ -82,6 +85,10 @@ export default function UserProfile({ params }: PageProps) {
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isContact, setIsContact] = useState(false);
+  const [contactDocId, setContactDocId] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const { user: currentUser } = useAuth();
   const REVIEWS_PER_PAGE = 5;
 
   const formatPhoneNumber = (phone: string | undefined) => {
@@ -94,6 +101,94 @@ export default function UserProfile({ params }: PageProps) {
       return phone;
     } catch {
       return phone;
+    }
+  };
+
+  const checkContactStatus = async (profileUserId: string) => {
+    if (!currentUser) return;
+
+    try {
+      // Check if current user initiated the contact
+      const contactAsUserQuery = query(
+        collection(db, "userContacts"),
+        where("userId", "==", currentUser.uid),
+        where("contactId", "==", profileUserId)
+      );
+
+      // Check if profile user initiated the contact
+      const contactAsContactQuery = query(
+        collection(db, "userContacts"),
+        where("userId", "==", profileUserId),
+        where("contactId", "==", currentUser.uid)
+      );
+
+      const [userQuerySnapshot, contactQuerySnapshot] = await Promise.all([
+        getDocs(contactAsUserQuery),
+        getDocs(contactAsContactQuery),
+      ]);
+
+      // Check user-initiated contacts first
+      if (!userQuerySnapshot.empty) {
+        const userContact = userQuerySnapshot.docs[0].data();
+        if (userContact.status === "accepted") {
+          setIsContact(true);
+          setContactDocId(userQuerySnapshot.docs[0].id);
+          setIsPending(false);
+        } else if (userContact.status === "pending") {
+          setIsContact(false);
+          setIsPending(true);
+        }
+      }
+      // Then check profile user-initiated contacts
+      else if (!contactQuerySnapshot.empty) {
+        const profileContact = contactQuerySnapshot.docs[0].data();
+        if (profileContact.status === "accepted") {
+          setIsContact(true);
+          setContactDocId(contactQuerySnapshot.docs[0].id);
+          setIsPending(false);
+        } else if (profileContact.status === "pending") {
+          setIsContact(false);
+          setIsPending(true);
+        }
+      }
+      // No contacts found
+      else {
+        setIsContact(false);
+        setIsPending(false);
+      }
+    } catch (error) {
+      console.error("Error checking contact status:", error);
+      setIsContact(false);
+      setIsPending(false);
+    }
+  };
+
+  const handleAddContact = async () => {
+    if (!currentUser || !user) return;
+
+    try {
+      await addDoc(collection(db, "userContacts"), {
+        userId: currentUser.uid,
+        contactId: user.id,
+        createdAt: new Date(),
+        status: "pending",
+      });
+      setIsPending(true);
+    } catch (error) {
+      console.error("Error adding contact:", error);
+    }
+  };
+
+  const handleRemoveContact = async () => {
+    if (!contactDocId) return;
+
+    try {
+      await deleteDoc(doc(db, "userContacts", contactDocId));
+      setIsContact(false);
+      setContactDocId(null);
+      // Optionally show success message
+    } catch (error) {
+      console.error("Error removing contact:", error);
     }
   };
 
@@ -110,6 +205,26 @@ export default function UserProfile({ params }: PageProps) {
         }
 
         const userData = userDoc.data();
+
+        // Set user data first
+        const userProfile = {
+          id: unwrappedParams.id,
+          email: userData.email,
+          displayName: userData.displayName || "Użytkownik anonimowy",
+          photoURL: userData.photoURL,
+          reviewsCount: userData.reviewsCount || 0,
+          averageRating: userData.averageRating || 0.0,
+          phoneNumber: userData.phoneNumber,
+          creationTime: userData.createdAt?.toDate()?.toISOString(),
+          bio: userData.bio,
+        };
+
+        setUser(userProfile);
+
+        // Check contact status after setting user data
+        if (currentUser && currentUser.uid !== unwrappedParams.id) {
+          await checkContactStatus(unwrappedParams.id);
+        }
 
         // Get reviews with ordering
         const reviewsQuery = query(
@@ -159,6 +274,10 @@ export default function UserProfile({ params }: PageProps) {
 
         setReviews(reviewsData); // Store all fetched reviews
         setDisplayedReviews(reviewsWithBooks); // Show only loaded reviews
+
+        if (currentUser && user && currentUser.uid !== user.id) {
+          await checkContactStatus(user.id);
+        }
       } catch (error) {
         console.error("Error fetching user profile:", error);
         setError("Nie udało się załadować profilu użytkownika");
@@ -168,7 +287,7 @@ export default function UserProfile({ params }: PageProps) {
     };
 
     fetchUserProfile();
-  }, [params]);
+  }, [params, currentUser]);
 
   const loadMoreReviews = async () => {
     if (isLoadingMore) return;
@@ -265,6 +384,76 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   </div>
                 </div>
+                {currentUser && currentUser.uid !== user.id && (
+                  <div className="gap-2 flex">
+                    {isContact ? (
+                      <>
+                        <Link
+                          href={`/messages/${user.id}`}
+                          className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                          title="Wymiana"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            />
+                          </svg>
+                        </Link>
+                        <button
+                          onClick={handleRemoveContact}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          title="Usuń kontakt"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            viewBox="0 0 21 21"
+                            fill="currentColor"
+                          >
+                            <path d="M10.082 2a4.494 4.494 0 1 0 0 8.989 4.494 4.494 0 0 0 0-8.989zM10.534 13.177c.252-.366.012-.922-.433-.921h-.41l-.795.001a6.688 6.688 0 0 0-6.688 6.688 2.73 2.73 0 0 0 2.73 2.73h5.221c.45 0 .693-.574.432-.941a6.555 6.555 0 0 1-1.22-3.82c0-1.388.43-2.675 1.163-3.737z" />
+                            <path
+                              fillRule="evenodd"
+                              d="M21.041 16.915a5.085 5.085 0 1 1-10.17 0 5.085 5.085 0 0 1 10.17 0zm-2.726-2.36a.75.75 0 0 1 0 1.062l-.945.944a.5.5 0 0 0 0 .708l.945.945a.75.75 0 0 1-1.06 1.06l-.945-.945a.5.5 0 0 0-.707 0l-.945.945a.75.75 0 0 1-1.06-1.06l.944-.945a.5.5 0 0 0 0-.707l-.945-.945a.75.75 0 0 1 1.06-1.061l.946.945a.5.5 0 0 0 .707 0l.945-.945a.75.75 0 0 1 1.06 0z"
+                            />
+                          </svg>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleAddContact}
+                        disabled={isPending}
+                        className={`p-2 ${
+                          isPending
+                            ? "bg-green-400 opacity-75 cursor-not-allowed"
+                            : "bg-green-500 hover:bg-green-600"
+                        } text-white rounded-lg transition-colors`}
+                        title={
+                          isPending
+                            ? "Oczekuje na akceptację"
+                            : "Dodaj do kontaktów"
+                        }
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          viewBox="0 0 23 23"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M17 6A5 5 0 1 1 7 6a5 5 0 0 1 10 0zm-7 7a7 7 0 0 0-7 7 3 3 0 0 0 3 3h7.41c.431 0 .677-.528.453-.898A5.972 5.972 0 0 1 13 19a5.993 5.993 0 0 1 2.56-4.917c.364-.255.333-.839-.101-.93-.47-.1-.959-.153-1.459-.153zm9 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 0 1-2 0v-2h-2a1 1 0 1 1 0-2h2v-2a1 1 0 0 1 1-1z"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Bio Section */}

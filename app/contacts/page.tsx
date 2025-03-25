@@ -8,7 +8,6 @@ import {
   getDocs,
   addDoc,
   Timestamp,
-  or,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { useAuth } from "../hooks/useAuth";
@@ -23,6 +22,7 @@ interface UserContact {
   contactId: string;
   createdAt: Timestamp;
   status: "pending" | "accepted";
+  isReverse?: boolean;
 }
 
 interface UserSearchResult {
@@ -55,22 +55,46 @@ export default function Contacts() {
     const fetchContacts = async () => {
       try {
         setIsLoading(true);
-        const contactsQuery = query(
+        // Fetch where user is the userId
+        const contactsAsUserQuery = query(
           collection(db, "userContacts"),
           where("userId", "==", user.uid)
         );
 
-        const querySnapshot = await getDocs(contactsQuery);
-        const contactsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as UserContact[];
+        // Fetch where user is the contactId with accepted status
+        const contactsAsContactQuery = query(
+          collection(db, "userContacts"),
+          where("contactId", "==", user.uid),
+          where("status", "==", "accepted")
+        );
+
+        const [userQuerySnapshot, contactQuerySnapshot] = await Promise.all([
+          getDocs(contactsAsUserQuery),
+          getDocs(contactsAsContactQuery),
+        ]);
+
+        const contactsData = [
+          ...userQuerySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })),
+          ...contactQuerySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            isReverse: true, // Flag to identify reverse contacts
+            userId: doc.data().contactId, // Swap userId and contactId for reverse contacts
+            contactId: doc.data().userId,
+            ...doc.data(),
+          })),
+        ] as UserContact[];
 
         // Fetch user data for each contact
         const contactsWithUserData = await Promise.all(
           contactsData.map(async (contact) => {
-            // Fix: Use doc() instead of collection() for single document
-            const userDocRef = doc(db, "users", contact.contactId);
+            // Get user data based on contact direction
+            const userIdToFetch = contact.isReverse
+              ? contact.userId
+              : contact.contactId;
+            const userDocRef = doc(db, "users", userIdToFetch);
             const userDocSnap = await getDoc(userDocRef);
             const userData = userDocSnap.data();
 
@@ -222,6 +246,56 @@ export default function Contacts() {
     }
   };
 
+  const renderContactCard = (contact: ExtendedUserContact) => (
+    <div
+      key={contact.id}
+      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow"
+    >
+      <div className="flex flex-col items-center text-center">
+        <Link
+          href={`/users/${
+            contact.isReverse ? contact.userId : contact.contactId
+          }`}
+          className="hover:opacity-80 transition-opacity relative w-16 h-16 mb-3"
+        >
+          <Image
+            src={contact.contactPhotoURL || defaultAvatar}
+            alt={contact.contactDisplayName || ""}
+            className="rounded-full object-cover"
+            fill
+            sizes="(max-width: 768px) 64px, 96px"
+            quality={100}
+            priority={true}
+            loading="eager"
+          />
+        </Link>
+        <div>
+          <Link
+            href={`/users/${
+              contact.isReverse ? contact.userId : contact.contactId
+            }`}
+            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-lg mb-1"
+          >
+            {contact.contactDisplayName}
+          </Link>
+          <p className="text-sm text-[var(--gray-500)] mb-2">
+            {contact.contactEmail}
+          </p>
+          <span
+            className={`text-xs px-3 py-1 rounded-full inline-block
+              ${
+                contact.status === "pending"
+                  ? "bg-yellow-50 text-yellow-600"
+                  : "bg-green-50 text-green-600"
+              }`}
+          >
+            {contact.status === "pending" ? "Oczekujące" : "Zaakceptowane"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -235,51 +309,32 @@ export default function Contacts() {
           ) : (
             <>
               {contacts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {contacts.map((contact) => (
-                    <div
-                      key={contact.id}
-                      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col items-center text-center">
-                        <Link
-                          href={`/users/${contact.contactId}`}
-                          className="hover:opacity-80 transition-opacity relative w-16 h-16 mb-3"
-                        >
-                          <Image
-                            src={contact.contactPhotoURL || defaultAvatar}
-                            alt={contact.contactDisplayName || ""}
-                            className="rounded-full object-cover"
-                            fill
-                            sizes="64px"
-                          />
-                        </Link>
-                        <div>
-                          <Link
-                            href={`/users/${contact.contactId}`}
-                            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-lg mb-1"
-                          >
-                            {contact.contactDisplayName}
-                          </Link>
-                          <p className="text-sm text-[var(--gray-500)] mb-2">
-                            {contact.contactEmail}
-                          </p>
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full inline-block
-                  ${
-                    contact.status === "pending"
-                      ? "bg-yellow-50 text-yellow-600"
-                      : "bg-green-50 text-green-600"
-                  }`}
-                          >
-                            {contact.status === "pending"
-                              ? "Oczekujące"
-                              : "Zaakceptowane"}
-                          </span>
-                        </div>
+                <div className="space-y-8">
+                  {/* Accepted Contacts */}
+                  <div>
+                    <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
+                      Zaakceptowane kontakty
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {contacts
+                        .filter((contact) => contact.status === "accepted")
+                        .map(renderContactCard)}
+                    </div>
+                  </div>
+
+                  {/* Pending Contacts */}
+                  {contacts.some((contact) => contact.status === "pending") && (
+                    <div>
+                      <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
+                        Oczekujące zaproszenia
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {contacts
+                          .filter((contact) => contact.status === "pending")
+                          .map(renderContactCard)}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-12 rounded-lg">
@@ -316,7 +371,10 @@ export default function Contacts() {
                           src={result.photoURL || defaultAvatar}
                           alt={result.displayName}
                           fill
+                          sizes="40px"
+                          quality={100}
                           className="object-cover"
+                          loading="eager"
                         />
                       </div>
                     </Link>

@@ -11,16 +11,21 @@ import { SettingsIcon } from "./svg-icons/SettingsIcon";
 import { useTheme } from "../contexts/ThemeContext";
 import { SunIcon } from "./svg-icons/SunIcon";
 import { MoonIcon } from "./svg-icons/MoonIcon";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  query,
+  collection,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 export default function Navbar() {
   const router = useRouter();
   const { logout, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [isImageReady, setIsImageReady] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { theme, toggleTheme } = useTheme();
@@ -30,6 +35,10 @@ export default function Navbar() {
   } | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [delayedTooltip, setDelayedTooltip] = useState<string | null>(null);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const defaultAvatar = "/images/default-avatar.png";
+  const [pendingInvites, setPendingInvites] = useState(0);
 
   useEffect(() => {
     if (user !== undefined) {
@@ -73,11 +82,6 @@ export default function Navbar() {
   }, [user]);
 
   useEffect(() => {
-    setIsImageLoading(true);
-    setIsImageReady(false);
-  }, [userData?.photoURL]);
-
-  useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
     if (activeTooltip) {
@@ -95,6 +99,28 @@ export default function Navbar() {
     };
   }, [activeTooltip]);
 
+  useEffect(() => {
+    setIsImageLoaded(false);
+    setAvatarError(false);
+  }, [userData?.photoURL]);
+
+  useEffect(() => {
+    const fetchPendingInvites = async () => {
+      if (!user) return;
+
+      const q = query(
+        collection(db, "userContacts"),
+        where("contactId", "==", user.uid),
+        where("status", "==", "pending")
+      );
+
+      const querySnapshot = await getDocs(q);
+      setPendingInvites(querySnapshot.size);
+    };
+
+    fetchPendingInvites();
+  }, [user]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -107,8 +133,6 @@ export default function Navbar() {
       console.error("Błąd wylogowania:", error);
     }
   };
-
-  const defaultAvatar = "/images/default-avatar.png";
 
   // Show loading skeleton if loading or no user
   const showSkeleton = isLoading || !user;
@@ -225,7 +249,7 @@ export default function Navbar() {
           <div className="relative h-5/6">
             <a
               href="/contacts"
-              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200 relative"
               onMouseEnter={() => setActiveTooltip("contacts")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
@@ -237,6 +261,11 @@ export default function Navbar() {
               >
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
+              {pendingInvites > 0 && (
+                <div className="absolute top-6 right-5 bg-red-500 text-white text-xs font-medium w-4 h-4 rounded-full flex items-center justify-center">
+                  {pendingInvites}
+                </div>
+              )}
             </a>
             {delayedTooltip === "contacts" && (
               <div
@@ -294,22 +323,17 @@ export default function Navbar() {
                 <span className="text-white text-base">
                   {userData?.displayName || user?.displayName || "Użytkownik"}
                 </span>
-                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-[var(--gray-300)]">
-                  {userData?.photoURL && (
-                    <Image
-                      src={userData.photoURL}
-                      alt="Profile"
-                      fill
-                      className={`object-cover transition-opacity ${
-                        isImageReady ? "opacity-100" : "opacity-0"
-                      }`}
-                      onLoadingComplete={() => {
-                        setIsImageLoading(false);
-                        setIsImageReady(true);
-                      }}
-                      priority
-                    />
-                  )}
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                  <Image
+                    src={userData?.photoURL || defaultAvatar}
+                    alt="Profile"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="32px"
+                    quality={100}
+                    loading="eager"
+                  />
                 </div>
                 <div className="absolute right-3 bottom-1 flex items-center justify-center bg-gray-200 rounded-full w-4 h-4">
                   <ArrowDownIcon width={10} height={10} fill="black" />

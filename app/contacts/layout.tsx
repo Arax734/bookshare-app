@@ -4,6 +4,10 @@ import "../globals.css";
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/firebase/config";
 
 export default function ContactsLayout({
   children,
@@ -11,6 +15,35 @@ export default function ContactsLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [pendingInvites, setPendingInvites] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPendingInvites = async () => {
+      const q = query(
+        collection(db, "userContacts"),
+        where("contactId", "==", user.uid),
+        where("status", "==", "pending")
+      );
+
+      const querySnapshot = await getDocs(q);
+      setPendingInvites(querySnapshot.size);
+    };
+
+    fetchPendingInvites();
+  }, [user]);
+
+  // Prevent hydration issues
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <AuthenticatedLayout>
@@ -23,12 +56,11 @@ export default function ContactsLayout({
                 <nav className="flex flex-col p-1">
                   <Link
                     href="/contacts"
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors
-                      ${
-                        pathname === "/contacts"
-                          ? "bg-[var(--primaryColor)] text-white"
-                          : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
-                      }`}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                      pathname === "/contacts"
+                        ? "bg-[var(--primaryColor)] text-white"
+                        : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
+                    }`}
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
@@ -48,12 +80,11 @@ export default function ContactsLayout({
 
                   <Link
                     href="/contacts/invites"
-                    className={`flex items-center gap-3 p-3 mt-1 rounded-lg transition-colors
-                      ${
-                        pathname === "/contacts/invites"
-                          ? "bg-[var(--primaryColor)] text-white"
-                          : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
-                      }`}
+                    className={`flex items-center gap-3 p-3 mt-1 rounded-lg transition-colors relative ${
+                      pathname === "/contacts/invites"
+                        ? "bg-[var(--primaryColor)] text-white"
+                        : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
+                    }`}
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
@@ -69,16 +100,20 @@ export default function ContactsLayout({
                       />
                     </svg>
                     <span>Zaproszenia</span>
+                    {pendingInvites > 0 && mounted && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-medium px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                        {pendingInvites}
+                      </div>
+                    )}
                   </Link>
 
                   <Link
                     href="/contacts/search"
-                    className={`flex items-center gap-3 p-3 mt-1 rounded-lg transition-colors
-                      ${
-                        pathname === "/contacts/search"
-                          ? "bg-[var(--primaryColor)] text-white"
-                          : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
-                      }`}
+                    className={`flex items-center gap-3 p-3 mt-1 rounded-lg transition-colors ${
+                      pathname === "/contacts/search"
+                        ? "bg-[var(--primaryColor)] text-white"
+                        : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
+                    }`}
                   >
                     <svg
                       className="w-5 h-5 shrink-0"
