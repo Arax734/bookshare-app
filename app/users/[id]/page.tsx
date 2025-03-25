@@ -420,7 +420,7 @@ export default function UserProfile({ params }: PageProps) {
                             <path d="M10.082 2a4.494 4.494 0 1 0 0 8.989 4.494 4.494 0 0 0 0-8.989zM10.534 13.177c.252-.366.012-.922-.433-.921h-.41l-.795.001a6.688 6.688 0 0 0-6.688 6.688 2.73 2.73 0 0 0 2.73 2.73h5.221c.45 0 .693-.574.432-.941a6.555 6.555 0 0 1-1.22-3.82c0-1.388.43-2.675 1.163-3.737z" />
                             <path
                               fillRule="evenodd"
-                              d="M21.041 16.915a5.085 5.085 0 1 1-10.17 0 5.085 5.085 0 0 1 10.17 0zm-2.726-2.36a.75.75 0 0 1 0 1.062l-.945.944a.5.5 0 0 0 0 .708l.945.945a.75.75 0 0 1-1.06 1.06l-.945-.945a.5.5 0 0 0-.707 0l-.945.945a.75.75 0 0 1-1.06-1.06l.944-.945a.5.5 0 0 0 0-.707l-.945-.945a.75.75 0 0 1 1.06-1.061l.946.945a.5.5 0 0 0 .707 0l.945-.945a.75.75 0 0 1 1.06 0z"
+                              d="M21.041 16.915a5.085 5.085 0 1 1-10.17 0 5.085 5.085 0 0 1 10.17 0zm-2.726-2.36a.75.75 0 0 1 0 1.062l-.945.944a.5.5 0 0 0 0 .708l.945.945a.75.75 0 0 1-1.06 1.06l-.945-.945a.5.5 0 0 0-.707 0l-.945.945a.75.75 0 0 1-1.06-1.061l.946.945a.5.5 0 0 0 .707 0l.945-.945a.75.75 0 0 1 1.06 0z"
                             />
                           </svg>
                         </button>
@@ -511,76 +511,81 @@ export default function UserProfile({ params }: PageProps) {
           <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
             <h2 className="text-xl font-bold">Opinie użytkownika</h2>
           </div>
+          {/* Reviews Card Content */}
           <div className="p-6">
             <div className="space-y-4">
-              {displayedReviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                >
-                  <div className="flex flex-col space-y-2">
-                    <Link
-                      href={`/books/${review.bookId}`}
-                      className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+              {displayedReviews.length > 0 ? (
+                <>
+                  {displayedReviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
                     >
-                      {review.bookTitle}
-                    </Link>
-                    <p className="text-sm text-[var(--gray-500)]">
-                      {review.bookAuthor}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {[...Array(10)].map((_, index) => (
-                        <svg
-                          key={index}
-                          className={`w-4 h-4 ${
-                            index + 1 <= review.rating
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
+                      <div className="flex flex-col space-y-2">
+                        <Link
+                          href={`/books/${review.bookId}`}
+                          className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
                         >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                      <span className="text-[var(--gray-700)] ml-2">
-                        {review.rating}/10
-                      </span>
+                          {review.bookTitle}
+                        </Link>
+                        <p className="text-sm text-[var(--gray-500)]">
+                          {review.bookAuthor}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {[...Array(10)].map((_, index) => (
+                            <svg
+                              key={index}
+                              className={`w-4 h-4 ${
+                                index + 1 <= review.rating
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                          <span className="text-[var(--gray-700)] ml-2">
+                            {review.rating}/10
+                          </span>
+                        </div>
+                        {review.comment && (
+                          <p className="text-[var(--gray-800)] mt-2">
+                            {review.comment}
+                          </p>
+                        )}
+                        <p className="text-xs text-[var(--gray-500)] mt-2">
+                          {review.createdAt &&
+                            format(review.createdAt.toDate(), "d MMMM yyyy", {
+                              locale: pl,
+                            })}
+                        </p>
+                      </div>
                     </div>
-                    {review.comment && (
-                      <p className="text-[var(--gray-800)] mt-2">
-                        {review.comment}
-                      </p>
-                    )}
-                    <p className="text-xs text-[var(--gray-500)] mt-2">
-                      {review.createdAt &&
-                        format(review.createdAt.toDate(), "d MMMM yyyy", {
-                          locale: pl,
-                        })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {user?.reviewsCount &&
-                displayedReviews.length < user.reviewsCount && (
-                  <button
-                    onClick={loadMoreReviews}
-                    disabled={isLoadingMore}
-                    className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                  ))}
+
+                  {user?.reviewsCount &&
+                    displayedReviews.length < user.reviewsCount && (
+                      <button
+                        onClick={loadMoreReviews}
+                        disabled={isLoadingMore}
+                        className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
     text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
     disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {isLoadingMore ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        <span>Ładowanie...</span>
-                      </>
-                    ) : (
-                      `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviewsCount})`
+                      >
+                        {isLoadingMore ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            <span>Ładowanie...</span>
+                          </>
+                        ) : (
+                          `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviewsCount})`
+                        )}
+                      </button>
                     )}
-                  </button>
-                )}
-              {displayedReviews.length === 0 && (
+                </>
+              ) : (
                 <p className="text-center text-[var(--gray-500)]">
                   Brak opinii do wyświetlenia
                 </p>

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import { useNotifications } from "../contexts/NotificationsContext";
 
 export default function ContactsLayout({
   children,
@@ -16,7 +17,7 @@ export default function ContactsLayout({
 }>) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [pendingInvites, setPendingInvites] = useState(0);
+  const { pendingInvites, setPendingInvites } = useNotifications();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function ContactsLayout({
     };
 
     fetchPendingInvites();
-  }, [user]);
+  }, [user, setPendingInvites]);
 
   // Prevent hydration issues
   if (!mounted) {

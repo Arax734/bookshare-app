@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ThemeScript } from "./components/ThemeScript";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -32,11 +33,13 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <ThemeProvider>
-        <body
-          className={`${montserrat.className} antialiased tracking-normal leading-normal transition-all duration-200`}
-        >
-          {children}
-        </body>
+        <NotificationsProvider>
+          <body
+            className={`${montserrat.className} antialiased tracking-normal leading-normal transition-all duration-200`}
+          >
+            {children}
+          </body>
+        </NotificationsProvider>
       </ThemeProvider>
     </html>
   );
