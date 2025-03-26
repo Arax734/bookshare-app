@@ -305,7 +305,7 @@ export default function Library() {
           {books.map((book) => (
             <div
               key={book.id}
-              className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-[var(--gray-100)] flex flex-col"
+              className="bg-[var(--card-background)] rounded-xl shadow overflow-hidden transition-all duration-300 border border-[var(--gray-100)] flex flex-col"
             >
               {/* Header with title and rating */}
               <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4">

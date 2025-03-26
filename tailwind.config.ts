@@ -29,6 +29,15 @@ const config: Config = {
       screens: {
         xs: "475px",
       },
+      keyframes: {
+        "pulse-scale": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.2)" },
+        },
+      },
+      animation: {
+        "pulse-scale": "pulse-scale 1.5s ease-in-out infinite",
+      },
     },
   },
   plugins: [],
