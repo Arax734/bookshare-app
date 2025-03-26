@@ -250,7 +250,6 @@ export default function Settings() {
           const reAuthResult = await (authMethod === "google"
             ? signInWithGoogle()
             : signInWithFacebook());
-
           if (!reAuthResult) {
             throw new Error("Ponowne uwierzytelnienie nie powiodło się");
           }
@@ -275,6 +274,27 @@ export default function Settings() {
         );
         await Promise.all(deleteReviewsPromises);
 
+        // Delete all contact documents where user is either userId or contactId
+        const userContactsQuery1 = query(
+          collection(db, "userContacts"),
+          where("userId", "==", user.uid)
+        );
+        const userContactsQuery2 = query(
+          collection(db, "userContacts"),
+          where("contactId", "==", user.uid)
+        );
+
+        const [contactsSnapshot1, contactsSnapshot2] = await Promise.all([
+          getDocs(userContactsQuery1),
+          getDocs(userContactsQuery2),
+        ]);
+
+        const deleteContactsPromises = [
+          ...contactsSnapshot1.docs.map((doc) => deleteDoc(doc.ref)),
+          ...contactsSnapshot2.docs.map((doc) => deleteDoc(doc.ref)),
+        ];
+        await Promise.all(deleteContactsPromises);
+
         // Delete user document from users collection
         const userDocRef = doc(db, "users", user.uid);
         await deleteDoc(userDocRef);
@@ -283,11 +303,9 @@ export default function Settings() {
         await user.delete();
 
         // Remove the session cookie
-        await fetch("/api/auth/session", {
-          method: "DELETE",
-        });
+        await fetch("/api/auth/session", { method: "DELETE" });
 
-        // Redirect to home page after successful deletion
+        // Redirect to home page
         window.location.href = "/";
       } catch (error: any) {
         if (
@@ -299,8 +317,6 @@ export default function Settings() {
         }
         throw error;
       }
-
-      window.location.href = "/";
     } catch (error: any) {
       if (error.code === "auth/wrong-password") {
         setError("Nieprawidłowe hasło");
