@@ -14,6 +14,7 @@ import {
   startAfter,
   addDoc,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
@@ -25,6 +26,7 @@ import { EnvelopeIcon } from "@/app/components/svg-icons/EnvelopeIcon";
 import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { useAuth } from "@/app/hooks/useAuth";
+import { useNotifications } from "@/app/contexts/NotificationsContext";
 
 interface Review {
   id: string;
@@ -90,6 +92,10 @@ export default function UserProfile({ params }: PageProps) {
   const [isPending, setIsPending] = useState(false);
   const { user: currentUser } = useAuth();
   const REVIEWS_PER_PAGE = 5;
+  const [invitationDirection, setInvitationDirection] = useState<
+    "sent" | "received" | null
+  >(null);
+  const { pendingInvites, setPendingInvites } = useNotifications();
 
   const formatPhoneNumber = (phone: string | undefined) => {
     if (!phone) return "Nie podano";
@@ -134,9 +140,11 @@ export default function UserProfile({ params }: PageProps) {
           setIsContact(true);
           setContactDocId(userQuerySnapshot.docs[0].id);
           setIsPending(false);
+          setInvitationDirection(null);
         } else if (userContact.status === "pending") {
           setIsContact(false);
           setIsPending(true);
+          setInvitationDirection("sent");
         }
       }
       // Then check profile user-initiated contacts
@@ -146,20 +154,25 @@ export default function UserProfile({ params }: PageProps) {
           setIsContact(true);
           setContactDocId(contactQuerySnapshot.docs[0].id);
           setIsPending(false);
+          setInvitationDirection(null);
         } else if (profileContact.status === "pending") {
           setIsContact(false);
           setIsPending(true);
+          setContactDocId(contactQuerySnapshot.docs[0].id);
+          setInvitationDirection("received");
         }
       }
       // No contacts found
       else {
         setIsContact(false);
         setIsPending(false);
+        setInvitationDirection(null);
       }
     } catch (error) {
       console.error("Error checking contact status:", error);
       setIsContact(false);
       setIsPending(false);
+      setInvitationDirection(null);
     }
   };
 
@@ -189,6 +202,37 @@ export default function UserProfile({ params }: PageProps) {
       // Optionally show success message
     } catch (error) {
       console.error("Error removing contact:", error);
+    }
+  };
+
+  const handleAcceptInvite = async () => {
+    if (!contactDocId) return;
+
+    try {
+      await updateDoc(doc(db, "userContacts", contactDocId), {
+        status: "accepted",
+      });
+      setIsContact(true);
+      setIsPending(false);
+      // Update with direct value instead of function
+      setPendingInvites(Math.max(0, pendingInvites - 1));
+    } catch (error) {
+      console.error("Error accepting invite:", error);
+    }
+  };
+
+  const handleRejectInvite = async () => {
+    if (!contactDocId) return;
+
+    try {
+      await deleteDoc(doc(db, "userContacts", contactDocId));
+      setIsContact(false);
+      setContactDocId(null);
+      setIsPending(false);
+      // Update with direct value instead of function
+      setPendingInvites(Math.max(0, pendingInvites - 1));
+    } catch (error) {
+      console.error("Error rejecting invite:", error);
     }
   };
 
@@ -414,7 +458,7 @@ export default function UserProfile({ params }: PageProps) {
                         >
                           <svg
                             className="w-5 h-5"
-                            viewBox="0 0 30 32"
+                            viewBox="0 0 32 32"
                             fill="currentColor"
                           >
                             <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
@@ -423,6 +467,55 @@ export default function UserProfile({ params }: PageProps) {
                           </svg>
                         </button>
                       </>
+                    ) : isPending ? (
+                      invitationDirection === "received" ? (
+                        <>
+                          <button
+                            onClick={handleAcceptInvite}
+                            className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                            title="Dodaj do kontaktów"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              viewBox="0 0 512 512"
+                              fill="currentColor"
+                            >
+                              <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                              <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={handleRejectInvite}
+                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            title="Usuń kontakt"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              viewBox="0 0 32 32"
+                              fill="currentColor"
+                            >
+                              <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
+                              <circle cx="14" cy="9" r="8" />
+                              <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
+                          title="Oczekuje na akceptację"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            viewBox="0 0 512 512"
+                            fill="currentColor"
+                          >
+                            <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                            <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                          </svg>
+                        </button>
+                      )
                     ) : (
                       <button
                         onClick={handleAddContact}
@@ -440,13 +533,11 @@ export default function UserProfile({ params }: PageProps) {
                       >
                         <svg
                           className="w-5 h-5"
-                          viewBox="0 0 23 23"
+                          viewBox="0 0 512 512"
                           fill="currentColor"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M17 6A5 5 0 1 1 7 6a5 5 0 0 1 10 0zm-7 7a7 7 0 0 0-7 7 3 3 0 0 0 3 3h7.41c.431 0 .677-.528.453-.898A5.972 5.972 0 0 1 13 19a5.993 5.993 0 0 1 2.56-4.917c.364-.255.333-.839-.101-.93-.47-.1-.959-.153-1.459-.153zm9 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 0 1-2 0v-2h-2a1 1 0 1 1 0-2h2v-2a1 1 0 0 1 1-1z"
-                          />
+                          <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                          <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
                         </svg>
                       </button>
                     )}
