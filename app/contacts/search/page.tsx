@@ -32,6 +32,7 @@ interface UserSearchResult {
   photoURL?: string;
   phoneNumber?: string;
   pendingInvite?: PendingInvite;
+  isPending?: boolean;
 }
 
 interface PendingInvite {
@@ -57,17 +58,18 @@ export default function Search() {
     try {
       const queryLower = searchText.toLowerCase();
 
-      // Get existing contacts first
-      const existingContactsQuery = query(
+      // Get pending invites sent by current user
+      const sentInvitesQuery = query(
         collection(db, "userContacts"),
-        where("userId", "==", user.uid)
+        where("userId", "==", user.uid),
+        where("status", "==", "pending")
       );
-      const existingContactsSnapshot = await getDocs(existingContactsQuery);
-      const existingContactIds = new Set(
-        existingContactsSnapshot.docs.map((doc) => doc.data().contactId)
+      const sentInvitesSnapshot = await getDocs(sentInvitesQuery);
+      const sentInvites = new Set(
+        sentInvitesSnapshot.docs.map((doc) => doc.data().contactId)
       );
 
-      // Get pending invites
+      // Get pending invites received by current user
       const pendingInvitesQuery = query(
         collection(db, "userContacts"),
         where("contactId", "==", user.uid),
@@ -106,7 +108,7 @@ export default function Search() {
         getDocs(phoneQuery),
       ]);
 
-      // Combine and deduplicate results, excluding existing contacts
+      // Combine and deduplicate results
       const results = new Map<
         string,
         UserSearchResult & { pendingInvite?: PendingInvite }
@@ -117,15 +119,12 @@ export default function Search() {
         ...nameSnapshot.docs,
         ...phoneSnapshot.docs,
       ].forEach((doc) => {
-        if (
-          !results.has(doc.id) &&
-          doc.id !== user?.uid &&
-          !existingContactIds.has(doc.id)
-        ) {
+        if (!results.has(doc.id) && doc.id !== user?.uid) {
           results.set(doc.id, {
             id: doc.id,
             ...doc.data(),
             pendingInvite: pendingInvites.get(doc.id),
+            isPending: sentInvites.has(doc.id),
           } as UserSearchResult & { pendingInvite?: PendingInvite });
         }
       });
@@ -173,9 +172,14 @@ export default function Search() {
         status: "pending",
       });
 
-      // Clear search results
-      setSearchResults([]);
-      setSearchQuery("");
+      // Update the search results to mark this contact as pending
+      setSearchResults((prevResults) =>
+        prevResults.map((result) =>
+          result.email === contactEmail
+            ? { ...result, isPending: true }
+            : result
+        )
+      );
     } catch (error) {
       console.error("Error adding contact:", error);
       // Here you might want to add proper error handling/notification
@@ -279,9 +283,16 @@ export default function Search() {
                   ) : (
                     <button
                       onClick={() => addContact(result.email)}
-                      className="px-4 py-2 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors"
+                      disabled={result.isPending}
+                      className={`px-4 py-2 ${
+                        result.isPending
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)]"
+                      } text-white rounded-lg transition-colors`}
                     >
-                      Dodaj do kontaktów
+                      {result.isPending
+                        ? "Zaproszenie wysłane"
+                        : "Dodaj do kontaktów"}
                     </button>
                   )}
                 </div>

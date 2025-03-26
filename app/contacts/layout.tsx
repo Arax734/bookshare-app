@@ -19,6 +19,7 @@ export default function ContactsLayout({
   const { user } = useAuth();
   const { pendingInvites, setPendingInvites } = useNotifications();
   const [mounted, setMounted] = useState(false);
+  const [acceptedContactsCount, setAcceptedContactsCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -41,6 +42,32 @@ export default function ContactsLayout({
     fetchPendingInvites();
   }, [user, setPendingInvites]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAcceptedContacts = async () => {
+      const q1 = query(
+        collection(db, "userContacts"),
+        where("userId", "==", user.uid),
+        where("status", "==", "accepted")
+      );
+      const q2 = query(
+        collection(db, "userContacts"),
+        where("contactId", "==", user.uid),
+        where("status", "==", "accepted")
+      );
+
+      const [snapshot1, snapshot2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2),
+      ]);
+
+      setAcceptedContactsCount(snapshot1.size + snapshot2.size);
+    };
+
+    fetchAcceptedContacts();
+  }, [user]);
+
   // Prevent hydration issues
   if (!mounted) {
     return null;
@@ -57,7 +84,7 @@ export default function ContactsLayout({
                 <nav className="flex flex-col p-1">
                   <Link
                     href="/contacts"
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${
                       pathname === "/contacts"
                         ? "bg-[var(--primaryColor)] text-white"
                         : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
@@ -77,6 +104,11 @@ export default function ContactsLayout({
                       />
                     </svg>
                     <span>Twoje kontakty</span>
+                    {acceptedContactsCount > 0 && mounted && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-500 text-white text-xs font-medium px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                        {acceptedContactsCount}
+                      </div>
+                    )}
                   </Link>
 
                   <Link
