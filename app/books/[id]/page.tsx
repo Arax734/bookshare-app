@@ -15,6 +15,7 @@ import { splitAuthors } from "@/app/utils/stringUtils";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import BookOwnershipButton from "@/app/components/BookOwnershipButton";
+import BookFavoriteButton from "@/app/components/BookFavoriteButton";
 
 interface BookDetails {
   id: number;
@@ -169,6 +170,7 @@ export default function BookDetails({ params }: PageProps) {
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-white">{book.title}</h1>
               <BookOwnershipButton bookId={unwrappedParams.id} />
+              <BookFavoriteButton bookId={unwrappedParams.id} />
             </div>
           </div>
 

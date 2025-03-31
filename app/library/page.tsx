@@ -308,8 +308,8 @@ export default function Library() {
               className="bg-[var(--card-background)] rounded-xl shadow overflow-hidden transition-all duration-300 border border-[var(--gray-100)] flex flex-col"
             >
               {/* Header with title and rating */}
-              <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4">
-                <div className="flex justify-between items-start gap-2">
+              <div className="bg-[var(--primaryColor)] p-4">
+                <div className="flex justify-between items-start">
                   <h2
                     className="text-lg font-bold text-white line-clamp-2 flex-1"
                     title={book.title}
