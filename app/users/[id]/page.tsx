@@ -52,6 +52,13 @@ interface UserProfile {
   phoneNumber?: string;
   creationTime?: string;
   bio?: string;
+  booksCount: number;
+  favoriteBooks: {
+    id: string;
+    title: string;
+    author: string;
+    addedAt: Date;
+  }[];
 }
 
 interface PageProps {
@@ -91,6 +98,11 @@ export default function UserProfile({ params }: PageProps) {
   const [contactDocId, setContactDocId] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const { user: currentUser } = useAuth();
+  const [displayedFavoriteBooks, setDisplayedFavoriteBooks] = useState<
+    UserProfile["favoriteBooks"]
+  >([]);
+  const [isLoadingMoreFavorites, setIsLoadingMoreFavorites] = useState(false);
+  const [totalFavoriteBooks, setTotalFavoriteBooks] = useState(0);
   const REVIEWS_PER_PAGE = 5;
   const [invitationDirection, setInvitationDirection] = useState<
     "sent" | "received" | null
@@ -250,6 +262,41 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
+        // Get books count
+        const bookOwnershipQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", unwrappedParams.id)
+        );
+        const bookOwnershipSnapshot = await getDocs(bookOwnershipQuery);
+        const booksCount = bookOwnershipSnapshot.size;
+
+        // Get favorite books
+        const favoriteBooksQuery = query(
+          collection(db, "bookFavorites"),
+          where("userId", "==", unwrappedParams.id),
+          orderBy("createdAt", "desc"),
+          limit(REVIEWS_PER_PAGE)
+        );
+
+        const favoriteBooksSnapshot = await getDocs(favoriteBooksQuery);
+        const favoriteBookIds = favoriteBooksSnapshot.docs.map((doc) => ({
+          id: doc.data().bookId,
+          addedAt: doc.data().createdAt.toDate(),
+        }));
+
+        // Fetch book details for favorite books
+        const favoriteBooks = await Promise.all(
+          favoriteBookIds.map(async ({ id, addedAt }) => {
+            const bookDetails = await fetchBookDetails(id);
+            return {
+              id,
+              title: bookDetails?.title || "Książka niedostępna",
+              author: bookDetails?.author || "Autor nieznany",
+              addedAt,
+            };
+          })
+        );
+
         // Set user data first
         const userProfile = {
           id: unwrappedParams.id,
@@ -261,6 +308,8 @@ export default function UserProfile({ params }: PageProps) {
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
+          booksCount: booksCount, // Add this line
+          favoriteBooks: favoriteBooks, // Add this line
         };
 
         setUser(userProfile);
@@ -302,19 +351,6 @@ export default function UserProfile({ params }: PageProps) {
             };
           })
         );
-
-        // In the fetchUserProfile function, update the setUser call:
-        setUser({
-          id: unwrappedParams.id,
-          email: userData.email,
-          displayName: userData.displayName || "Użytkownik anonimowy",
-          photoURL: userData.photoURL,
-          reviewsCount: userData.reviewsCount || 0,
-          averageRating: userData.averageRating || 0.0,
-          phoneNumber: userData.phoneNumber,
-          creationTime: userData.createdAt?.toDate()?.toISOString(),
-          bio: userData.bio,
-        });
 
         setReviews(reviewsData); // Store all fetched reviews
         setDisplayedReviews(reviewsWithBooks); // Show only loaded reviews
@@ -374,6 +410,49 @@ export default function UserProfile({ params }: PageProps) {
       console.error("Error loading more reviews:", error);
     } finally {
       setIsLoadingMore(false);
+    }
+  };
+
+  const loadMoreFavoriteBooks = async () => {
+    if (isLoadingMoreFavorites) return;
+
+    setIsLoadingMoreFavorites(true);
+    try {
+      const unwrappedParams = await params;
+      const lastBook =
+        displayedFavoriteBooks[displayedFavoriteBooks.length - 1];
+
+      const nextBooksQuery = query(
+        collection(db, "bookFavorites"),
+        where("userId", "==", unwrappedParams.id),
+        orderBy("createdAt", "desc"),
+        startAfter(lastBook.addedAt),
+        limit(REVIEWS_PER_PAGE)
+      );
+
+      const nextBooksSnapshot = await getDocs(nextBooksQuery);
+      const nextBookIds = nextBooksSnapshot.docs.map((doc) => ({
+        id: doc.data().bookId,
+        addedAt: doc.data().createdAt.toDate(),
+      }));
+
+      const nextBooks = await Promise.all(
+        nextBookIds.map(async ({ id, addedAt }) => {
+          const bookDetails = await fetchBookDetails(id);
+          return {
+            id,
+            title: bookDetails?.title || "Książka niedostępna",
+            author: bookDetails?.author || "Autor nieznany",
+            addedAt,
+          };
+        })
+      );
+
+      setDisplayedFavoriteBooks([...displayedFavoriteBooks, ...nextBooks]);
+    } catch (error) {
+      console.error("Error loading more favorite books:", error);
+    } finally {
+      setIsLoadingMoreFavorites(false);
     }
   };
 
@@ -571,6 +650,10 @@ export default function UserProfile({ params }: PageProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 {
+                  label: "Książek",
+                  value: user.booksCount,
+                },
+                {
                   label: "Opinii",
                   value: user.reviewsCount,
                 },
@@ -591,6 +674,67 @@ export default function UserProfile({ params }: PageProps) {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Favorite Books Card */}
+        <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
+          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+            <h2 className="text-xl font-bold">Ulubione książki</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {user.favoriteBooks?.length > 0 ? (
+                <>
+                  {user.favoriteBooks.map((book) => (
+                    <div
+                      key={book.id}
+                      className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <Link
+                          href={`/books/${book.id}`}
+                          className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                        >
+                          {book.title}
+                        </Link>
+                        <p className="text-sm text-[var(--gray-500)]">
+                          {book.author}
+                        </p>
+                        <p className="text-xs text-[var(--gray-500)] mt-2">
+                          {format(book.addedAt, "d MMMM yyyy", {
+                            locale: pl,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {displayedFavoriteBooks?.length < totalFavoriteBooks && (
+                    <button
+                      onClick={loadMoreFavoriteBooks}
+                      disabled={isLoadingMoreFavorites}
+                      className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {isLoadingMoreFavorites ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          <span>Ładowanie...</span>
+                        </>
+                      ) : (
+                        `Załaduj więcej książek (${displayedFavoriteBooks.length} z ${totalFavoriteBooks})`
+                      )}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p className="text-center text-[var(--gray-500)]">
+                  Brak ulubionych książek
+                </p>
+              )}
             </div>
           </div>
         </div>

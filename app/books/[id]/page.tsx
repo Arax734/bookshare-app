@@ -14,6 +14,8 @@ import { UserIcon } from "@/app/components/svg-icons/UserIcon";
 import { splitAuthors } from "@/app/utils/stringUtils";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import BookOwnershipButton from "@/app/components/BookOwnershipButton";
+import BookFavoriteButton from "@/app/components/BookFavoriteButton";
 
 interface BookDetails {
   id: number;
@@ -164,9 +166,11 @@ export default function BookDetails({ params }: PageProps) {
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
           {/* Header with title and rating */}
-          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4">
-            <div className="flex justify-between items-start">
+          <div className="bg-[var(--primaryColor)] p-4">
+            <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-white">{book.title}</h1>
+              <BookOwnershipButton bookId={unwrappedParams.id} />
+              <BookFavoriteButton bookId={unwrappedParams.id} />
             </div>
           </div>
 
