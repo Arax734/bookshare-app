@@ -169,8 +169,10 @@ export default function BookDetails({ params }: PageProps) {
           <div className="bg-[var(--primaryColor)] p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-white">{book.title}</h1>
-              <BookOwnershipButton bookId={unwrappedParams.id} />
-              <BookFavoriteButton bookId={unwrappedParams.id} />
+              <div className="flex justify-between items-center">
+                <BookOwnershipButton bookId={unwrappedParams.id} />
+                <BookFavoriteButton bookId={unwrappedParams.id} />
+              </div>
             </div>
           </div>
 
