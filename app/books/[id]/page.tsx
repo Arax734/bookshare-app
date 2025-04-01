@@ -162,7 +162,7 @@ export default function BookDetails({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-6">
+    <div className="min-h-screen bg-[var(--background)]">
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
           {/* Header with title and rating */}
