@@ -103,7 +103,7 @@ export default function UserProfile({ params }: PageProps) {
   >([]);
   const [isLoadingMoreFavorites, setIsLoadingMoreFavorites] = useState(false);
   const [totalFavoriteBooks, setTotalFavoriteBooks] = useState(0);
-  const REVIEWS_PER_PAGE = 5;
+  const REVIEWS_PER_PAGE = 3;
   const [invitationDirection, setInvitationDirection] = useState<
     "sent" | "received" | null
   >(null);

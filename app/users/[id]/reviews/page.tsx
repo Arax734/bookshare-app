@@ -17,8 +17,6 @@ import { pl } from "date-fns/locale";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { StarIcon } from "@/app/components/svg-icons/StarIcon";
 
-const REVIEWS_PER_PAGE = 10;
-
 interface Review {
   id: string;
   bookId: string;
@@ -44,6 +42,7 @@ export default function Reviews({
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [itemsPerPage, setItemsPerPage] = useState(5); // Default value
+  const [isFetchingBooks, setIsFetchingBooks] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const unwrappedParams = use(params);
   const observer = useRef<IntersectionObserver | null>(null);
@@ -83,13 +82,17 @@ export default function Reviews({
   }, []);
 
   const fetchMoreReviews = async () => {
+    if (isFetchingBooks) return; // Prevent concurrent fetches
+
     try {
       setIsLoading(true);
+      setIsFetchingBooks(true);
+
       let reviewsQuery = query(
         collection(db, "reviews"),
         where("userId", "==", unwrappedParams.id),
         orderBy("createdAt", "desc"),
-        limit(itemsPerPage) // Use dynamic page size
+        limit(itemsPerPage)
       );
 
       if (lastDoc) {
@@ -98,17 +101,21 @@ export default function Reviews({
           where("userId", "==", unwrappedParams.id),
           orderBy("createdAt", "desc"),
           startAfter(lastDoc),
-          limit(itemsPerPage) // Use dynamic page size
+          limit(itemsPerPage)
         );
       }
 
       const reviewsSnapshot = await getDocs(reviewsQuery);
 
-      if (reviewsSnapshot.docs.length < itemsPerPage) {
+      // If no more documents, set hasMore to false
+      if (reviewsSnapshot.empty || reviewsSnapshot.docs.length < itemsPerPage) {
         setHasMore(false);
       }
 
-      setLastDoc(reviewsSnapshot.docs[reviewsSnapshot.docs.length - 1]);
+      // Only set lastDoc if we have documents
+      if (!reviewsSnapshot.empty) {
+        setLastDoc(reviewsSnapshot.docs[reviewsSnapshot.docs.length - 1]);
+      }
 
       const reviewsData = reviewsSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -116,8 +123,19 @@ export default function Reviews({
         createdAt: doc.data().createdAt.toDate(),
       })) as Review[];
 
+      // Get unique reviews that don't exist in current state
+      const existingIds = new Set(reviews.map((review) => review.id));
+      const uniqueReviewsData = reviewsData.filter(
+        (review) => !existingIds.has(review.id)
+      );
+
+      if (uniqueReviewsData.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
       const reviewsWithBooks = await Promise.all(
-        reviewsData.map(async (review) => {
+        uniqueReviewsData.map(async (review) => {
           try {
             const paddedId = review.bookId.padStart(14, "0");
             const response = await fetch(`/api/books/${paddedId}`);
@@ -142,12 +160,21 @@ export default function Reviews({
         })
       );
 
-      setReviews((prev) => [...prev, ...reviewsWithBooks]);
+      setReviews((prev) => {
+        const newReviews = [...prev];
+        reviewsWithBooks.forEach((review) => {
+          if (!newReviews.some((r) => r.id === review.id)) {
+            newReviews.push(review);
+          }
+        });
+        return newReviews;
+      });
     } catch (error) {
       console.error("Error fetching more reviews:", error);
       setError("Wystąpił błąd podczas ładowania recenzji");
     } finally {
       setIsLoading(false);
+      setIsFetchingBooks(false);
     }
   };
 
@@ -155,7 +182,16 @@ export default function Reviews({
     setReviews([]);
     setHasMore(true);
     setLastDoc(null);
+    setIsFetchingBooks(false);
     fetchMoreReviews();
+
+    // Cleanup function
+    return () => {
+      setReviews([]);
+      setHasMore(true);
+      setLastDoc(null);
+      setIsFetchingBooks(false);
+    };
   }, [unwrappedParams.id]);
 
   if (isLoading && reviews.length === 0) return <LoadingSpinner />;
@@ -183,7 +219,7 @@ export default function Reviews({
                 <>
                   {reviews.map((review, index) => (
                     <div
-                      key={review.id}
+                      key={`${review.id}_${index}`}
                       ref={
                         index === reviews.length - 1
                           ? lastReviewElementRef
