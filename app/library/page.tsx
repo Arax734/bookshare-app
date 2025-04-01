@@ -225,7 +225,7 @@ export default function Library() {
   }
 
   return (
-    <div className=" max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center text-[var(--gray-800)]">
         Biblioteka książek
       </h1>
