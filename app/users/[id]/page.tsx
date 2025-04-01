@@ -278,6 +278,16 @@ export default function UserProfile({ params }: PageProps) {
           limit(REVIEWS_PER_PAGE)
         );
 
+        // Get total count of favorite books
+        const totalFavoriteBooksQuery = query(
+          collection(db, "bookFavorites"),
+          where("userId", "==", unwrappedParams.id)
+        );
+        const totalFavoriteBooksSnapshot = await getDocs(
+          totalFavoriteBooksQuery
+        );
+        const totalFavoriteBooks = totalFavoriteBooksSnapshot.size;
+
         const favoriteBooksSnapshot = await getDocs(favoriteBooksQuery);
         const favoriteBookIds = favoriteBooksSnapshot.docs.map((doc) => ({
           id: doc.data().bookId,
@@ -296,6 +306,9 @@ export default function UserProfile({ params }: PageProps) {
             };
           })
         );
+
+        setDisplayedFavoriteBooks(favoriteBooks);
+        setTotalFavoriteBooks(totalFavoriteBooks);
 
         // Set user data first
         const userProfile = {
@@ -687,7 +700,7 @@ export default function UserProfile({ params }: PageProps) {
             <div className="space-y-4">
               {user.favoriteBooks?.length > 0 ? (
                 <>
-                  {user.favoriteBooks.map((book) => (
+                  {displayedFavoriteBooks.map((book) => (
                     <div
                       key={book.id}
                       className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
@@ -711,7 +724,7 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   ))}
 
-                  {displayedFavoriteBooks?.length < totalFavoriteBooks && (
+                  {displayedFavoriteBooks.length < totalFavoriteBooks && (
                     <button
                       onClick={loadMoreFavoriteBooks}
                       disabled={isLoadingMoreFavorites}
