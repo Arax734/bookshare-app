@@ -474,8 +474,8 @@ export default function UserProfile({ params }: PageProps) {
   if (!user) return <div>Nie znaleziono użytkownika</div>;
 
   return (
-    <main className="mx-auto px-4 py-8 bg-[var(--background)] w-full h-full transition-all duration-200">
-      <div className="max-w-2xl mx-auto">
+    <main className="mx-auto px-4 bg-[var(--background)] w-full h-full transition-all duration-200">
+      <div className="max-w-4xl mx-auto">
         {/* Profile Header Card */}
         <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
           <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
@@ -700,7 +700,7 @@ export default function UserProfile({ params }: PageProps) {
             <div className="space-y-4">
               {user.favoriteBooks?.length > 0 ? (
                 <>
-                  {displayedFavoriteBooks.map((book) => (
+                  {displayedFavoriteBooks.slice(0, 5).map((book) => (
                     <div
                       key={book.id}
                       className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
@@ -724,23 +724,15 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   ))}
 
-                  {displayedFavoriteBooks.length < totalFavoriteBooks && (
-                    <button
-                      onClick={loadMoreFavoriteBooks}
-                      disabled={isLoadingMoreFavorites}
+                  {totalFavoriteBooks > 5 && (
+                    <Link
+                      href={`/users/${user.id}/favorites`}
                       className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
-                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                        text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                        text-center block"
                     >
-                      {isLoadingMoreFavorites ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          <span>Ładowanie...</span>
-                        </>
-                      ) : (
-                        `Załaduj więcej książek (${displayedFavoriteBooks.length} z ${totalFavoriteBooks})`
-                      )}
-                    </button>
+                      Pokaż wszystkie ({totalFavoriteBooks})
+                    </Link>
                   )}
                 </>
               ) : (
@@ -762,7 +754,7 @@ export default function UserProfile({ params }: PageProps) {
             <div className="space-y-4">
               {displayedReviews.length > 0 ? (
                 <>
-                  {displayedReviews.map((review) => (
+                  {displayedReviews.slice(0, 5).map((review) => (
                     <div
                       key={review.id}
                       className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
@@ -811,25 +803,16 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   ))}
 
-                  {user?.reviewsCount &&
-                    displayedReviews.length < user.reviewsCount && (
-                      <button
-                        onClick={loadMoreReviews}
-                        disabled={isLoadingMore}
-                        className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
-    text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-    disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                            <span>Ładowanie...</span>
-                          </>
-                        ) : (
-                          `Załaduj więcej opinii (${displayedReviews.length} z ${user.reviewsCount})`
-                        )}
-                      </button>
-                    )}
+                  {user?.reviewsCount > 5 && (
+                    <Link
+                      href={`/users/${user.id}/reviews`}
+                      className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                        text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                        text-center block"
+                    >
+                      Pokaż wszystkie ({user.reviewsCount})
+                    </Link>
+                  )}
                 </>
               ) : (
                 <p className="text-center text-[var(--gray-500)]">
