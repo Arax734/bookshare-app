@@ -201,7 +201,7 @@ export default function Reviews({
     <main className="mx-auto px-4 pb-8 bg-[var(--background)] min-h-screen">
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+          <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold">Wszystkie recenzje</h1>
               <Link

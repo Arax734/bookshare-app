@@ -481,7 +481,7 @@ export default function UserProfile({ params }: PageProps) {
           <div className="flex-1 min-w-[300px]">
             {/* Profile Header Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <div className="bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Profil użytkownika</h2>
               </div>
               <div className="p-6">
@@ -659,7 +659,7 @@ export default function UserProfile({ params }: PageProps) {
 
             {/* Statistics Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
-              <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Statystyki</h2>
               </div>
               <div className="p-6">
@@ -699,7 +699,7 @@ export default function UserProfile({ params }: PageProps) {
           <div className="flex-1 min-w-[300px]">
             {/* Favorite Books Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mb-8 transition-all duration-200">
-              <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Ulubione książki</h2>
               </div>
               <div className="p-6">
@@ -733,7 +733,7 @@ export default function UserProfile({ params }: PageProps) {
                       {totalFavoriteBooks > 5 && (
                         <Link
                           href={`/users/${user.id}/favorites`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
                         text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
                         text-center block"
                         >
@@ -752,7 +752,7 @@ export default function UserProfile({ params }: PageProps) {
 
             {/* Reviews Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Opinie użytkownika</h2>
               </div>
               <div className="p-6">
@@ -815,7 +815,7 @@ export default function UserProfile({ params }: PageProps) {
                       {user?.reviewsCount > 5 && (
                         <Link
                           href={`/users/${user.id}/reviews`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
                         text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
                         text-center block"
                         >

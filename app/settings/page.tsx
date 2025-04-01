@@ -500,7 +500,7 @@ export default function Settings() {
 
           {/* General Settings Card */}
           <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-            <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
               <h2 className="text-xl font-bold">Ustawienia ogólne</h2>
             </div>
             <div className="p-6">
@@ -532,7 +532,7 @@ export default function Settings() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
-                  className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
+                  className="px-4 py-2 text-sm bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-full transition-all duration-200 shadow-sm hover:shadow transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
                 >
                   {isUploading ? "Weryfikacja..." : "Zmień zdjęcie"}
                 </button>
@@ -610,7 +610,7 @@ export default function Settings() {
 
           {/* Security Card */}
           <div className="my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-            <div className="bg-gradient-to-r from-[var(--primaryColorLight)] to-[var(--primaryColor)] p-4 text-white">
+            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
               <h2 className="text-xl font-bold">Bezpieczeństwo</h2>
             </div>
             <div className="p-6">
@@ -637,21 +637,9 @@ export default function Settings() {
                 )}
                 <button
                   onClick={() => setIsDeleteModalOpen(true)}
-                  className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between group"
+                  className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow flex items-center justify-between group"
                 >
                   <span>Usuń konto</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                 </button>
               </div>
             </div>

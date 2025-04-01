@@ -541,7 +541,7 @@ export default function BookReview({ bookId }: BookReviewProps) {
           <button
             onClick={loadMoreReviews}
             disabled={isLoadingMore}
-            className="w-full mt-6 py-3 px-4 bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColor)] 
+            className="w-full mt-6 py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
             text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
             disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
           >
