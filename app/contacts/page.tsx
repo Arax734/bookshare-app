@@ -294,7 +294,7 @@ export default function Contacts() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-6">
+    <div className="min-h-screen bg-[var(--background)] pb-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="relative">
           <h2 className="text-2xl font-semibold text-[var(--gray-800)] mb-4">

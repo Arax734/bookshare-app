@@ -16,6 +16,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import BookOwnershipButton from "@/app/components/BookOwnershipButton";
 import BookFavoriteButton from "@/app/components/BookFavoriteButton";
+import BookDesireButton from "@/app/components/BookDesireButton";
 
 interface BookDetails {
   id: number;
@@ -162,15 +163,16 @@ export default function BookDetails({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen pb-8 bg-[var(--background)]">
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
           {/* Header with title and rating */}
           <div className="bg-[var(--primaryColor)] p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-white">{book.title}</h1>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center ml-5">
                 <BookOwnershipButton bookId={unwrappedParams.id} />
+                <BookDesireButton bookId={unwrappedParams.id} />
                 <BookFavoriteButton bookId={unwrappedParams.id} />
               </div>
             </div>

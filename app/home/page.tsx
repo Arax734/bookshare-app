@@ -258,7 +258,7 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto px-4 bg-[var(--background)] min-h-screen">
+    <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Welcome Section */}
         <div className="text-center mb-12">

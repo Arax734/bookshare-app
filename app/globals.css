@@ -39,12 +39,12 @@
 
 .dark {
   /* Existing dark theme variables */
-  --background: #242424;
-  --foreground: #ffffff;
-  --primaryColor: #00a305;
-  --primaryColorLight: #00c406;
+  --background: #0a0a0a;
+  --foreground: #e8e8e8;
+  --primaryColor: #004902;
+  --primaryColorLight: #007304;
   --primaryColorLightMax: #00e607;
-  --secondaryColor: #2d2d2d;
+  --secondaryColor: #498033;
   --secondaryColorLight: #383838;
   --secondaryColorDark: #1f1f1f;
   --menuColor: #464646;
