@@ -103,7 +103,6 @@ export default function UserProfile({ params }: PageProps) {
   >([]);
   const [isLoadingMoreFavorites, setIsLoadingMoreFavorites] = useState(false);
   const [totalFavoriteBooks, setTotalFavoriteBooks] = useState(0);
-  const REVIEWS_PER_PAGE = 3;
   const [invitationDirection, setInvitationDirection] = useState<
     "sent" | "received" | null
   >(null);
@@ -116,6 +115,15 @@ export default function UserProfile({ params }: PageProps) {
       createdAt: Date;
     }[]
   >([]);
+  const [displayedExchangeBooks, setDisplayedExchangeBooks] = useState<
+    {
+      id: string;
+      title: string;
+      author: string;
+      createdAt: Date;
+    }[]
+  >([]);
+  const [totalExchangeBooks, setTotalExchangeBooks] = useState(0);
   const [totalOwnedBooks, setTotalOwnedBooks] = useState(0);
 
   const formatPhoneNumber = (phone: string | undefined) => {
@@ -348,6 +356,44 @@ export default function UserProfile({ params }: PageProps) {
 
         setDisplayedFavoriteBooks(favoriteBooks);
         setTotalFavoriteBooks(totalFavoriteBooks);
+
+        // Get books for exchange
+        const exchangeBooksQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", unwrappedParams.id),
+          where("status", "==", "forExchange"),
+          orderBy("createdAt", "desc"),
+          limit(3)
+        );
+
+        // Get total count of exchange books
+        const totalExchangeQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", unwrappedParams.id),
+          where("status", "==", "forExchange")
+        );
+        const totalExchangeSnapshot = await getDocs(totalExchangeQuery);
+        const exchangeBooksSnapshot = await getDocs(exchangeBooksQuery);
+        const exchangeBookIds = exchangeBooksSnapshot.docs.map((doc) => ({
+          id: doc.data().bookId,
+          createdAt: doc.data().createdAt.toDate(),
+        }));
+
+        // Fetch book details for exchange books
+        const exchangeBooks = await Promise.all(
+          exchangeBookIds.map(async ({ id, createdAt }) => {
+            const bookDetails = await fetchBookDetails(id);
+            return {
+              id,
+              title: bookDetails?.title || "Książka niedostępna",
+              author: bookDetails?.author || "Autor nieznany",
+              createdAt,
+            };
+          })
+        );
+
+        setDisplayedExchangeBooks(exchangeBooks);
+        setTotalExchangeBooks(totalExchangeSnapshot.size);
 
         // Set user data first
         const userProfile = {
@@ -790,6 +836,58 @@ export default function UserProfile({ params }: PageProps) {
                   ) : (
                     <p className="text-center text-[var(--gray-500)]">
                       Brak książek na liście
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* Exchange Books Card */}
+            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
+              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
+                <h2 className="text-xl font-bold">Książki do wymiany</h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {displayedExchangeBooks.length > 0 ? (
+                    <>
+                      {displayedExchangeBooks.slice(0, 3).map((book) => (
+                        <div
+                          key={book.id}
+                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
+                        >
+                          <div className="flex flex-col space-y-2">
+                            <Link
+                              href={`/books/${book.id}`}
+                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                            >
+                              {book.title}
+                            </Link>
+                            <p className="text-sm text-[var(--gray-500)]">
+                              {book.author}
+                            </p>
+                            <p className="text-xs text-[var(--gray-500)] mt-2">
+                              {format(book.createdAt, "d MMMM yyyy", {
+                                locale: pl,
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+
+                      {totalExchangeBooks > 3 && (
+                        <Link
+                          href={`/users/${user.id}/exchange`}
+                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
+                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                text-center block"
+                        >
+                          Pokaż wszystkie ({totalExchangeBooks})
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-center text-[var(--gray-500)]">
+                      Brak książek do wymiany
                     </p>
                   )}
                 </div>
