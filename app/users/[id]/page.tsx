@@ -57,7 +57,7 @@ interface UserProfile {
     id: string;
     title: string;
     author: string;
-    addedAt: Date;
+    createdAt: Date;
   }[];
 }
 
@@ -108,6 +108,15 @@ export default function UserProfile({ params }: PageProps) {
     "sent" | "received" | null
   >(null);
   const { pendingInvites, setPendingInvites } = useNotifications();
+  const [displayedOwnedBooks, setDisplayedOwnedBooks] = useState<
+    {
+      id: string;
+      title: string;
+      author: string;
+      createdAt: Date;
+    }[]
+  >([]);
+  const [totalOwnedBooks, setTotalOwnedBooks] = useState(0);
 
   const formatPhoneNumber = (phone: string | undefined) => {
     if (!phone) return "Nie podano";
@@ -270,6 +279,35 @@ export default function UserProfile({ params }: PageProps) {
         const bookOwnershipSnapshot = await getDocs(bookOwnershipQuery);
         const booksCount = bookOwnershipSnapshot.size;
 
+        // Get owned books
+        const ownedBooksQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", unwrappedParams.id),
+          limit(5)
+        );
+
+        const ownedBooksSnapshot = await getDocs(ownedBooksQuery);
+        const ownedBookIds = ownedBooksSnapshot.docs.map((doc) => ({
+          id: doc.data().bookId,
+          createdAt: doc.data().createdAt.toDate(),
+        }));
+
+        // Fetch book details for owned books
+        const ownedBooks = await Promise.all(
+          ownedBookIds.map(async ({ id, createdAt }) => {
+            const bookDetails = await fetchBookDetails(id);
+            return {
+              id,
+              title: bookDetails?.title || "Książka niedostępna",
+              author: bookDetails?.author || "Autor nieznany",
+              createdAt,
+            };
+          })
+        );
+
+        setDisplayedOwnedBooks(ownedBooks);
+        setTotalOwnedBooks(booksCount);
+
         // Get favorite books
         const favoriteBooksQuery = query(
           collection(db, "bookFavorites"),
@@ -291,18 +329,18 @@ export default function UserProfile({ params }: PageProps) {
         const favoriteBooksSnapshot = await getDocs(favoriteBooksQuery);
         const favoriteBookIds = favoriteBooksSnapshot.docs.map((doc) => ({
           id: doc.data().bookId,
-          addedAt: doc.data().createdAt.toDate(),
+          createdAt: doc.data().createdAt.toDate(),
         }));
 
         // Fetch book details for favorite books
         const favoriteBooks = await Promise.all(
-          favoriteBookIds.map(async ({ id, addedAt }) => {
+          favoriteBookIds.map(async ({ id, createdAt }) => {
             const bookDetails = await fetchBookDetails(id);
             return {
               id,
               title: bookDetails?.title || "Książka niedostępna",
               author: bookDetails?.author || "Autor nieznany",
-              addedAt,
+              createdAt,
             };
           })
         );
@@ -439,24 +477,24 @@ export default function UserProfile({ params }: PageProps) {
         collection(db, "bookFavorites"),
         where("userId", "==", unwrappedParams.id),
         orderBy("createdAt", "desc"),
-        startAfter(lastBook.addedAt),
+        startAfter(lastBook.createdAt),
         limit(REVIEWS_PER_PAGE)
       );
 
       const nextBooksSnapshot = await getDocs(nextBooksQuery);
       const nextBookIds = nextBooksSnapshot.docs.map((doc) => ({
         id: doc.data().bookId,
-        addedAt: doc.data().createdAt.toDate(),
+        createdAt: doc.data().createdAt.toDate(),
       }));
 
       const nextBooks = await Promise.all(
-        nextBookIds.map(async ({ id, addedAt }) => {
+        nextBookIds.map(async ({ id, createdAt }) => {
           const bookDetails = await fetchBookDetails(id);
           return {
             id,
             title: bookDetails?.title || "Książka niedostępna",
             author: bookDetails?.author || "Autor nieznany",
-            addedAt,
+            createdAt,
           };
         })
       );
@@ -522,65 +560,31 @@ export default function UserProfile({ params }: PageProps) {
                           <span>{formatPhoneNumber(user.phoneNumber)}</span>
                         </div>
                       </div>
-                    </div>
-                    {currentUser && currentUser.uid !== user.id && (
-                      <div className="gap-2 flex">
-                        {isContact ? (
-                          <>
-                            <Link
-                              href={`/messages/${user.id}`}
-                              className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                              title="Wymiana"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                />
-                              </svg>
-                            </Link>
-                            <button
-                              onClick={handleRemoveContact}
-                              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                              title="Usuń kontakt"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                viewBox="0 0 32 32"
-                                fill="currentColor"
-                              >
-                                <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
-                                <circle cx="14" cy="9" r="8" />
-                                <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
-                              </svg>
-                            </button>
-                          </>
-                        ) : isPending ? (
-                          invitationDirection === "received" ? (
+                      {currentUser && currentUser.uid !== user.id && (
+                        <div className="gap-2 flex">
+                          {isContact ? (
                             <>
-                              <button
-                                onClick={handleAcceptInvite}
-                                className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-                                title="Dodaj do kontaktów"
+                              <Link
+                                href={`/messages/${user.id}`}
+                                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                title="Wymiana"
                               >
                                 <svg
                                   className="w-5 h-5"
-                                  viewBox="0 0 512 512"
-                                  fill="currentColor"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
                                 >
-                                  <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                  <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                  />
                                 </svg>
-                              </button>
+                              </Link>
                               <button
-                                onClick={handleRejectInvite}
+                                onClick={handleRemoveContact}
                                 className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                 title="Usuń kontakt"
                               >
@@ -595,11 +599,69 @@ export default function UserProfile({ params }: PageProps) {
                                 </svg>
                               </button>
                             </>
+                          ) : isPending ? (
+                            invitationDirection === "received" ? (
+                              <>
+                                <button
+                                  onClick={handleAcceptInvite}
+                                  className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                                  title="Dodaj do kontaktów"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    viewBox="0 0 512 512"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                                    <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={handleRejectInvite}
+                                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                  title="Usuń kontakt"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    viewBox="0 0 32 32"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
+                                    <circle cx="14" cy="9" r="8" />
+                                    <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                disabled
+                                className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
+                                title="Oczekuje na akceptację"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  viewBox="0 0 512 512"
+                                  fill="currentColor"
+                                >
+                                  <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                                  <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                </svg>
+                              </button>
+                            )
                           ) : (
                             <button
-                              disabled
-                              className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
-                              title="Oczekuje na akceptację"
+                              onClick={handleAddContact}
+                              disabled={isPending}
+                              className={`p-2 ${
+                                isPending
+                                  ? "bg-green-400 opacity-75 cursor-not-allowed"
+                                  : "bg-green-500 hover:bg-green-600"
+                              } text-white rounded-lg transition-colors`}
+                              title={
+                                isPending
+                                  ? "Oczekuje na akceptację"
+                                  : "Dodaj do kontaktów"
+                              }
                             >
                               <svg
                                 className="w-5 h-5"
@@ -610,34 +672,10 @@ export default function UserProfile({ params }: PageProps) {
                                 <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
                               </svg>
                             </button>
-                          )
-                        ) : (
-                          <button
-                            onClick={handleAddContact}
-                            disabled={isPending}
-                            className={`p-2 ${
-                              isPending
-                                ? "bg-green-400 opacity-75 cursor-not-allowed"
-                                : "bg-green-500 hover:bg-green-600"
-                            } text-white rounded-lg transition-colors`}
-                            title={
-                              isPending
-                                ? "Oczekuje na akceptację"
-                                : "Dodaj do kontaktów"
-                            }
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              viewBox="0 0 512 512"
-                              fill="currentColor"
-                            >
-                              <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                              <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Bio Section */}
@@ -693,6 +731,58 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
             </div>
+            {/* Owned Books Card */}
+            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
+              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
+                <h2 className="text-xl font-bold">Książki do wymiany</h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {displayedOwnedBooks.length > 0 ? (
+                    <>
+                      {displayedOwnedBooks.map((book) => (
+                        <div
+                          key={book.id}
+                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
+                        >
+                          <div className="flex flex-col space-y-2">
+                            <Link
+                              href={`/books/${book.id}`}
+                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                            >
+                              {book.title}
+                            </Link>
+                            <p className="text-sm text-[var(--gray-500)]">
+                              {book.author}
+                            </p>
+                            <p className="text-xs text-[var(--gray-500)] mt-2">
+                              {format(book.createdAt, "d MMMM yyyy", {
+                                locale: pl,
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+
+                      {totalOwnedBooks > 5 && (
+                        <Link
+                          href={`/users/${user.id}/books`}
+                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
+                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
+                text-center block"
+                        >
+                          Pokaż wszystkie ({totalOwnedBooks})
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-center text-[var(--gray-500)]">
+                      Brak książek w ekwipunku
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
@@ -722,7 +812,7 @@ export default function UserProfile({ params }: PageProps) {
                               {book.author}
                             </p>
                             <p className="text-xs text-[var(--gray-500)] mt-2">
-                              {format(book.addedAt, "d MMMM yyyy", {
+                              {format(book.createdAt, "d MMMM yyyy", {
                                 locale: pl,
                               })}
                             </p>

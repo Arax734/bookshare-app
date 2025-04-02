@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import { db } from "@/firebase/config";
-import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  deleteDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  Timestamp,
+} from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 
 interface BookOwnershipButtonProps {
@@ -10,21 +22,24 @@ interface BookOwnershipButtonProps {
 export default function BookOwnershipButton({
   bookId,
 }: BookOwnershipButtonProps) {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const [isOwned, setIsOwned] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkOwnership = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
+      if (!currentUser) return;
 
       try {
-        const docRef = doc(db, "bookOwnership", `${user.uid}_${bookId}`);
-        const docSnap = await getDoc(docRef);
-        setIsOwned(docSnap.exists());
+        const q = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", currentUser.uid),
+          where("bookId", "==", bookId),
+          orderBy("createdAt", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        setIsOwned(!querySnapshot.empty);
       } catch (error) {
         console.error("Error checking ownership:", error);
       } finally {
@@ -33,22 +48,41 @@ export default function BookOwnershipButton({
     };
 
     checkOwnership();
-  }, [user, bookId]);
+  }, [currentUser, bookId]);
+
+  const addToOwnership = async () => {
+    if (!currentUser) {
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "bookOwnership"), {
+        userId: currentUser.uid,
+        bookId,
+        createdAt: Timestamp.now(), // Add the timestamp
+      });
+
+      setIsOwned(true);
+    } catch (error) {
+      console.error("Error adding book to ownership:", error);
+    }
+  };
 
   const toggleOwnership = async () => {
-    if (!user) {
+    if (!currentUser) {
       return;
     }
 
     try {
       setIsLoading(true);
-      const docRef = doc(db, "bookOwnership", `${user.uid}_${bookId}`);
+      const docRef = doc(db, "bookOwnership", `${currentUser.uid}_${bookId}`);
 
       if (!isOwned) {
         await setDoc(docRef, {
-          userId: user.uid,
+          userId: currentUser.uid,
           bookId: bookId,
           status: null,
+          createdAt: Timestamp.now(), // Add the timestamp here
         });
         setIsOwned(true);
       } else {
@@ -62,7 +96,7 @@ export default function BookOwnershipButton({
     }
   };
 
-  if (!user) return null;
+  if (!currentUser) return null;
 
   return (
     <button

@@ -485,7 +485,7 @@ export default function Settings() {
 
   return (
     <>
-      <main className="container mx-auto px-4 bg-[var(--background)] transition-all duration-200">
+      <main className="container mx-auto pb-8 px-4 bg-[var(--background)] transition-all duration-200">
         <div className="max-w-2xl mx-auto">
           {successMessage && (
             <div className="fixed right-5 transform top-[6.25rem] z-50">
