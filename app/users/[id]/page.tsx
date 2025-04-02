@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, db } from "@/firebase/config";
+import { db } from "@/firebase/config";
 import {
   collection,
   query,
@@ -71,6 +71,28 @@ const fetchBookDetails = async (bookId: string) => {
   if (!response.ok) return null;
   const data = await response.json();
   return data;
+};
+
+const fetchMultipleBookDetails = async (bookIds: string[]) => {
+  // Remove duplicates
+  const uniqueIds = [...new Set(bookIds)];
+
+  try {
+    const response = await fetch("/api/books/batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ bookIds: uniqueIds }),
+    });
+
+    if (!response.ok) return {};
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching batch books:", error);
+    return {};
+  }
 };
 
 const getHighResProfileImage = (photoURL: string | undefined) => {

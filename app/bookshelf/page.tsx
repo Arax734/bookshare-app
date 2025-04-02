@@ -35,7 +35,7 @@ const fetchBookDetails = async (bookId: string) => {
   return data;
 };
 
-export default function Exchange() {
+export default function Bookshelf() {
   const [books, setBooks] = useState<ExchangeBook[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
