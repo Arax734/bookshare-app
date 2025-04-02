@@ -108,7 +108,7 @@ export default function UserProfile({ params }: PageProps) {
     "sent" | "received" | null
   >(null);
   const { pendingInvites, setPendingInvites } = useNotifications();
-  const [displayedOwnedBooks, setDisplayedOwnedBooks] = useState<
+  const [displayedDesiredBooks, setDisplayedDesiredBooks] = useState<
     {
       id: string;
       title: string;
@@ -272,29 +272,30 @@ export default function UserProfile({ params }: PageProps) {
         const userData = userDoc.data();
 
         // Get books count
-        const bookOwnershipQuery = query(
-          collection(db, "bookOwnership"),
+        const bookDesireQuery = query(
+          collection(db, "bookDesire"),
           where("userId", "==", unwrappedParams.id)
         );
-        const bookOwnershipSnapshot = await getDocs(bookOwnershipQuery);
-        const booksCount = bookOwnershipSnapshot.size;
+        const bookDesireSnapshot = await getDocs(bookDesireQuery);
+        const booksCount = bookDesireSnapshot.size;
 
         // Get owned books
-        const ownedBooksQuery = query(
-          collection(db, "bookOwnership"),
+        const DesiredBooksQuery = query(
+          collection(db, "bookDesire"),
           where("userId", "==", unwrappedParams.id),
-          limit(5)
+          orderBy("createdAt", "desc"),
+          limit(3)
         );
 
-        const ownedBooksSnapshot = await getDocs(ownedBooksQuery);
-        const ownedBookIds = ownedBooksSnapshot.docs.map((doc) => ({
+        const DesiredBooksSnapshot = await getDocs(DesiredBooksQuery);
+        const DesiredBookIds = DesiredBooksSnapshot.docs.map((doc) => ({
           id: doc.data().bookId,
           createdAt: doc.data().createdAt.toDate(),
         }));
 
         // Fetch book details for owned books
         const ownedBooks = await Promise.all(
-          ownedBookIds.map(async ({ id, createdAt }) => {
+          DesiredBookIds.map(async ({ id, createdAt }) => {
             const bookDetails = await fetchBookDetails(id);
             return {
               id,
@@ -305,7 +306,7 @@ export default function UserProfile({ params }: PageProps) {
           })
         );
 
-        setDisplayedOwnedBooks(ownedBooks);
+        setDisplayedDesiredBooks(ownedBooks);
         setTotalOwnedBooks(booksCount);
 
         // Get favorite books
@@ -313,7 +314,7 @@ export default function UserProfile({ params }: PageProps) {
           collection(db, "bookFavorites"),
           where("userId", "==", unwrappedParams.id),
           orderBy("createdAt", "desc"),
-          limit(REVIEWS_PER_PAGE)
+          limit(3)
         );
 
         // Get total count of favorite books
@@ -375,7 +376,7 @@ export default function UserProfile({ params }: PageProps) {
           collection(db, "reviews"),
           where("userId", "==", unwrappedParams.id),
           orderBy("createdAt", "desc"), // Add ordering
-          limit(REVIEWS_PER_PAGE)
+          limit(3)
         );
 
         const reviewsSnapshot = await getDocs(reviewsQuery);
@@ -433,7 +434,7 @@ export default function UserProfile({ params }: PageProps) {
         where("userId", "==", unwrappedParams.id),
         orderBy("createdAt", "desc"),
         startAfter(lastReview.createdAt),
-        limit(REVIEWS_PER_PAGE)
+        limit(3)
       );
 
       const nextReviewsSnapshot = await getDocs(nextReviewsQuery);
@@ -478,7 +479,7 @@ export default function UserProfile({ params }: PageProps) {
         where("userId", "==", unwrappedParams.id),
         orderBy("createdAt", "desc"),
         startAfter(lastBook.createdAt),
-        limit(REVIEWS_PER_PAGE)
+        limit(3)
       );
 
       const nextBooksSnapshot = await getDocs(nextBooksQuery);
@@ -512,7 +513,7 @@ export default function UserProfile({ params }: PageProps) {
   if (!user) return <div>Nie znaleziono użytkownika</div>;
 
   return (
-    <main className="mx-auto px-4 py-8 bg-[var(--background)] w-full h-full transition-all duration-200">
+    <main className="mx-auto px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap gap-8">
           {/* Left Column */}
@@ -539,85 +540,51 @@ export default function UserProfile({ params }: PageProps) {
 
                     {/* Profile Info */}
                     <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
-                      <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
-                        {user.displayName}
-                      </h1>
-                      <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
-                        Dołączył(a):{" "}
-                        {user.creationTime
-                          ? format(new Date(user.creationTime), "d MMMM yyyy", {
-                              locale: pl,
-                            })
-                          : "Data niedostępna"}
-                      </p>
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex items-center text-[var(--gray-500)]">
-                          <EnvelopeIcon className="w-5 h-5 mr-2" />
-                          <span>{user.email}</span>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
+                            {user.displayName}
+                          </h1>
+                          <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
+                            Dołączył(a):{" "}
+                            {user.creationTime
+                              ? format(
+                                  new Date(user.creationTime),
+                                  "d MMMM yyyy",
+                                  {
+                                    locale: pl,
+                                  }
+                                )
+                              : "Data niedostępna"}
+                          </p>
                         </div>
-                        <div className="flex items-center text-[var(--gray-500)]">
-                          <PhoneIcon className="w-5 h-5 mr-2" />
-                          <span>{formatPhoneNumber(user.phoneNumber)}</span>
-                        </div>
-                      </div>
-                      {currentUser && currentUser.uid !== user.id && (
-                        <div className="gap-2 flex">
-                          {isContact ? (
-                            <>
-                              <Link
-                                href={`/messages/${user.id}`}
-                                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                title="Wymiana"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                  />
-                                </svg>
-                              </Link>
-                              <button
-                                onClick={handleRemoveContact}
-                                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                title="Usuń kontakt"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  viewBox="0 0 32 32"
-                                  fill="currentColor"
-                                >
-                                  <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
-                                  <circle cx="14" cy="9" r="8" />
-                                  <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
-                                </svg>
-                              </button>
-                            </>
-                          ) : isPending ? (
-                            invitationDirection === "received" ? (
+
+                        {/* Move contact buttons here */}
+                        {currentUser && currentUser.uid !== user.id && (
+                          <div className="flex gap-2">
+                            {isContact ? (
                               <>
-                                <button
-                                  onClick={handleAcceptInvite}
-                                  className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-                                  title="Dodaj do kontaktów"
+                                <Link
+                                  href={`/messages/${user.id}`}
+                                  className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                  title="Wymiana"
                                 >
                                   <svg
                                     className="w-5 h-5"
-                                    viewBox="0 0 512 512"
-                                    fill="currentColor"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
                                   >
-                                    <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                    <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                    />
                                   </svg>
-                                </button>
+                                </Link>
                                 <button
-                                  onClick={handleRejectInvite}
+                                  onClick={handleRemoveContact}
                                   className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                   title="Usuń kontakt"
                                 >
@@ -632,11 +599,69 @@ export default function UserProfile({ params }: PageProps) {
                                   </svg>
                                 </button>
                               </>
+                            ) : isPending ? (
+                              invitationDirection === "received" ? (
+                                <>
+                                  <button
+                                    onClick={handleAcceptInvite}
+                                    className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                                    title="Dodaj do kontaktów"
+                                  >
+                                    <svg
+                                      className="w-5 h-5"
+                                      viewBox="0 0 512 512"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                                      <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={handleRejectInvite}
+                                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                    title="Usuń kontakt"
+                                  >
+                                    <svg
+                                      className="w-5 h-5"
+                                      viewBox="0 0 32 32"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
+                                      <circle cx="14" cy="9" r="8" />
+                                      <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
+                                    </svg>
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  disabled
+                                  className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
+                                  title="Oczekuje na akceptację"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    viewBox="0 0 512 512"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
+                                    <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
+                                  </svg>
+                                </button>
+                              )
                             ) : (
                               <button
-                                disabled
-                                className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
-                                title="Oczekuje na akceptację"
+                                onClick={handleAddContact}
+                                disabled={isPending}
+                                className={`p-2 ${
+                                  isPending
+                                    ? "bg-green-400 opacity-75 cursor-not-allowed"
+                                    : "bg-green-500 hover:bg-green-600"
+                                } text-white rounded-lg transition-colors`}
+                                title={
+                                  isPending
+                                    ? "Oczekuje na akceptację"
+                                    : "Dodaj do kontaktów"
+                                }
                               >
                                 <svg
                                   className="w-5 h-5"
@@ -647,34 +672,21 @@ export default function UserProfile({ params }: PageProps) {
                                   <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
                                 </svg>
                               </button>
-                            )
-                          ) : (
-                            <button
-                              onClick={handleAddContact}
-                              disabled={isPending}
-                              className={`p-2 ${
-                                isPending
-                                  ? "bg-green-400 opacity-75 cursor-not-allowed"
-                                  : "bg-green-500 hover:bg-green-600"
-                              } text-white rounded-lg transition-colors`}
-                              title={
-                                isPending
-                                  ? "Oczekuje na akceptację"
-                                  : "Dodaj do kontaktów"
-                              }
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                viewBox="0 0 512 512"
-                                fill="currentColor"
-                              >
-                                <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
-                              </svg>
-                            </button>
-                          )}
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center text-[var(--gray-500)]">
+                          <EnvelopeIcon className="w-5 h-5 mr-2" />
+                          <span>{user.email}</span>
                         </div>
-                      )}
+                        <div className="flex items-center text-[var(--gray-500)]">
+                          <PhoneIcon className="w-5 h-5 mr-2" />
+                          <span>{formatPhoneNumber(user.phoneNumber)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -731,16 +743,16 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
             </div>
-            {/* Owned Books Card */}
+            {/* Want to Read Books Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Książki do wymiany</h2>
+                <h2 className="text-xl font-bold">Chcę przeczytać</h2>
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  {displayedOwnedBooks.length > 0 ? (
+                  {displayedDesiredBooks.length > 0 ? (
                     <>
-                      {displayedOwnedBooks.map((book) => (
+                      {displayedDesiredBooks.slice(0, 3).map((book) => (
                         <div
                           key={book.id}
                           className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
@@ -764,9 +776,9 @@ export default function UserProfile({ params }: PageProps) {
                         </div>
                       ))}
 
-                      {totalOwnedBooks > 5 && (
+                      {totalOwnedBooks > 3 && (
                         <Link
-                          href={`/users/${user.id}/books`}
+                          href={`/users/${user.id}/desires`}
                           className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
                 text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
                 text-center block"
@@ -777,7 +789,7 @@ export default function UserProfile({ params }: PageProps) {
                     </>
                   ) : (
                     <p className="text-center text-[var(--gray-500)]">
-                      Brak książek w ekwipunku
+                      Brak książek na liście
                     </p>
                   )}
                 </div>
