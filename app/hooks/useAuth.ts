@@ -60,10 +60,8 @@ export const useAuth = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Get ID token
         const token = await user.getIdToken();
 
-        // Store token in cookie
         await fetch("/api/auth/session", {
           method: "POST",
           headers: {

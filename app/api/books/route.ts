@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
   const searchType = searchParams.get("searchType") || "title";
   const sinceId = searchParams.get("sinceId") || "";
 
-  // Construct BN API URL based on search type
   let url = `https://data.bn.org.pl/api/institutions/bibs.json?limit=${limit}&kind=książka`;
 
   if (search) {

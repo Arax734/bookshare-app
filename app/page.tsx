@@ -96,7 +96,6 @@ export default function Register() {
           displayName: displayName,
         });
 
-        // Create user document in Firestore
         await createUserDocument(res.uid, {
           email: data.email,
           displayName: displayName,
@@ -117,7 +116,6 @@ export default function Register() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        // Create user document for Google sign-in
         await createUserDocument(user.uid, {
           email: user.email!,
           displayName: user.displayName!,
@@ -137,7 +135,6 @@ export default function Register() {
     try {
       const user = await signInWithFacebook();
       if (user) {
-        // Create user document for Facebook sign-in
         await createUserDocument(user.uid, {
           email: user.email!,
           displayName: user.displayName!,
@@ -172,7 +169,6 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="my-4">
-            {/* Name fields in a row */}
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
                 <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
@@ -209,7 +205,6 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Email field */}
             <div className="mb-4">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
@@ -229,7 +224,6 @@ export default function Register() {
               )}
             </div>
 
-            {/* Password fields in a row */}
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
                 <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
@@ -266,7 +260,6 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Submit button */}
             <div className="flex items-center justify-center mb-3 mt-8">
               <button
                 type="submit"
@@ -277,7 +270,6 @@ export default function Register() {
               </button>
             </div>
 
-            {/* Divider */}
             <div className="flex items-center justify-between my-8">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
               <label className="text-gray-500 whitespace-nowrap px-2">
@@ -286,7 +278,6 @@ export default function Register() {
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
 
-            {/* Social buttons */}
             <div className="flex items-center justify-center gap-4 mb-8">
               <button
                 type="button"
@@ -307,7 +298,6 @@ export default function Register() {
             </div>
           </form>
 
-          {/* Login link */}
           <div className="text-center text-sm">
             <span className="text-gray-600">Masz już konto? </span>
             <Link

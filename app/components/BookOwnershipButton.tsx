@@ -3,7 +3,6 @@ import { db } from "@/firebase/config";
 import {
   doc,
   setDoc,
-  getDoc,
   deleteDoc,
   addDoc,
   collection,
@@ -59,7 +58,7 @@ export default function BookOwnershipButton({
       await addDoc(collection(db, "bookOwnership"), {
         userId: currentUser.uid,
         bookId,
-        createdAt: Timestamp.now(), // Add the timestamp
+        createdAt: Timestamp.now(),
       });
 
       setIsOwned(true);
@@ -82,7 +81,7 @@ export default function BookOwnershipButton({
           userId: currentUser.uid,
           bookId: bookId,
           status: null,
-          createdAt: Timestamp.now(), // Add the timestamp here
+          createdAt: Timestamp.now(),
         });
         setIsOwned(true);
       } else {

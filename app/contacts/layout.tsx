@@ -68,7 +68,6 @@ export default function ContactsLayout({
     fetchAcceptedContacts();
   }, [user]);
 
-  // Prevent hydration issues
   if (!mounted) {
     return null;
   }
@@ -78,7 +77,6 @@ export default function ContactsLayout({
       <div className="min-h-screen bg-[var(--background)] p-6">
         <div className="w-full mx-auto">
           <div className="flex">
-            {/* Vertical Navigation */}
             <div className="w-72 flex justify-center shrink-0">
               <div className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] fixed top-36">
                 <nav className="flex flex-col p-1">
@@ -167,7 +165,6 @@ export default function ContactsLayout({
               </div>
             </div>
 
-            {/* Main Content */}
             <div className="flex-1">{children}</div>
           </div>
         </div>

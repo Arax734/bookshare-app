@@ -42,26 +42,22 @@ interface ExtendedUserContact extends UserContact {
 export default function Contacts() {
   const { user } = useAuth();
   const [contacts, setContacts] = useState<ExtendedUserContact[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const defaultAvatar = "/images/default-avatar.png";
 
-  // Update the contact fetching logic in useEffect
   useEffect(() => {
     if (!user) return;
 
     const fetchContacts = async () => {
       try {
         setIsLoading(true);
-        // Fetch where user is the userId
         const contactsAsUserQuery = query(
           collection(db, "userContacts"),
           where("userId", "==", user.uid)
         );
 
-        // Fetch where user is the contactId with accepted status
         const contactsAsContactQuery = query(
           collection(db, "userContacts"),
           where("contactId", "==", user.uid),
@@ -80,17 +76,15 @@ export default function Contacts() {
           })),
           ...contactQuerySnapshot.docs.map((doc) => ({
             id: doc.id,
-            isReverse: true, // Flag to identify reverse contacts
-            userId: doc.data().contactId, // Swap userId and contactId for reverse contacts
+            isReverse: true,
+            userId: doc.data().contactId,
             contactId: doc.data().userId,
             ...doc.data(),
           })),
         ] as UserContact[];
 
-        // Fetch user data for each contact
         const contactsWithUserData = await Promise.all(
           contactsData.map(async (contact) => {
-            // Get user data based on contact direction
             const userIdToFetch = contact.isReverse
               ? contact.userId
               : contact.contactId;
@@ -118,84 +112,10 @@ export default function Contacts() {
     fetchContacts();
   }, [user]);
 
-  const searchUsers = async (searchText: string) => {
-    if (!user || !searchText.trim() || searchText.length < 3) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const queryLower = searchText.toLowerCase();
-
-      // Get existing contacts first
-      const existingContactsQuery = query(
-        collection(db, "userContacts"),
-        where("userId", "==", user.uid)
-      );
-      const existingContactsSnapshot = await getDocs(existingContactsQuery);
-      const existingContactIds = new Set(
-        existingContactsSnapshot.docs.map((doc) => doc.data().contactId)
-      );
-
-      // Search queries
-      const emailQuery = query(
-        collection(db, "users"),
-        where("email", ">=", queryLower),
-        where("email", "<=", queryLower + "\uf8ff")
-      );
-
-      const nameQuery = query(
-        collection(db, "users"),
-        where("displayName", ">=", queryLower),
-        where("displayName", "<=", queryLower + "\uf8ff")
-      );
-
-      const phoneQuery = query(
-        collection(db, "users"),
-        where("phoneNumber", ">=", queryLower),
-        where("phoneNumber", "<=", queryLower + "\uf8ff")
-      );
-
-      const [emailSnapshot, nameSnapshot, phoneSnapshot] = await Promise.all([
-        getDocs(emailQuery),
-        getDocs(nameQuery),
-        getDocs(phoneQuery),
-      ]);
-
-      // Combine and deduplicate results, excluding existing contacts
-      const results = new Map<string, UserSearchResult>();
-
-      [
-        ...emailSnapshot.docs,
-        ...nameSnapshot.docs,
-        ...phoneSnapshot.docs,
-      ].forEach((doc) => {
-        if (
-          !results.has(doc.id) &&
-          doc.id !== user?.uid &&
-          !existingContactIds.has(doc.id)
-        ) {
-          results.set(doc.id, {
-            id: doc.id,
-            ...doc.data(),
-          } as UserSearchResult);
-        }
-      });
-
-      setSearchResults(Array.from(results.values()));
-    } catch (error) {
-      console.error("Error searching users:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
   const addContact = async (contactEmail: string) => {
     if (!user) return;
 
     try {
-      // Check if user exists
       const usersQuery = query(
         collection(db, "users"),
         where("email", "==", contactEmail)
@@ -206,7 +126,6 @@ export default function Contacts() {
         throw new Error("Użytkownik o podanym adresie email nie istnieje");
       }
 
-      // Check if contact already exists
       const existingContactQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid),
@@ -218,7 +137,6 @@ export default function Contacts() {
         throw new Error("Ten użytkownik jest już w Twoich kontaktach");
       }
 
-      // Add new contact
       await addDoc(collection(db, "userContacts"), {
         userId: user.uid,
         contactId: userSnapshot.docs[0].id,
@@ -226,7 +144,6 @@ export default function Contacts() {
         status: "pending",
       });
 
-      // Refresh contacts list
       const contactsQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid)
@@ -240,7 +157,6 @@ export default function Contacts() {
 
       // Clear search results
       setSearchResults([]);
-      setSearchQuery("");
     } catch (error) {
       console.error("Error adding contact:", error);
     }
@@ -309,7 +225,6 @@ export default function Contacts() {
             <>
               {contacts.length > 0 ? (
                 <div className="space-y-8">
-                  {/* Accepted Contacts */}
                   <div>
                     <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
                       Zaakceptowane kontakty
@@ -321,7 +236,6 @@ export default function Contacts() {
                     </div>
                   </div>
 
-                  {/* Pending Contacts */}
                   {contacts.some((contact) => contact.status === "pending") && (
                     <div>
                       <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
@@ -348,7 +262,6 @@ export default function Contacts() {
             </>
           )}
         </div>
-        {/* Search results */}
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
             <h3 className="text-[var(--gray-800)] font-semibold p-4 border-b border-[var(--gray-200)]">
@@ -401,7 +314,6 @@ export default function Contacts() {
             </div>
           </div>
         )}
-        {/* Loading state */}
         {isSearching && (
           <div className="text-center py-4">
             <div className="w-6 h-6 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>

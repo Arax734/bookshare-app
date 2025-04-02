@@ -36,8 +36,6 @@ export default function Navbar() {
   } | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [delayedTooltip, setDelayedTooltip] = useState<string | null>(null);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
   const defaultAvatar = "/images/default-avatar.png";
   const { pendingInvites, setPendingInvites } = useNotifications();
 
@@ -88,7 +86,7 @@ export default function Navbar() {
     if (activeTooltip) {
       timeoutId = setTimeout(() => {
         setDelayedTooltip(activeTooltip);
-      }, 200); // 200ms delay before showing tooltip
+      }, 200);
     } else {
       setDelayedTooltip(null);
     }
@@ -99,11 +97,6 @@ export default function Navbar() {
       }
     };
   }, [activeTooltip]);
-
-  useEffect(() => {
-    setIsImageLoaded(false);
-    setAvatarError(false);
-  }, [userData?.photoURL]);
 
   useEffect(() => {
     const fetchPendingInvites = async () => {
@@ -125,7 +118,6 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      // Remove the session cookie
       await fetch("/api/auth/session", {
         method: "DELETE",
       });
@@ -135,7 +127,6 @@ export default function Navbar() {
     }
   };
 
-  // Show loading skeleton if loading or no user
   const showSkeleton = isLoading || !user;
 
   return (
@@ -143,7 +134,6 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary"
       id="mainNav"
     >
-      {/* Absolute positioned logo section */}
       <div className="absolute left-10 top-1/2 -translate-y-1/2">
         <a href="/home" className="flex items-center space-x-3">
           <Image
@@ -163,7 +153,6 @@ export default function Navbar() {
         </a>
       </div>
 
-      {/* Centered navigation */}
       <div className="flex justify-center items-center h-full">
         <div className="hidden md:flex items-center h-full space-x-4">
           <div className="relative h-5/6">
@@ -192,7 +181,6 @@ export default function Navbar() {
               </div>
             )}
           </div>
-
           <div className="relative h-5/6">
             <a
               href="/library"
@@ -222,31 +210,34 @@ export default function Navbar() {
 
           <div className="relative h-5/6">
             <a
-              href="/exchange"
+              href={user ? `/bookshelf` : "/login"}
               className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
-              onMouseEnter={() => setActiveTooltip("exchange")}
+              onMouseEnter={() => setActiveTooltip("bookshelf")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-7 w-7"
-                viewBox="0 0 20 20"
+                className="h-6 w-6"
+                viewBox="0 0 512 512"
                 fill="currentColor"
               >
-                <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+                <g>
+                  <path d="M259.031,156.638c-0.009-8.693-0.009-16.24,1.061-23.4l-6.258,7.169 c-10.95,12.627-38.637,20.788-61.835,18.237c-23.215-2.561-33.138-14.859-22.179-27.494l82.473-86.306 c1.601-1.684,2.055-4.161,1.138-6.301c-0.91-2.123-3.016-3.521-5.341-3.521h-13.283c-3.892,0-7.614,1.55-10.336,4.33 l-71.548,72.499c-14.681,15.365-13.999,23.898-13.999,47.802c0,17.066,0,276.892,0,276.892c0,20.494,25.758,37.417,48.964,39.96 c23.207,2.57,54.996-5.61,65.946-18.228l7.287-8.474c-1.306-4.228-2.089-8.642-2.089-13.258V156.638z" />
+                  <path d="M120.113,156.638c-0.009-8.693-0.009-16.24,1.062-23.4l-6.267,7.169 c-10.95,12.627-38.629,20.788-61.835,18.237c-23.207-2.561-33.138-14.859-22.179-27.494l82.481-86.306 c1.591-1.684,2.054-4.161,1.137-6.301c-0.91-2.123-3.016-3.521-5.34-3.521H95.879c-3.883,0-7.597,1.55-10.326,4.33l-71.548,72.499 c-14.682,15.365-14,23.898-14,47.802c0,17.066,0,276.892,0,276.892c0,20.494,25.75,37.417,48.965,39.96 c23.197,2.57,54.988-5.61,65.938-18.228l7.303-8.474c-1.314-4.228-2.098-8.642-2.098-13.258V156.638z" />
+                  <path d="M506.197,35.022h-14.379c-4.195,0-8.188,1.82-10.951,4.978l-87.51,100.406 c-10.95,12.627-38.638,20.788-61.835,18.237c-23.215-2.561-33.137-14.859-22.179-27.494l82.473-86.306 c1.601-1.684,2.055-4.161,1.145-6.301c-0.918-2.123-3.024-3.521-5.34-3.521H374.33c-3.883,0-7.607,1.55-10.336,4.33l-71.548,72.499 c-14.682,15.365-13.999,23.898-13.999,47.802c0,17.066,0,276.892,0,276.892c0,20.494,25.758,37.417,48.964,39.96 c23.214,2.57,54.996-5.61,65.946-18.228L501.454,332.72c6.806-7.918,10.546-17.992,10.546-28.42V40.826 C512,37.625,509.397,35.022,506.197,35.022z" />
+                </g>
               </svg>
             </a>
-            {delayedTooltip === "exchange" && (
+            {delayedTooltip === "bookshelf" && (
               <div
                 className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
-                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
-                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+      px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
+      animate-[tooltipAppear_0.2s_ease-out_forwards]"
               >
-                Wymiana
+                Moja półka
               </div>
             )}
           </div>
-
           <div className="relative h-5/6">
             <a
               href="/contacts"
@@ -281,7 +272,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Absolute positioned right section */}
       <div className="absolute right-10 top-1/2 -translate-y-1/2">
         <div className="flex items-center">
           <button
@@ -299,10 +289,8 @@ export default function Navbar() {
           <div className="relative">
             {showSkeleton ? (
               <div className="flex items-center space-x-3 bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 animate-pulse">
-                {/* Name placeholder */}
                 <div className="w-24 h-5 bg-[var(--gray-300)] rounded-full" />
 
-                {/* Avatar placeholder */}
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <div className="w-full h-full bg-[var(--gray-300)]" />
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -310,7 +298,6 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Arrow placeholder */}
                 <div className="absolute right-3 bottom-1 flex items-center justify-center">
                   <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
                 </div>

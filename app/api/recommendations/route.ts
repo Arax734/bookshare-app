@@ -7,7 +7,6 @@ interface ItemCount {
   count: number;
 }
 
-// Update the Book interface
 interface Book {
   id: string;
   title: string;
@@ -19,13 +18,11 @@ interface Book {
   totalReviews?: number;
 }
 
-// Update the helper function to handle both string and number IDs
 function padBookId(id: string | number): string {
   const idString = String(id);
   return idString.padStart(14, "0");
 }
 
-// Add this helper function to fetch and calculate ratings
 async function getBookRatings(
   bookId: string
 ): Promise<{ average: number; total: number } | null> {
@@ -52,7 +49,6 @@ async function getBookRatings(
   }
 }
 
-// Modify the fetchSimilarBooks function
 async function fetchSimilarBooks(params: {
   author?: string;
   genre?: string;
@@ -78,7 +74,6 @@ async function fetchSimilarBooks(params: {
 
   const data = await response.json();
 
-  // Add ratings to each book
   const booksWithRatings = await Promise.all(
     (data.bibs || []).map(async (book: any) => {
       const bookId = padBookId(book.id || "");
@@ -96,7 +91,6 @@ async function fetchSimilarBooks(params: {
   return booksWithRatings;
 }
 
-// Add this helper function after the existing imports
 async function getUserReviewedBookIds(userId: string): Promise<Set<string>> {
   const userReviewsQuery = query(
     collection(db, "reviews"),
@@ -115,7 +109,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get user's reviewed books first
     const reviewedBookIds = await getUserReviewedBookIds(userId);
     const reviewsQuery = query(
       collection(db, "reviews"),
@@ -151,7 +144,6 @@ export async function GET(request: NextRequest) {
     const books = await Promise.all(bookDetailsPromises);
     const validBooks = books.filter((book) => book !== null);
 
-    // Helper function to count and sort items
     const getTopItems = (
       books: Book[],
       key: keyof Book,
@@ -170,7 +162,6 @@ export async function GET(request: NextRequest) {
         .slice(0, limit);
     };
 
-    // Group books by decades
     const getTopDecades = (books: Book[]): ItemCount[] => {
       const decades: { [key: string]: number } = {};
       books.forEach((book) => {
@@ -187,7 +178,6 @@ export async function GET(request: NextRequest) {
         .slice(0, 3);
     };
 
-    // Get top items for each category
     const topGenres = getTopItems(validBooks, "genre");
     const topAuthors = getTopItems(validBooks, "author");
     const topLanguages = getTopItems(validBooks, "language");
@@ -198,15 +188,14 @@ export async function GET(request: NextRequest) {
         topGenres.map(async ({ item, count }) => {
           const books = await fetchSimilarBooks({
             genre: item,
-            limit: Math.ceil(count * 4), // Increased limit to account for filtering
+            limit: Math.ceil(count * 4),
           });
-          // Filter out reviewed books
           const filteredBooks = books.filter(
             (book: Book) => !reviewedBookIds.has(book.id)
           );
           return {
             category: item,
-            books: filteredBooks.slice(0, Math.ceil(count * 2)), // Keep original desired amount
+            books: filteredBooks.slice(0, Math.ceil(count * 2)),
           };
         })
       ),
@@ -258,7 +247,6 @@ export async function GET(request: NextRequest) {
       ),
     };
 
-    // Wait for all similar books to be fetched
     const [genreBooks, authorBooks, languageBooks, decadeBooks] =
       await Promise.all([
         similarBooksPromises.byGenre,
