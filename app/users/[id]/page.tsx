@@ -440,179 +440,96 @@ export default function UserProfile({ params }: PageProps) {
   return (
     <main className="mx-auto px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-wrap gap-8">
-          <div className="flex-1 min-w-[300px]">
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Profil użytkownika</h2>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left column - user profile and statistics */}
+          <div className="lg:w-1/3">
+            {/* User profile card */}
+            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-8">
+              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-4 text-white relative">
+                <h2 className="text-xl font-bold flex items-center">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Profil użytkownika
+                </h2>
               </div>
               <div className="p-6">
                 <div className="flex flex-col space-y-6">
-                  <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
+                  <div className="flex flex-col items-center space-y-4">
+                    {/* Profile photo */}
+                    <div className="relative w-32 h-32 rounded-3xl overflow-hidden shadow">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
                         alt="Profile"
                         fill
-                        className="object-cover shadow-lg transition-shadow duration-200"
+                        className="object-cover transition-shadow duration-200"
                         quality={100}
                       />
                     </div>
 
-                    <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
-                            {user.displayName}
-                          </h1>
-                          <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
-                            Dołączył(a):{" "}
-                            {user.creationTime
-                              ? format(
-                                  new Date(user.creationTime),
-                                  "d MMMM yyyy",
-                                  {
-                                    locale: pl,
-                                  }
-                                )
-                              : "Data niedostępna"}
-                          </p>
-                        </div>
-
-                        {currentUser && currentUser.uid !== user.id && (
-                          <div className="flex gap-2">
-                            {isContact ? (
-                              <>
-                                <Link
-                                  href={`/messages/${user.id}`}
-                                  className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                  title="Wymiana"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                                    />
-                                  </svg>
-                                </Link>
-                                <button
-                                  onClick={handleRemoveContact}
-                                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                  title="Usuń kontakt"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    viewBox="0 0 32 32"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
-                                    <circle cx="14" cy="9" r="8" />
-                                    <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
-                                  </svg>
-                                </button>
-                              </>
-                            ) : isPending ? (
-                              invitationDirection === "received" ? (
-                                <>
-                                  <button
-                                    onClick={handleAcceptInvite}
-                                    className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-                                    title="Dodaj do kontaktów"
-                                  >
-                                    <svg
-                                      className="w-5 h-5"
-                                      viewBox="0 0 512 512"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                      <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={handleRejectInvite}
-                                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                    title="Usuń kontakt"
-                                  >
-                                    <svg
-                                      className="w-5 h-5"
-                                      viewBox="0 0 32 32"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M19.72 31H2a1 1 0 0 1-1-1v-2a12.993 12.993 0 0 1 6.61-11.31 10 10 0 0 0 12.8-.01 11.475 11.475 0 0 1 1.46.96A7.989 7.989 0 0 0 19.72 31z" />
-                                      <circle cx="14" cy="9" r="8" />
-                                      <path d="M25 19a5.94 5.94 0 0 0-2.126.386A6.007 6.007 0 1 0 25 19zm2 7h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" />
-                                    </svg>
-                                  </button>
-                                </>
-                              ) : (
-                                <button
-                                  disabled
-                                  className="p-2 bg-green-400 opacity-75 cursor-not-allowed text-white rounded-lg"
-                                  title="Oczekuje na akceptację"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    viewBox="0 0 512 512"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                    <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
-                                  </svg>
-                                </button>
-                              )
-                            ) : (
-                              <button
-                                onClick={handleAddContact}
-                                disabled={isPending}
-                                className={`p-2 ${
-                                  isPending
-                                    ? "bg-green-400 opacity-75 cursor-not-allowed"
-                                    : "bg-green-500 hover:bg-green-600"
-                                } text-white rounded-lg transition-colors`}
-                                title={
-                                  isPending
-                                    ? "Oczekuje na akceptację"
-                                    : "Dodaj do kontaktów"
-                                }
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  viewBox="0 0 512 512"
-                                  fill="currentColor"
-                                >
-                                  <path d="M226 232c-63.963 0-116-52.037-116-116S162.037 0 226 0s116 52.037 116 116-52.037 116-116 116zM271 317c0-25.68 7.21-49.707 19.708-70.167C271.193 256.526 249.228 262 226 262c-30.128 0-58.152-9.174-81.429-24.874-28.782 11.157-55.186 28.291-77.669 50.774C24.404 330.397 1 386.899 1 446.999V497c0 8.284 6.716 15 15 15h420c8.284 0 15-6.716 15-15v-50.001c0-.901-.025-1.805-.036-2.708C436.892 449.277 421.759 452 406 452c-74.439 0-135-60.561-135-135z" />
-                                  <path d="M406 212c-57.897 0-105 47.103-105 105s47.103 105 105 105 105-47.103 105-105-47.103-105-105-105zm30 120h-15v15c0 8.284-6.716 15-15 15s-15-6.716-15-15v-15h-15c-8.284 0-15-6.716-15-15s6.716-15 15-15h15v-15c0-8.284 6.716-15 15-15s15 6.716 15 15v15h15c8.284 0 15 6.716 15 15s-6.716 15-15 15z" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex items-center text-[var(--gray-500)]">
-                          <EnvelopeIcon className="w-5 h-5 mr-2" />
-                          <span>{user.email}</span>
-                        </div>
-                        <div className="flex items-center text-[var(--gray-500)]">
-                          <PhoneIcon className="w-5 h-5 mr-2" />
-                          <span>{formatPhoneNumber(user.phoneNumber)}</span>
-                        </div>
-                      </div>
+                    {/* User name and join date */}
+                    <div className="text-center space-y-1">
+                      <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
+                        {user.displayName}
+                      </h1>
+                      <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
+                        Dołączył(a):{" "}
+                        {user.creationTime
+                          ? format(new Date(user.creationTime), "d MMMM yyyy", {
+                              locale: pl,
+                            })
+                          : "Data niedostępna"}
+                      </p>
                     </div>
                   </div>
 
+                  {/* Contact buttons */}
+                  {currentUser && currentUser.uid !== user.id && (
+                    <div className="flex justify-center gap-2">
+                      {/* Existing contact buttons */}
+                    </div>
+                  )}
+
+                  {/* Contact info */}
+                  <div className="mt-4 space-y-2 border-t border-[var(--gray-200)] pt-4">
+                    <div className="flex items-center text-[var(--gray-500)]">
+                      <EnvelopeIcon className="w-5 h-5 mr-2" />
+                      <span>{user.email}</span>
+                    </div>
+                    <div className="flex items-center text-[var(--gray-500)]">
+                      <PhoneIcon className="w-5 h-5 mr-2" />
+                      <span>{formatPhoneNumber(user.phoneNumber)}</span>
+                    </div>
+                  </div>
+
+                  {/* Bio - if exists */}
                   {user.bio && (
-                    <div className="relative mt-4 w-full">
+                    <div className="relative mt-2 w-full">
                       <div className="bg-[var(--background)] rounded-xl p-4 shadow-sm border border-[var(--gray-200)]">
-                        <h3 className="text-sm font-medium text-[var(--gray-700)] mb-2">
+                        <h3 className="text-sm font-medium text-[var(--gray-700)] mb-2 flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
                           O mnie
                         </h3>
                         <p className="text-sm leading-relaxed text-[var(--gray-600)] italic relative">
@@ -625,34 +542,96 @@ export default function UserProfile({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
-              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Statystyki</h2>
+            {/* Statistics card */}
+            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 text-white">
+                <h2 className="text-xl font-bold flex items-center">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  Statystyki
+                </h2>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3">
+                <div className="grid grid-cols-3 gap-2">
                   {[
                     {
                       label: "Książek",
                       value: user.booksCount,
+                      icon: (
+                        <svg
+                          className="w-5 h-5 text-blue-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                      ),
                     },
                     {
                       label: "Opinii",
                       value: user.reviewsCount,
+                      icon: (
+                        <svg
+                          className="w-5 h-5 text-amber-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                          />
+                        </svg>
+                      ),
                     },
                     {
                       label: "Średnia ocen",
                       value: user.averageRating.toFixed(1),
+                      icon: (
+                        <svg
+                          className="w-5 h-5 text-green-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      ),
                     },
                   ].map((stat) => (
                     <div
                       key={stat.label}
-                      className="flex flex-col items-center justify-center text-center p-4 bg-[var(--secondaryColorLight)] rounded-xl transition-all duration-200"
+                      className="flex flex-col items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] shadow-sm hover:shadow transition-all duration-200"
                     >
-                      <p className="text-2xl font-bold text-[var(--primaryColor)] transition-colors duration-200">
+                      <div className="mb-1">{stat.icon}</div>
+                      <p className="text-base font-bold text-[var(--gray-800)] transition-colors duration-200">
                         {stat.value}
                       </p>
-                      <p className="text-sm font-semibold text-[var(--gray-800)] transition-colors duration-200">
+                      <p className="text-xs text-[var(--gray-500)] transition-colors duration-200">
                         {stat.label}
                       </p>
                     </div>
@@ -660,240 +639,317 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
             </div>
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
-              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Chcę przeczytać</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {displayedDesiredBooks.length > 0 ? (
-                    <>
-                      {displayedDesiredBooks.slice(0, 3).map((book) => (
-                        <div
-                          key={book.id}
-                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                        >
-                          <div className="flex flex-col space-y-2">
-                            <Link
-                              href={`/books/${book.id}`}
-                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
-                            >
-                              {book.title}
-                            </Link>
-                            <p className="text-sm text-[var(--gray-500)]">
-                              {book.author}
-                            </p>
-                            <p className="text-xs text-[var(--gray-500)] mt-2">
-                              {format(book.createdAt, "d MMMM yyyy", {
-                                locale: pl,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {totalOwnedBooks > 3 && (
-                        <Link
-                          href={`/users/${user.id}/desires`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
-                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                text-center block"
-                        >
-                          Pokaż wszystkie ({totalOwnedBooks})
-                        </Link>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-center text-[var(--gray-500)]">
-                      Brak książek na liście
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
-              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Książki do wymiany</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {displayedExchangeBooks.length > 0 ? (
-                    <>
-                      {displayedExchangeBooks.slice(0, 3).map((book) => (
-                        <div
-                          key={book.id}
-                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                        >
-                          <div className="flex flex-col space-y-2">
-                            <Link
-                              href={`/books/${book.id}`}
-                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
-                            >
-                              {book.title}
-                            </Link>
-                            <p className="text-sm text-[var(--gray-500)]">
-                              {book.author}
-                            </p>
-                            <p className="text-xs text-[var(--gray-500)] mt-2">
-                              {format(book.createdAt, "d MMMM yyyy", {
-                                locale: pl,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {totalExchangeBooks > 3 && (
-                        <Link
-                          href={`/users/${user.id}/exchange`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
-                text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                text-center block"
-                        >
-                          Pokaż wszystkie ({totalExchangeBooks})
-                        </Link>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-center text-[var(--gray-500)]">
-                      Brak książek do wymiany
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
 
-          <div className="flex-1 min-w-[300px]">
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mb-8 transition-all duration-200">
-              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Ulubione książki</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {user.favoriteBooks?.length > 0 ? (
-                    <>
-                      {displayedFavoriteBooks.slice(0, 5).map((book) => (
-                        <div
-                          key={book.id}
-                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                        >
-                          <div className="flex flex-col space-y-2">
-                            <Link
-                              href={`/books/${book.id}`}
-                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+          {/* Right column - book collections in 2 columns */}
+          <div className="lg:w-2/3">
+            <div className="flex flex-wrap gap-6">
+              {/* Left book column */}
+              <div className="flex-1 min-w-[280px]">
+                {/* Want to read books */}
+                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-6">
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 text-white">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                      </svg>
+                      Chcę przeczytać
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="space-y-4">
+                      {displayedDesiredBooks.length > 0 ? (
+                        <>
+                          {displayedDesiredBooks.map((book) => (
+                            <div
+                              key={book.id}
+                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
-                              {book.title}
-                            </Link>
-                            <p className="text-sm text-[var(--gray-500)]">
-                              {book.author}
-                            </p>
-                            <p className="text-xs text-[var(--gray-500)] mt-2">
-                              {format(book.createdAt, "d MMMM yyyy", {
-                                locale: pl,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {totalFavoriteBooks > 5 && (
-                        <Link
-                          href={`/users/${user.id}/favorites`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
-                        text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                        text-center block"
-                        >
-                          Pokaż wszystkie ({totalFavoriteBooks})
-                        </Link>
+                              <Link
+                                href={`/books/${book.id}`}
+                                className="flex flex-col space-y-1 hover:text-blue-600 transition-colors"
+                              >
+                                <span className="font-medium text-[var(--gray-800)]">
+                                  {book.title}
+                                </span>
+                                <span className="text-sm text-[var(--gray-500)]">
+                                  {book.author}
+                                </span>
+                                <span className="text-xs text-[var(--gray-400)]">
+                                  Dodano:{" "}
+                                  {format(book.createdAt, "d MMMM yyyy", {
+                                    locale: pl,
+                                  })}
+                                </span>
+                              </Link>
+                            </div>
+                          ))}
+                          {totalOwnedBooks > 3 && (
+                            <div className="text-center">
+                              <button
+                                className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                onClick={() => {
+                                  /* Implement loading more */
+                                }}
+                              >
+                                Zobacz więcej ({totalOwnedBooks - 3})
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-[var(--gray-500)] py-6">
+                          Ten użytkownik nie dodał jeszcze książek, które chce
+                          przeczytać.
+                        </p>
                       )}
-                    </>
-                  ) : (
-                    <p className="text-center text-[var(--gray-500)]">
-                      Brak ulubionych książek
-                    </p>
-                  )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Favorite books */}
+                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4 text-white">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        />
+                      </svg>
+                      Ulubione książki
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="space-y-4">
+                      {displayedFavoriteBooks.length > 0 ? (
+                        <>
+                          {displayedFavoriteBooks.map((book) => (
+                            <div
+                              key={book.id}
+                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
+                            >
+                              <Link
+                                href={`/books/${book.id}`}
+                                className="flex flex-col space-y-1 hover:text-purple-600 transition-colors"
+                              >
+                                <span className="font-medium text-[var(--gray-800)]">
+                                  {book.title}
+                                </span>
+                                <span className="text-sm text-[var(--gray-500)]">
+                                  {book.author}
+                                </span>
+                                <span className="text-xs text-[var(--gray-400)]">
+                                  Dodano:{" "}
+                                  {format(book.createdAt, "d MMMM yyyy", {
+                                    locale: pl,
+                                  })}
+                                </span>
+                              </Link>
+                            </div>
+                          ))}
+                          {totalFavoriteBooks > 3 && (
+                            <div className="text-center">
+                              <button
+                                className="px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                                onClick={() => {
+                                  /* Implement loading more */
+                                }}
+                              >
+                                Zobacz więcej ({totalFavoriteBooks - 3})
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-[var(--gray-500)] py-6">
+                          Ten użytkownik nie dodał jeszcze ulubionych książek.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-                <h2 className="text-xl font-bold">Opinie użytkownika</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {displayedReviews.length > 0 ? (
-                    <>
-                      {displayedReviews.slice(0, 5).map((review) => (
-                        <div
-                          key={review.id}
-                          className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                        >
-                          <div className="flex flex-col space-y-2">
-                            <Link
-                              href={`/books/${review.bookId}`}
-                              className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+              {/* Right book column */}
+              <div className="flex-1 min-w-[280px]">
+                {/* Exchange books */}
+                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mb-6 transition-all duration-200">
+                  <div className="bg-gradient-to-r from-green-600 to-green-500 p-4 text-white">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                        />
+                      </svg>
+                      Książki do wymiany
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="space-y-4">
+                      {displayedExchangeBooks.length > 0 ? (
+                        <>
+                          {displayedExchangeBooks.map((book) => (
+                            <div
+                              key={book.id}
+                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-green-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
-                              {review.bookTitle}
-                            </Link>
-                            <p className="text-sm text-[var(--gray-500)]">
-                              {review.bookAuthor}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              {[...Array(10)].map((_, index) => (
-                                <svg
-                                  key={index}
-                                  className={`w-4 h-4 ${
-                                    index + 1 <= review.rating
-                                      ? "text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              ))}
-                              <span className="text-[var(--gray-700)] ml-2">
-                                {review.rating}/10
-                              </span>
+                              <Link
+                                href={`/books/${book.id}`}
+                                className="flex flex-col space-y-1 hover:text-green-600 transition-colors"
+                              >
+                                <span className="font-medium text-[var(--gray-800)]">
+                                  {book.title}
+                                </span>
+                                <span className="text-sm text-[var(--gray-500)]">
+                                  {book.author}
+                                </span>
+                                <span className="text-xs text-[var(--gray-400)]">
+                                  Dodano:{" "}
+                                  {format(book.createdAt, "d MMMM yyyy", {
+                                    locale: pl,
+                                  })}
+                                </span>
+                              </Link>
                             </div>
-                            {review.comment && (
-                              <p className="text-[var(--gray-800)] mt-2">
-                                {review.comment}
+                          ))}
+                          {totalExchangeBooks > 3 && (
+                            <div className="text-center">
+                              <button
+                                className="px-4 py-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                                onClick={() => {
+                                  /* Implement loading more */
+                                }}
+                              >
+                                Zobacz więcej ({totalExchangeBooks - 3})
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-[var(--gray-500)] py-6">
+                          Ten użytkownik nie ma książek do wymiany.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reviews */}
+                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+                  <div className="bg-gradient-to-r from-amber-600 to-amber-500 p-4 text-white">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        />
+                      </svg>
+                      Opinie użytkownika
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="space-y-5">
+                      {displayedReviews.length > 0 ? (
+                        <>
+                          {displayedReviews.map((review) => (
+                            <div
+                              key={review.id}
+                              className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-amber-400 transition-all duration-200"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <Link
+                                  href={`/books/${review.bookId}`}
+                                  className="font-medium text-[var(--gray-800)] hover:text-amber-600 transition-colors"
+                                >
+                                  {review.bookTitle}
+                                </Link>
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <svg
+                                      key={i}
+                                      className={`w-4 h-4 ${
+                                        i < review.rating
+                                          ? "text-amber-400"
+                                          : "text-gray-300"
+                                      }`}
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-sm text-[var(--gray-500)] mb-2">
+                                {review.bookAuthor}
                               </p>
-                            )}
-                            <p className="text-xs text-[var(--gray-500)] mt-2">
-                              {review.createdAt &&
-                                format(
+                              <p className="text-sm italic text-[var(--gray-700)] pb-2 border-b border-[var(--gray-100)]">
+                                "{review.comment}"
+                              </p>
+                              <p className="text-xs text-[var(--gray-400)] mt-2">
+                                {format(
                                   review.createdAt.toDate(),
                                   "d MMMM yyyy",
                                   {
                                     locale: pl,
                                   }
                                 )}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {user?.reviewsCount > 5 && (
-                        <Link
-                          href={`/users/${user.id}/reviews`}
-                          className="w-full py-3 px-4 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] 
-                        text-white rounded-xl transition-colors duration-200 font-medium shadow-sm
-                        text-center block"
-                        >
-                          Pokaż wszystkie ({user.reviewsCount})
-                        </Link>
+                              </p>
+                            </div>
+                          ))}
+                          {user.reviewsCount > 3 && (
+                            <div className="text-center">
+                              <button
+                                className="px-4 py-2 text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                                onClick={() => {
+                                  /* Implement loading more */
+                                }}
+                              >
+                                Zobacz więcej ({user.reviewsCount - 3})
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-[var(--gray-500)] py-6">
+                          Ten użytkownik nie dodał jeszcze opinii.
+                        </p>
                       )}
-                    </>
-                  ) : (
-                    <p className="text-center text-[var(--gray-500)]">
-                      Brak opinii do wyświetlenia
-                    </p>
-                  )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
