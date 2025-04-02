@@ -29,7 +29,6 @@ const schema = yup.object().shape({
 
 type FormInputs = yup.InferType<typeof schema>;
 
-// Add this helper function at the top of the file
 const createUserDocument = async (
   userId: string,
   userData: {
@@ -77,7 +76,6 @@ export default function Login() {
       setErrorMessage("");
       const res = await signInUser(data.email.trim(), data.password);
       if (res) {
-        // Check and create user document if needed
         await createUserDocument(res.uid, {
           email: res.email!,
           displayName: res.displayName || "Użytkownik",
@@ -105,7 +103,6 @@ export default function Login() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        // Check and create user document if needed
         await createUserDocument(user.uid, {
           email: user.email!,
           displayName: user.displayName!,
@@ -124,7 +121,6 @@ export default function Login() {
     try {
       const user = await signInWithFacebook();
       if (user) {
-        // Check and create user document if needed
         await createUserDocument(user.uid, {
           email: user.email!,
           displayName: user.displayName!,
@@ -144,9 +140,7 @@ export default function Login() {
       <BackgroundVideo />
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="absolute inset-0 flex justify-center items-center">
-        {/* Reduced max-width and padding */}
         <div className="bg-white p-6 rounded-3xl shadow-lg max-w-sm w-full h-auto">
-          {/* Reduced text size and margins */}
           <h1 className="text-xl text-black font-bold text-center mb-8">
             Logowanie
           </h1>
@@ -158,9 +152,7 @@ export default function Login() {
               <span className="block sm:inline">{errorMessage}</span>
             </div>
           )}
-          {/* Reduced vertical margins */}
           <form onSubmit={handleSubmit(onSubmit)} className="my-6">
-            {/* Reduced bottom margins for form groups */}
             <div className="mb-4">
               <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
@@ -197,7 +189,6 @@ export default function Login() {
                 </p>
               )}
             </div>
-            {/* Adjusted button container spacing */}
             <div className="flex items-center justify-center mb-4 mt-8">
               <button
                 type="submit"
@@ -208,14 +199,12 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Reduced vertical margins for divider */}
             <div className="flex items-center justify-between mb-4 my-8">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
               <label className="text-gray-500">lub</label>
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
 
-            {/* Reduced vertical margins for social buttons */}
             <div className="flex items-center justify-center gap-4 mb-8 my-8">
               <button
                 type="button"
@@ -236,7 +225,6 @@ export default function Login() {
             </div>
           </form>
 
-          {/* Adjusted bottom text margins */}
           <div className="text-center mt-3 text-sm">
             <span className="text-gray-600">Nie masz jeszcze konta? </span>
             <Link

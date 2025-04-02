@@ -60,14 +60,12 @@ export default function Bookshelf() {
     try {
       setIsLoading(true);
 
-      // Fetch owned and exchange books
       const ownershipsQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
         orderBy("createdAt", "desc")
       );
 
-      // Fetch desired books
       const desiresQuery = query(
         collection(db, "bookDesire"),
         where("userId", "==", user.uid),
@@ -97,7 +95,6 @@ export default function Bookshelf() {
       const ownerships = await processBooks(ownershipsSnapshot.docs);
       const desires = await processBooks(desiresSnapshot.docs);
 
-      // Split ownerships into owned and exchange books
       setOwnedBooks(ownerships.filter((book) => !book.status));
       setExchangeBooks(
         ownerships.filter((book) => book.status === "forExchange")

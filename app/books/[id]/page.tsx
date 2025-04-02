@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { CalendarIcon } from "../../components/svg-icons/CalendarIcon";
 import { MapPinIcon } from "../../components/svg-icons/MapPinIcon";
@@ -57,8 +56,6 @@ export default function BookDetails({ params }: PageProps) {
   const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [averageRating, setAverageRating] = useState<number | null>(null);
-  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -66,7 +63,6 @@ export default function BookDetails({ params }: PageProps) {
         setIsLoading(true);
         setError(null);
 
-        // Pad the ID with zeros to 14 digits
         const paddedId = unwrappedParams.id.padStart(14, "0");
         const response = await fetch(`/api/books/${paddedId}`);
         const data = await response.json();
@@ -89,37 +85,6 @@ export default function BookDetails({ params }: PageProps) {
     };
 
     fetchBookDetails();
-  }, [unwrappedParams.id]);
-
-  useEffect(() => {
-    const fetchReviewsStats = async () => {
-      if (!unwrappedParams.id) return;
-
-      try {
-        const reviewsQuery = query(
-          collection(db, "reviews"),
-          where("bookId", "==", unwrappedParams.id)
-        );
-
-        const reviewsSnapshot = await getDocs(reviewsQuery);
-        const reviews = reviewsSnapshot.docs.map((doc) => doc.data());
-
-        if (reviews.length > 0) {
-          const totalRating = reviews.reduce(
-            (sum, review) => sum + (review.rating || 0),
-            0
-          );
-          const average = totalRating / reviews.length;
-          setAverageRating(Number(average.toFixed(1)));
-        }
-
-        setTotalReviews(reviews.length);
-      } catch (error) {
-        console.error("Error fetching reviews stats:", error);
-      }
-    };
-
-    fetchReviewsStats();
   }, [unwrappedParams.id]);
 
   if (isLoading) return <LoadingSpinner />;
@@ -166,7 +131,6 @@ export default function BookDetails({ params }: PageProps) {
     <div className="min-h-screen pb-8 bg-[var(--background)]">
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
-          {/* Header with title and rating */}
           <div className="bg-[var(--primaryColor)] p-4">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-white">{book.title}</h1>
@@ -178,9 +142,7 @@ export default function BookDetails({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Main content */}
           <div className="p-4 space-y-4">
-            {/* Authors section */}
             <div className="bg-[var(--gray-50)] rounded-lg p-3">
               <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
                 <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
@@ -206,7 +168,6 @@ export default function BookDetails({ params }: PageProps) {
               )}
             </div>
 
-            {/* Publication details in compact grid */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-[var(--gray-50)] rounded-lg p-3">
                 <div className="flex items-center mb-1">
@@ -229,7 +190,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Publisher and Location section */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-[var(--gray-50)] rounded-lg p-3">
                 <div className="flex items-center mb-1">
@@ -256,7 +216,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Categories as compact tags */}
             {(book.genre || book.subject || book.domain) && (
               <div className="flex flex-wrap gap-1">
                 {book.genre && (
@@ -277,7 +236,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             )}
 
-            {/* Additional Details */}
             {(book.isbnIssn || book.nationalBibliographyNumber) && (
               <div className="border-t border-[var(--gray-100)] pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -303,7 +261,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             )}
 
-            {/* Additional Metadata */}
             {(book.kind ||
               book.formOfWork ||
               book.subjectPlace ||
@@ -348,7 +305,6 @@ export default function BookDetails({ params }: PageProps) {
             )}
           </div>
 
-          {/* Reviews Section */}
           <div className="border-t border-[var(--gray-100)] p-4">
             <BookReview bookId={unwrappedParams.id} />
           </div>

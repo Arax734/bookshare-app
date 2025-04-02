@@ -43,7 +43,6 @@ export default function Friends() {
     const fetchInvites = async () => {
       try {
         setIsLoading(true);
-        // Get invitations where current user is the contactId
         const invitesQuery = query(
           collection(db, "userContacts"),
           where("contactId", "==", user.uid),
@@ -56,7 +55,6 @@ export default function Friends() {
           ...doc.data(),
         })) as Invitation[];
 
-        // Fetch sender data for each invitation
         const invitesWithSenderData = await Promise.all(
           invitesData.map(async (invite) => {
             const senderDoc = await getDoc(doc(db, "users", invite.userId));
@@ -91,12 +89,10 @@ export default function Friends() {
         status: "accepted",
       });
 
-      // Update local state to remove the accepted invite
       setInvites((prevInvites) =>
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
 
-      // After successful acceptance
       refreshPendingInvites();
     } catch (error) {
       console.error("Error accepting invite:", error);
@@ -109,12 +105,10 @@ export default function Friends() {
     try {
       await deleteDoc(doc(db, "userContacts", inviteId));
 
-      // Update local state to remove the rejected invite
       setInvites((prevInvites) =>
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
 
-      // After successful rejection
       refreshPendingInvites();
     } catch (error) {
       console.error("Error rejecting invite:", error);

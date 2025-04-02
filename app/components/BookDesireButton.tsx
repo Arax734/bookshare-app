@@ -5,7 +5,6 @@ import { db } from "@/firebase/config";
 import { doc, setDoc, deleteDoc, getDoc, Timestamp } from "firebase/firestore";
 import { useAuth } from "@/app/hooks/useAuth";
 import { FireIcon } from "./svg-icons/FireIcon";
-import { useNotifications } from "@/app/contexts/NotificationsContext";
 
 interface BookDesireButtonProps {
   bookId: string;

@@ -4,17 +4,14 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/firebase/config";
 import {
   collection,
-  addDoc,
   serverTimestamp,
   query,
   where,
   orderBy,
   onSnapshot,
   Timestamp,
-  deleteDoc,
   doc,
   getDoc,
-  updateDoc,
   runTransaction,
   getDocs,
   limit,
@@ -85,7 +82,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
   useEffect(() => {
     if (!paddedBookId || !user) return;
 
-    // Get total count first
     const countQuery = query(
       collection(db, "reviews"),
       where("bookId", "==", paddedBookId)
@@ -95,7 +91,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
       setTotalReviews(snapshot.size);
     });
 
-    // Get initial reviews with limit
     const q = query(
       collection(db, "reviews"),
       where("bookId", "==", paddedBookId),
@@ -109,13 +104,11 @@ export default function BookReview({ bookId }: BookReviewProps) {
         ...doc.data(),
       })) as Review[];
 
-      // Check if current user has already reviewed
       const existingUserReview = reviewsData.find(
         (review) => review.userId === user.uid
       );
       setUserReview(existingUserReview || null);
 
-      // Sort to show user's review first
       const sortedReviews = reviewsData.sort((a, b) => {
         if (a.userId === user.uid) return -1;
         if (b.userId === user.uid) return 1;
@@ -203,18 +196,15 @@ export default function BookReview({ bookId }: BookReviewProps) {
         const currentTotalRating =
           (userData.averageRating || 0) * currentReviewsCount;
 
-        // Calculate new values
         const newReviewsCount = currentReviewsCount + 1;
         const newAverageRating =
           (currentTotalRating + rating) / newReviewsCount;
 
-        // Update user document
         transaction.update(userRef, {
           reviewsCount: newReviewsCount,
           averageRating: Number(newAverageRating.toFixed(1)),
         });
 
-        // Add new review
         const reviewRef = doc(collection(db, "reviews"));
         transaction.set(reviewRef, {
           bookId: paddedBookId,
@@ -228,7 +218,6 @@ export default function BookReview({ bookId }: BookReviewProps) {
         });
       });
 
-      // After successful transaction, recalculate average from all reviews
       const reviewsQuery = query(
         collection(db, "reviews"),
         where("bookId", "==", paddedBookId)
@@ -278,24 +267,20 @@ export default function BookReview({ bookId }: BookReviewProps) {
         const currentTotalRating =
           (userData.averageRating || 0) * currentReviewsCount;
 
-        // Calculate new values
         const newReviewsCount = currentReviewsCount - 1;
         const newAverageRating =
           newReviewsCount > 0
             ? (currentTotalRating - reviewData.rating) / newReviewsCount
             : 0;
 
-        // Update user document
         transaction.update(userRef, {
           reviewsCount: newReviewsCount,
           averageRating: Number(newAverageRating.toFixed(1)),
         });
 
-        // Delete review
         transaction.delete(reviewRef);
       });
 
-      // After successful transaction, recalculate average from all reviews
       const reviewsQuery = query(
         collection(db, "reviews"),
         where("bookId", "==", paddedBookId)
@@ -342,13 +327,11 @@ export default function BookReview({ bookId }: BookReviewProps) {
         ...doc.data(),
       })) as Review[];
 
-      // Fetch user data for new reviews
       const newUserIds = newReviews.map((review) => review.userId);
       const newUsersData: { [key: string]: UserData } = { ...usersData };
 
       for (const userId of newUserIds) {
         if (!newUsersData[userId]) {
-          // Only fetch if we don't have the data yet
           try {
             const userDoc = await getDoc(doc(db, "users", userId));
             if (userDoc.exists()) {

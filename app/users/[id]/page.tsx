@@ -11,7 +11,6 @@ import {
   getDoc,
   limit,
   orderBy,
-  startAfter,
   addDoc,
   deleteDoc,
   updateDoc,
@@ -37,7 +36,7 @@ interface Review {
   userEmail: string;
   userDisplayName?: string;
   userPhotoURL?: string;
-  createdAt: any; // You can use Timestamp from firebase if needed
+  createdAt: any;
   bookTitle?: string;
   bookAuthor?: string;
 }
@@ -47,8 +46,8 @@ interface UserProfile {
   email: string;
   displayName?: string;
   photoURL?: string;
-  reviewsCount: number; // Changed from reviews
-  averageRating: number; // Added field
+  reviewsCount: number;
+  averageRating: number;
   phoneNumber?: string;
   creationTime?: string;
   bio?: string;
@@ -76,13 +75,10 @@ const fetchBookDetails = async (bookId: string) => {
 const getHighResProfileImage = (photoURL: string | undefined) => {
   if (!photoURL) return defaultAvatar;
 
-  // Handle Google Photos URL
   if (photoURL.includes("googleusercontent.com")) {
-    // Remove =s96-c parameter and add =s400-c for higher resolution
     return photoURL.replace(/=s\d+-c/, "=s400-c");
   }
 
-  // Handle other providers or return original URL
   return photoURL;
 };
 
@@ -143,14 +139,12 @@ export default function UserProfile({ params }: PageProps) {
     if (!currentUser) return;
 
     try {
-      // Check if current user initiated the contact
       const contactAsUserQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", currentUser.uid),
         where("contactId", "==", profileUserId)
       );
 
-      // Check if profile user initiated the contact
       const contactAsContactQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", profileUserId),
@@ -162,7 +156,6 @@ export default function UserProfile({ params }: PageProps) {
         getDocs(contactAsContactQuery),
       ]);
 
-      // Check user-initiated contacts first
       if (!userQuerySnapshot.empty) {
         const userContact = userQuerySnapshot.docs[0].data();
         if (userContact.status === "accepted") {
@@ -175,9 +168,7 @@ export default function UserProfile({ params }: PageProps) {
           setIsPending(true);
           setInvitationDirection("sent");
         }
-      }
-      // Then check profile user-initiated contacts
-      else if (!contactQuerySnapshot.empty) {
+      } else if (!contactQuerySnapshot.empty) {
         const profileContact = contactQuerySnapshot.docs[0].data();
         if (profileContact.status === "accepted") {
           setIsContact(true);
@@ -190,9 +181,7 @@ export default function UserProfile({ params }: PageProps) {
           setContactDocId(contactQuerySnapshot.docs[0].id);
           setInvitationDirection("received");
         }
-      }
-      // No contacts found
-      else {
+      } else {
         setIsContact(false);
         setIsPending(false);
         setInvitationDirection(null);
@@ -228,7 +217,6 @@ export default function UserProfile({ params }: PageProps) {
       await deleteDoc(doc(db, "userContacts", contactDocId));
       setIsContact(false);
       setContactDocId(null);
-      // Optionally show success message
     } catch (error) {
       console.error("Error removing contact:", error);
     }
@@ -243,7 +231,6 @@ export default function UserProfile({ params }: PageProps) {
       });
       setIsContact(true);
       setIsPending(false);
-      // Update with direct value instead of function
       setPendingInvites(Math.max(0, pendingInvites - 1));
     } catch (error) {
       console.error("Error accepting invite:", error);
@@ -258,7 +245,6 @@ export default function UserProfile({ params }: PageProps) {
       setIsContact(false);
       setContactDocId(null);
       setIsPending(false);
-      // Update with direct value instead of function
       setPendingInvites(Math.max(0, pendingInvites - 1));
     } catch (error) {
       console.error("Error rejecting invite:", error);
@@ -279,7 +265,6 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
-        // Get books count
         const bookDesireQuery = query(
           collection(db, "bookDesire"),
           where("userId", "==", unwrappedParams.id)
@@ -287,7 +272,6 @@ export default function UserProfile({ params }: PageProps) {
         const bookDesireSnapshot = await getDocs(bookDesireQuery);
         const booksCount = bookDesireSnapshot.size;
 
-        // Get owned books
         const DesiredBooksQuery = query(
           collection(db, "bookDesire"),
           where("userId", "==", unwrappedParams.id),
@@ -301,7 +285,6 @@ export default function UserProfile({ params }: PageProps) {
           createdAt: doc.data().createdAt.toDate(),
         }));
 
-        // Fetch book details for owned books
         const ownedBooks = await Promise.all(
           DesiredBookIds.map(async ({ id, createdAt }) => {
             const bookDetails = await fetchBookDetails(id);
@@ -317,7 +300,6 @@ export default function UserProfile({ params }: PageProps) {
         setDisplayedDesiredBooks(ownedBooks);
         setTotalOwnedBooks(booksCount);
 
-        // Get favorite books
         const favoriteBooksQuery = query(
           collection(db, "bookFavorites"),
           where("userId", "==", unwrappedParams.id),
@@ -325,7 +307,6 @@ export default function UserProfile({ params }: PageProps) {
           limit(3)
         );
 
-        // Get total count of favorite books
         const totalFavoriteBooksQuery = query(
           collection(db, "bookFavorites"),
           where("userId", "==", unwrappedParams.id)
@@ -341,7 +322,6 @@ export default function UserProfile({ params }: PageProps) {
           createdAt: doc.data().createdAt.toDate(),
         }));
 
-        // Fetch book details for favorite books
         const favoriteBooks = await Promise.all(
           favoriteBookIds.map(async ({ id, createdAt }) => {
             const bookDetails = await fetchBookDetails(id);
@@ -357,7 +337,6 @@ export default function UserProfile({ params }: PageProps) {
         setDisplayedFavoriteBooks(favoriteBooks);
         setTotalFavoriteBooks(totalFavoriteBooks);
 
-        // Get books for exchange
         const exchangeBooksQuery = query(
           collection(db, "bookOwnership"),
           where("userId", "==", unwrappedParams.id),
@@ -366,7 +345,6 @@ export default function UserProfile({ params }: PageProps) {
           limit(3)
         );
 
-        // Get total count of exchange books
         const totalExchangeQuery = query(
           collection(db, "bookOwnership"),
           where("userId", "==", unwrappedParams.id),
@@ -379,7 +357,6 @@ export default function UserProfile({ params }: PageProps) {
           createdAt: doc.data().createdAt.toDate(),
         }));
 
-        // Fetch book details for exchange books
         const exchangeBooks = await Promise.all(
           exchangeBookIds.map(async ({ id, createdAt }) => {
             const bookDetails = await fetchBookDetails(id);
@@ -395,7 +372,6 @@ export default function UserProfile({ params }: PageProps) {
         setDisplayedExchangeBooks(exchangeBooks);
         setTotalExchangeBooks(totalExchangeSnapshot.size);
 
-        // Set user data first
         const userProfile = {
           id: unwrappedParams.id,
           email: userData.email,
@@ -406,22 +382,20 @@ export default function UserProfile({ params }: PageProps) {
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
-          booksCount: booksCount, // Add this line
-          favoriteBooks: favoriteBooks, // Add this line
+          booksCount: booksCount,
+          favoriteBooks: favoriteBooks,
         };
 
         setUser(userProfile);
 
-        // Check contact status after setting user data
         if (currentUser && currentUser.uid !== unwrappedParams.id) {
           await checkContactStatus(unwrappedParams.id);
         }
 
-        // Get reviews with ordering
         const reviewsQuery = query(
           collection(db, "reviews"),
           where("userId", "==", unwrappedParams.id),
-          orderBy("createdAt", "desc"), // Add ordering
+          orderBy("createdAt", "desc"),
           limit(3)
         );
 
@@ -431,14 +405,6 @@ export default function UserProfile({ params }: PageProps) {
           ...doc.data(),
         })) as Review[];
 
-        // Get total count separately
-        const totalReviewsQuery = query(
-          collection(db, "reviews"),
-          where("userId", "==", unwrappedParams.id)
-        );
-        const totalReviewsSnapshot = await getDocs(totalReviewsQuery);
-
-        // Fetch book details for initial reviews
         const reviewsWithBooks = await Promise.all(
           reviewsData.map(async (review) => {
             const bookDetails = await fetchBookDetails(review.bookId);
@@ -450,8 +416,8 @@ export default function UserProfile({ params }: PageProps) {
           })
         );
 
-        setReviews(reviewsData); // Store all fetched reviews
-        setDisplayedReviews(reviewsWithBooks); // Show only loaded reviews
+        setReviews(reviewsData);
+        setDisplayedReviews(reviewsWithBooks);
 
         if (currentUser && user && currentUser.uid !== user.id) {
           await checkContactStatus(user.id);
@@ -467,93 +433,6 @@ export default function UserProfile({ params }: PageProps) {
     fetchUserProfile();
   }, [params, currentUser]);
 
-  const loadMoreReviews = async () => {
-    if (isLoadingMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const unwrappedParams = await params;
-      const lastReview = reviews[reviews.length - 1];
-
-      const nextReviewsQuery = query(
-        collection(db, "reviews"),
-        where("userId", "==", unwrappedParams.id),
-        orderBy("createdAt", "desc"),
-        startAfter(lastReview.createdAt),
-        limit(3)
-      );
-
-      const nextReviewsSnapshot = await getDocs(nextReviewsQuery);
-      const nextReviewsData = nextReviewsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Review[];
-
-      // Fetch book details for new reviews
-      const nextReviewsWithBooks = await Promise.all(
-        nextReviewsData.map(async (review) => {
-          const bookDetails = await fetchBookDetails(review.bookId);
-          return {
-            ...review,
-            bookTitle: bookDetails?.title || "Książka niedostępna",
-            bookAuthor: bookDetails?.author || "Autor nieznany",
-          };
-        })
-      );
-
-      setReviews([...reviews, ...nextReviewsWithBooks]);
-      setDisplayedReviews([...displayedReviews, ...nextReviewsWithBooks]);
-      setCurrentPage(currentPage + 1);
-    } catch (error) {
-      console.error("Error loading more reviews:", error);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
-  const loadMoreFavoriteBooks = async () => {
-    if (isLoadingMoreFavorites) return;
-
-    setIsLoadingMoreFavorites(true);
-    try {
-      const unwrappedParams = await params;
-      const lastBook =
-        displayedFavoriteBooks[displayedFavoriteBooks.length - 1];
-
-      const nextBooksQuery = query(
-        collection(db, "bookFavorites"),
-        where("userId", "==", unwrappedParams.id),
-        orderBy("createdAt", "desc"),
-        startAfter(lastBook.createdAt),
-        limit(3)
-      );
-
-      const nextBooksSnapshot = await getDocs(nextBooksQuery);
-      const nextBookIds = nextBooksSnapshot.docs.map((doc) => ({
-        id: doc.data().bookId,
-        createdAt: doc.data().createdAt.toDate(),
-      }));
-
-      const nextBooks = await Promise.all(
-        nextBookIds.map(async ({ id, createdAt }) => {
-          const bookDetails = await fetchBookDetails(id);
-          return {
-            id,
-            title: bookDetails?.title || "Książka niedostępna",
-            author: bookDetails?.author || "Autor nieznany",
-            createdAt,
-          };
-        })
-      );
-
-      setDisplayedFavoriteBooks([...displayedFavoriteBooks, ...nextBooks]);
-    } catch (error) {
-      console.error("Error loading more favorite books:", error);
-    } finally {
-      setIsLoadingMoreFavorites(false);
-    }
-  };
-
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!user) return <div>Nie znaleziono użytkownika</div>;
@@ -562,18 +441,14 @@ export default function UserProfile({ params }: PageProps) {
     <main className="mx-auto px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap gap-8">
-          {/* Left Column */}
           <div className="flex-1 min-w-[300px]">
-            {/* Profile Header Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
               <div className="bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Profil użytkownika</h2>
               </div>
               <div className="p-6">
                 <div className="flex flex-col space-y-6">
-                  {/* Profile Image and Info */}
                   <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                    {/* Profile Image */}
                     <div className="relative w-32 h-32 rounded-2xl overflow-hidden">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
@@ -584,7 +459,6 @@ export default function UserProfile({ params }: PageProps) {
                       />
                     </div>
 
-                    {/* Profile Info */}
                     <div className="flex-1 text-center md:text-left space-y-3 transition-all duration-200">
                       <div className="flex justify-between items-start">
                         <div>
@@ -605,7 +479,6 @@ export default function UserProfile({ params }: PageProps) {
                           </p>
                         </div>
 
-                        {/* Move contact buttons here */}
                         {currentUser && currentUser.uid !== user.id && (
                           <div className="flex gap-2">
                             {isContact ? (
@@ -736,7 +609,6 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   </div>
 
-                  {/* Bio Section */}
                   {user.bio && (
                     <div className="relative mt-4 w-full">
                       <div className="bg-[var(--background)] rounded-xl p-4 shadow-sm border border-[var(--gray-200)]">
@@ -753,7 +625,6 @@ export default function UserProfile({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Statistics Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Statystyki</h2>
@@ -789,7 +660,6 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
             </div>
-            {/* Want to Read Books Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Chcę przeczytać</h2>
@@ -841,7 +711,6 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
             </div>
-            {/* Exchange Books Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mt-8 transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Książki do wymiany</h2>
@@ -895,9 +764,7 @@ export default function UserProfile({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="flex-1 min-w-[300px]">
-            {/* Favorite Books Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mb-8 transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Ulubione książki</h2>
@@ -950,7 +817,6 @@ export default function UserProfile({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Reviews Card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
               <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
                 <h2 className="text-xl font-bold">Opinie użytkownika</h2>

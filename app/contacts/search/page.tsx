@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   collection,
   query,
@@ -14,17 +14,8 @@ import { db } from "@/firebase/config";
 import { useAuth } from "@/app/hooks/useAuth";
 import Image from "next/image";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 
-interface UserContact {
-  id?: string;
-  userId: string;
-  contactId: string;
-  createdAt: Timestamp;
-  status: "pending" | "accepted";
-}
-
-// Update the UserSearchResult interface
 interface UserSearchResult {
   id: string;
   email: string;
@@ -58,7 +49,6 @@ export default function Search() {
     try {
       const queryLower = searchText.toLowerCase();
 
-      // Get pending invites sent by current user
       const sentInvitesQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid),
@@ -69,7 +59,6 @@ export default function Search() {
         sentInvitesSnapshot.docs.map((doc) => doc.data().contactId)
       );
 
-      // Get pending invites received by current user
       const pendingInvitesQuery = query(
         collection(db, "userContacts"),
         where("contactId", "==", user.uid),
@@ -83,7 +72,6 @@ export default function Search() {
         ])
       );
 
-      // Search queries
       const emailQuery = query(
         collection(db, "users"),
         where("email", ">=", queryLower),
@@ -108,7 +96,6 @@ export default function Search() {
         getDocs(phoneQuery),
       ]);
 
-      // Combine and deduplicate results
       const results = new Map<
         string,
         UserSearchResult & { pendingInvite?: PendingInvite }
@@ -141,7 +128,6 @@ export default function Search() {
     if (!user) return;
 
     try {
-      // Check if user exists
       const usersQuery = query(
         collection(db, "users"),
         where("email", "==", contactEmail)
@@ -152,7 +138,6 @@ export default function Search() {
         throw new Error("Użytkownik o podanym adresie email nie istnieje");
       }
 
-      // Check if contact already exists
       const existingContactQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid),
@@ -164,7 +149,6 @@ export default function Search() {
         throw new Error("Ten użytkownik jest już w Twoich kontaktach");
       }
 
-      // Add new contact
       await addDoc(collection(db, "userContacts"), {
         userId: user.uid,
         contactId: userSnapshot.docs[0].id,
@@ -172,7 +156,6 @@ export default function Search() {
         status: "pending",
       });
 
-      // Update the search results to mark this contact as pending
       setSearchResults((prevResults) =>
         prevResults.map((result) =>
           result.email === contactEmail
@@ -182,7 +165,6 @@ export default function Search() {
       );
     } catch (error) {
       console.error("Error adding contact:", error);
-      // Here you might want to add proper error handling/notification
     }
   };
 
@@ -194,7 +176,6 @@ export default function Search() {
         status: "accepted",
       });
 
-      // Update search results to remove the accepted invite
       setSearchResults((prevResults) =>
         prevResults.filter((result) => result.pendingInvite?.id !== inviteId)
       );
@@ -232,7 +213,6 @@ export default function Search() {
             </svg>
           </div>
         </div>
-        {/* Search results */}
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
             <h3 className="text-[var(--gray-800)] font-semibold p-4 border-b border-[var(--gray-200)]">
@@ -300,7 +280,6 @@ export default function Search() {
             </div>
           </div>
         )}
-        {/* Loading state */}
         {isSearching && (
           <div className="text-center py-4">
             <div className="w-6 h-6 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>

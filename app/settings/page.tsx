@@ -8,7 +8,6 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
-  updateProfile, // Add this import
 } from "firebase/auth";
 import {
   ref,
@@ -25,8 +24,8 @@ import {
   getDocs,
   doc,
   deleteDoc,
-  updateDoc, // Add this import
-  getDoc, // Add this import
+  updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -56,7 +55,6 @@ export default function Settings() {
   >(null);
   const defaultAvatar = "/images/default-avatar.png";
 
-  // Add new state for password change modal
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -65,23 +63,19 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Add new state for image upload
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Add new state variables
   const [phoneNumber, setPhoneNumber] = useState("");
   const [bio, setBio] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isPhoneValid, setIsPhoneValid] = useState(true);
 
-  // Add these state variables at the top of your component
   const [initialPhoneNumber, setInitialPhoneNumber] = useState("");
   const [initialBio, setInitialBio] = useState("");
   const [isFormChanged, setIsFormChanged] = useState(false);
 
-  // Add new state for image loading
   const [isImageLoading, setIsImageLoading] = useState(true);
 
   useEffect(() => {
@@ -93,7 +87,6 @@ export default function Settings() {
     }
   }, [user]);
 
-  // Add this useEffect to handle the success message after page reload
   useEffect(() => {
     const message = localStorage.getItem("showSuccessMessage");
     if (message) {
@@ -103,7 +96,6 @@ export default function Settings() {
     }
   }, []);
 
-  // Modify the useEffect that loads initial data
   useEffect(() => {
     const loadUserData = async () => {
       if (!user || authLoading) return;
@@ -115,7 +107,6 @@ export default function Settings() {
           const data = userDoc.data() as UserData;
           setUserData(data);
 
-          // Set other form states
           const phone = data.phoneNumber || "";
           const userBio = data.bio || "";
           setPhoneNumber(phone);
@@ -133,7 +124,6 @@ export default function Settings() {
     loadUserData();
   }, [user, authLoading]);
 
-  // Add useEffect to check for form changes
   useEffect(() => {
     const hasPhoneChanged = phoneNumber !== initialPhoneNumber;
     const hasBioChanged = bio !== initialBio;
@@ -151,7 +141,6 @@ export default function Settings() {
     setIsFormChanged(hasChanges);
   }, [phoneNumber, bio, initialPhoneNumber, initialBio]);
 
-  // Show loading spinner while authenticating or loading user data
   if (authLoading || isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
@@ -160,24 +149,17 @@ export default function Settings() {
     );
   }
 
-  // Add phone validation function
   const validatePhoneNumber = (phone: string) => {
-    // Remove spaces and special characters
     const cleanPhone = phone.replace(/\D/g, "");
-    // Basic validation - at least 9 digits after country code
     return cleanPhone.length >= 11;
   };
 
-  // Add this function to format the phone number before saving
   const formatPhoneForSaving = (phone: string) => {
-    // Remove all non-digit characters first
     const digitsOnly = phone.replace(/\D/g, "");
 
-    // Format the number with spaces
-    // For Polish numbers (assuming +48): XX XXX XXX XXX
     if (digitsOnly.startsWith("48")) {
       const parts = [
-        digitsOnly.slice(0, 2), // country code
+        digitsOnly.slice(0, 2),
         digitsOnly.slice(2, 5),
         digitsOnly.slice(5, 8),
         digitsOnly.slice(8),
@@ -185,16 +167,13 @@ export default function Settings() {
       return parts.join(" ").trim();
     }
 
-    // For other numbers, use generic grouping
     return digitsOnly.replace(/(\d{2})(?=\d)/g, "$1 ").trim();
   };
 
-  // Modify the handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !isFormChanged) return;
 
-    // Only validate phone number if it has changed
     if (
       phoneNumber !== initialPhoneNumber &&
       !validatePhoneNumber(phoneNumber)
@@ -208,7 +187,6 @@ export default function Settings() {
       const userDocRef = doc(db, "users", user.uid);
       const updateData: { [key: string]: string } = {};
 
-      // Only include changed fields in the update
       if (phoneNumber !== initialPhoneNumber) {
         updateData.phoneNumber = formatPhoneForSaving(phoneNumber);
       }
@@ -238,7 +216,6 @@ export default function Settings() {
     if (!user) return;
 
     try {
-      // Re-authenticate user
       try {
         if (authMethod === "password") {
           const credential = EmailAuthProvider.credential(
@@ -255,7 +232,6 @@ export default function Settings() {
           }
         }
 
-        // Delete profile image from storage if it exists
         try {
           const imageRef = ref(storage, `avatars/${user.uid}`);
           await deleteObject(imageRef);
@@ -263,7 +239,6 @@ export default function Settings() {
           console.log("No profile image to delete or already deleted");
         }
 
-        // Delete all user's reviews
         const reviewsQuery = query(
           collection(db, "reviews"),
           where("userId", "==", user.uid)
@@ -274,7 +249,6 @@ export default function Settings() {
         );
         await Promise.all(deleteReviewsPromises);
 
-        // Delete all contact documents where user is either userId or contactId
         const userContactsQuery1 = query(
           collection(db, "userContacts"),
           where("userId", "==", user.uid)
@@ -295,17 +269,13 @@ export default function Settings() {
         ];
         await Promise.all(deleteContactsPromises);
 
-        // Delete user document from users collection
         const userDocRef = doc(db, "users", user.uid);
         await deleteDoc(userDocRef);
 
-        // Delete user account
         await user.delete();
 
-        // Remove the session cookie
         await fetch("/api/auth/session", { method: "DELETE" });
 
-        // Redirect to home page
         window.location.href = "/";
       } catch (error: any) {
         if (
@@ -334,7 +304,7 @@ export default function Settings() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError("");
-    setSuccessMessage(""); // Clear any existing success message
+    setSuccessMessage("");
 
     if (!user) return;
 
@@ -349,16 +319,13 @@ export default function Settings() {
     }
 
     try {
-      // Add App Check error handling
       try {
-        // First, re-authenticate the user
         const credential = EmailAuthProvider.credential(
           user.email!,
           currentPassword
         );
         await reauthenticateWithCredential(user, credential);
 
-        // Then update the password using the updatePassword function
         await updatePassword(user, newPassword);
       } catch (error: any) {
         if (
@@ -371,11 +338,10 @@ export default function Settings() {
         throw error;
       }
 
-      // Show success message and close modal
       setSuccessMessage("Hasło zostało zmienione pomyślnie!");
       setTimeout(() => {
         setSuccessMessage("");
-      }, 3000); // Hide message after 3 seconds
+      }, 3000);
 
       setIsChangePasswordModalOpen(false);
       setCurrentPassword("");
@@ -391,13 +357,11 @@ export default function Settings() {
     }
   };
 
-  // Update the handleImageUpload function
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // File validation
-    const maxSize = 1024 * 1024; // 1MB
+    const maxSize = 1024 * 1024;
     const allowedTypes = ["image/jpeg", "image/png"];
 
     if (file.size > maxSize) {
@@ -414,18 +378,15 @@ export default function Settings() {
       setIsUploading(true);
       setUploadError("");
 
-      // Upload image to Storage
       const imageRef = ref(storage, `avatars/${user.uid}`);
       await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(imageRef);
 
-      // Update user document in Firestore
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, {
         photoURL: downloadURL,
       });
 
-      // Update all user's reviews with new photo URL
       const reviewsQuery = query(
         collection(db, "reviews"),
         where("userId", "==", user.uid)
@@ -440,7 +401,6 @@ export default function Settings() {
 
       await Promise.all(updateReviewsPromises);
 
-      // Store success message and reload page
       localStorage.setItem(
         "showSuccessMessage",
         "Zdjęcie profilowe zostało zaktualizowane pomyślnie!"
@@ -498,7 +458,6 @@ export default function Settings() {
             Ustawienia profilu
           </h1>
 
-          {/* General Settings Card */}
           <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
               <h2 className="text-xl font-bold">Ustawienia ogólne</h2>
@@ -543,7 +502,6 @@ export default function Settings() {
 
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
-                  {/* Form inputs without transitions */}
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Email
@@ -608,7 +566,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Security Card */}
           <div className="my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
               <h2 className="text-xl font-bold">Bezpieczeństwo</h2>
@@ -647,7 +604,6 @@ export default function Settings() {
         </div>
       </main>
 
-      {/* Delete Account Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">
@@ -710,7 +666,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Change Password Modal */}
       {isChangePasswordModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">

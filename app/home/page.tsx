@@ -7,11 +7,9 @@ import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
 import Link from "next/link";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
-import { TagIcon } from "../components/svg-icons/TagIcon";
 import { UserIcon } from "../components/svg-icons/UserIcon";
 import { splitAuthors } from "../utils/stringUtils";
 
-// Update interfaces
 interface RecommendationItem {
   category: string;
   books: any[];
@@ -51,7 +49,6 @@ interface Book {
   totalReviews?: number;
 }
 
-// Add this after other interfaces
 interface ExpandedSections {
   [key: string]: boolean;
 }
@@ -69,7 +66,6 @@ export default function Home() {
     () => {
       const initial: ExpandedSections = {};
 
-      // Pre-populate with true values for each section
       recommendations.byGenre.forEach((group) => {
         initial[`genre-${group.category}`] = true;
       });
@@ -109,7 +105,6 @@ export default function Home() {
     fetchRecommendations();
   }, [user]);
 
-  // Update useEffect to reinitialize expandedSections when recommendations change
   useEffect(() => {
     setExpandedSections((prev) => {
       const newState = { ...prev };
@@ -137,7 +132,6 @@ export default function Home() {
     });
   }, [recommendations]);
 
-  // Add toggle function
   const toggleSection = (categoryType: string, category: string) => {
     const key = `${categoryType}-${category}`;
     setExpandedSections((prev) => ({
@@ -151,7 +145,6 @@ export default function Home() {
       key={book.id}
       className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-[var(--gray-100)] flex flex-col"
     >
-      {/* Header with title and rating */}
       <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4">
         <div className="flex justify-between items-start gap-2">
           <h2
@@ -175,9 +168,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="p-4 space-y-4 flex-1">
-        {/* Authors section */}
         <div className="bg-[var(--gray-50)] rounded-lg p-3">
           <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
             <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
@@ -203,7 +194,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Publication details in compact grid */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="bg-[var(--gray-50)] rounded-lg p-3">
             <div className="flex items-center mb-1">
@@ -226,7 +216,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Categories as compact tags */}
         {book.genre && (
           <div className="flex flex-wrap gap-1">
             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
@@ -236,7 +225,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Footer */}
       <div className="px-4 py-3 border-t border-[var(--gray-100)] flex items-center justify-between bg-[var(--gray-50)]">
         <Link
           href={`/books/${book.id}`}
@@ -248,7 +236,6 @@ export default function Home() {
     </div>
   );
 
-  // Show loading spinner while authenticating or loading data
   if (authLoading || isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
@@ -260,7 +247,6 @@ export default function Home() {
   return (
     <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Welcome Section */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
             Witaj w BookShare
@@ -270,7 +256,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Only render sections that have books */}
         {recommendations.byGenre.filter((group) => group.books.length > 0)
           .length > 0 && (
           <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
@@ -505,7 +490,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* No recommendations message */}
         {!recommendations.byGenre.some((group) => group.books.length > 0) &&
           !recommendations.byAuthor.some((group) => group.books.length > 0) &&
           !recommendations.byLanguage.some((group) => group.books.length > 0) &&

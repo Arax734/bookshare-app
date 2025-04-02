@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
-import { MapPinIcon } from "../components/svg-icons/MapPinIcon";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
-import { TagIcon } from "../components/svg-icons/TagIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Link from "next/link";
@@ -73,7 +71,6 @@ export default function Library() {
       }
       setError(null);
 
-      // Extract parameters from URL if it's the BN API URL
       let apiUrl = url;
       if (url.includes("data.bn.org.pl")) {
         const bnUrl = new URL(url);
@@ -81,11 +78,10 @@ export default function Library() {
         const limit = bnUrl.searchParams.get("limit") || "10";
         const sinceId = bnUrl.searchParams.get("sinceId") || "";
 
-        // Construct URL for our API route with search parameters
         apiUrl = `/api/books?limit=${limit}`;
         if (search) {
           apiUrl += `&search=${encodeURIComponent(search)}`;
-          apiUrl += `&searchType=${searchType}`; // Add search type
+          apiUrl += `&searchType=${searchType}`;
         }
         if (sinceId) apiUrl += `&sinceId=${sinceId}`;
       }
@@ -99,7 +95,6 @@ export default function Library() {
       const data: ApiResponse = await response.json();
 
       if (data.bibs && Array.isArray(data.bibs)) {
-        // Filter only books
         const booksOnly = data.bibs.filter(
           (item) =>
             item.kind?.toLowerCase().includes("książka") ||
@@ -108,7 +103,6 @@ export default function Library() {
             item.kind?.toLowerCase() === "books"
         );
 
-        // Fetch ratings for each book
         const booksWithRatings = await Promise.all(
           booksOnly.map(async (book) => {
             const ratings = await fetchBookRatings(book.id);
@@ -131,7 +125,6 @@ export default function Library() {
           setHasMoreResults(booksWithRatings.length >= 10);
         }
 
-        // Update nextPage while preserving search parameters
         if (data.nextPage) {
           const nextPageUrl = new URL(data.nextPage);
           const sinceId = nextPageUrl.searchParams.get("sinceId");
@@ -141,7 +134,6 @@ export default function Library() {
             newNextPage += `&sinceId=${sinceId}`;
           }
 
-          // Preserve search parameters in next page URL
           if (searchQuery) {
             newNextPage += `&search=${encodeURIComponent(
               searchQuery
@@ -165,7 +157,6 @@ export default function Library() {
     }
   };
 
-  // Add a function to fetch ratings for books
   const fetchBookRatings = async (bookId: number) => {
     const paddedId = bookId.toString().padStart(14, "0");
     const q = query(collection(db, "reviews"), where("bookId", "==", paddedId));
@@ -182,12 +173,10 @@ export default function Library() {
     };
   };
 
-  // Initial fetch - update URL to use our API
   useEffect(() => {
     fetchBooks("/api/books?limit=10");
   }, []);
 
-  // Handle search - update to use our API
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -199,7 +188,6 @@ export default function Library() {
     }
   };
 
-  // Load more books
   const loadMoreBooks = () => {
     if (nextPage) {
       fetchBooks(nextPage, true);
@@ -225,7 +213,7 @@ export default function Library() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto pb-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-[var(--gray-800)]">
         Biblioteka książek
       </h1>
@@ -307,7 +295,6 @@ export default function Library() {
               key={book.id}
               className="bg-[var(--card-background)] rounded-xl shadow overflow-hidden transition-all duration-300 border border-[var(--gray-100)] flex flex-col"
             >
-              {/* Header with title and rating */}
               <div className="bg-[var(--primaryColor)] p-4">
                 <div className="flex justify-between items-start">
                   <h2
@@ -331,9 +318,7 @@ export default function Library() {
                 </div>
               </div>
 
-              {/* Main content */}
               <div className="p-4 space-y-4 flex-1">
-                {/* Authors section */}
                 <div className="bg-[var(--gray-50)] rounded-lg p-3">
                   <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
                     <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
@@ -359,7 +344,6 @@ export default function Library() {
                   )}
                 </div>
 
-                {/* Publication details in compact grid */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-[var(--gray-50)] rounded-lg p-3">
                     <div className="flex items-center mb-1">
@@ -386,7 +370,6 @@ export default function Library() {
                   </div>
                 </div>
 
-                {/* Categories as compact tags */}
                 {(book.genre || book.subject || book.domain) && (
                   <div className="flex flex-wrap gap-1">
                     {book.genre && (
@@ -408,7 +391,6 @@ export default function Library() {
                 )}
               </div>
 
-              {/* Footer */}
               <div className="px-4 py-3 border-t border-[var(--gray-100)] flex items-center justify-between bg-[var(--gray-50)]">
                 {book.isbnIssn && (
                   <div className="text-xs text-[var(--gray-500)]">

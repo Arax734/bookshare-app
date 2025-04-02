@@ -66,8 +66,8 @@ export default function Reviews({
   useEffect(() => {
     const calculateItemsPerPage = () => {
       if (containerRef.current) {
-        const containerHeight = window.innerHeight - 200; // Subtract header/margins
-        const itemHeight = 200; // Approximate height of a review card
+        const containerHeight = window.innerHeight - 200;
+        const itemHeight = 200;
         const itemsFit = Math.ceil(containerHeight / itemHeight);
         setItemsPerPage(itemsFit);
       }
@@ -82,7 +82,7 @@ export default function Reviews({
   }, []);
 
   const fetchMoreReviews = async () => {
-    if (isFetchingBooks) return; // Prevent concurrent fetches
+    if (isFetchingBooks) return;
 
     try {
       setIsLoading(true);
@@ -107,12 +107,9 @@ export default function Reviews({
 
       const reviewsSnapshot = await getDocs(reviewsQuery);
 
-      // If no more documents, set hasMore to false
       if (reviewsSnapshot.empty || reviewsSnapshot.docs.length < itemsPerPage) {
         setHasMore(false);
       }
-
-      // Only set lastDoc if we have documents
       if (!reviewsSnapshot.empty) {
         setLastDoc(reviewsSnapshot.docs[reviewsSnapshot.docs.length - 1]);
       }
@@ -123,7 +120,6 @@ export default function Reviews({
         createdAt: doc.data().createdAt.toDate(),
       })) as Review[];
 
-      // Get unique reviews that don't exist in current state
       const existingIds = new Set(reviews.map((review) => review.id));
       const uniqueReviewsData = reviewsData.filter(
         (review) => !existingIds.has(review.id)
@@ -185,7 +181,6 @@ export default function Reviews({
     setIsFetchingBooks(false);
     fetchMoreReviews();
 
-    // Cleanup function
     return () => {
       setReviews([]);
       setHasMore(true);

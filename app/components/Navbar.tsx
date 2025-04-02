@@ -36,8 +36,6 @@ export default function Navbar() {
   } | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [delayedTooltip, setDelayedTooltip] = useState<string | null>(null);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
   const defaultAvatar = "/images/default-avatar.png";
   const { pendingInvites, setPendingInvites } = useNotifications();
 
@@ -88,7 +86,7 @@ export default function Navbar() {
     if (activeTooltip) {
       timeoutId = setTimeout(() => {
         setDelayedTooltip(activeTooltip);
-      }, 200); // 200ms delay before showing tooltip
+      }, 200);
     } else {
       setDelayedTooltip(null);
     }
@@ -99,11 +97,6 @@ export default function Navbar() {
       }
     };
   }, [activeTooltip]);
-
-  useEffect(() => {
-    setIsImageLoaded(false);
-    setAvatarError(false);
-  }, [userData?.photoURL]);
 
   useEffect(() => {
     const fetchPendingInvites = async () => {
@@ -125,7 +118,6 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      // Remove the session cookie
       await fetch("/api/auth/session", {
         method: "DELETE",
       });
@@ -135,7 +127,6 @@ export default function Navbar() {
     }
   };
 
-  // Show loading skeleton if loading or no user
   const showSkeleton = isLoading || !user;
 
   return (
@@ -143,7 +134,6 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary"
       id="mainNav"
     >
-      {/* Absolute positioned logo section */}
       <div className="absolute left-10 top-1/2 -translate-y-1/2">
         <a href="/home" className="flex items-center space-x-3">
           <Image
@@ -163,7 +153,6 @@ export default function Navbar() {
         </a>
       </div>
 
-      {/* Centered navigation */}
       <div className="flex justify-center items-center h-full">
         <div className="hidden md:flex items-center h-full space-x-4">
           <div className="relative h-5/6">
@@ -283,7 +272,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Absolute positioned right section */}
       <div className="absolute right-10 top-1/2 -translate-y-1/2">
         <div className="flex items-center">
           <button
@@ -301,10 +289,8 @@ export default function Navbar() {
           <div className="relative">
             {showSkeleton ? (
               <div className="flex items-center space-x-3 bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 animate-pulse">
-                {/* Name placeholder */}
                 <div className="w-24 h-5 bg-[var(--gray-300)] rounded-full" />
 
-                {/* Avatar placeholder */}
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <div className="w-full h-full bg-[var(--gray-300)]" />
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -312,7 +298,6 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Arrow placeholder */}
                 <div className="absolute right-3 bottom-1 flex items-center justify-center">
                   <div className="w-4 h-4 bg-[var(--gray-300)] rounded-full" />
                 </div>
