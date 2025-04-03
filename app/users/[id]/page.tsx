@@ -442,7 +442,7 @@ export default function UserProfile({ params }: PageProps) {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left column - user profile and statistics */}
-          <div className="lg:w-1/3">
+          <div className="lg:w-1/3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto hide-scrollbar pb-10 px-1">
             {/* User profile card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-8">
               <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-4 text-white relative">
@@ -544,7 +544,7 @@ export default function UserProfile({ params }: PageProps) {
 
             {/* Statistics card */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 text-white">
+              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-4 text-white">
                 <h2 className="text-xl font-bold flex items-center">
                   <svg
                     className="w-5 h-5 mr-2"
@@ -648,19 +648,17 @@ export default function UserProfile({ params }: PageProps) {
               <div className="flex-1 min-w-[280px]">
                 {/* Want to read books */}
                 <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-6">
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 text-white">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4 text-white">
                     <h2 className="text-xl font-bold flex items-center">
                       <svg
                         className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
                       >
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          fillRule="evenodd"
+                          d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+                          clipRule="evenodd"
                         />
                       </svg>
                       Chcę przeczytać
@@ -671,77 +669,6 @@ export default function UserProfile({ params }: PageProps) {
                       {displayedDesiredBooks.length > 0 ? (
                         <>
                           {displayedDesiredBooks.map((book) => (
-                            <div
-                              key={book.id}
-                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow"
-                            >
-                              <Link
-                                href={`/books/${book.id}`}
-                                className="flex flex-col space-y-1 hover:text-blue-600 transition-colors"
-                              >
-                                <span className="font-medium text-[var(--gray-800)]">
-                                  {book.title}
-                                </span>
-                                <span className="text-sm text-[var(--gray-500)]">
-                                  {book.author}
-                                </span>
-                                <span className="text-xs text-[var(--gray-400)]">
-                                  Dodano:{" "}
-                                  {format(book.createdAt, "d MMMM yyyy", {
-                                    locale: pl,
-                                  })}
-                                </span>
-                              </Link>
-                            </div>
-                          ))}
-                          {totalOwnedBooks > 3 && (
-                            <div className="text-center">
-                              <button
-                                className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                                onClick={() => {
-                                  /* Implement loading more */
-                                }}
-                              >
-                                Zobacz więcej ({totalOwnedBooks - 3})
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-center text-[var(--gray-500)] py-6">
-                          Ten użytkownik nie dodał jeszcze książek, które chce
-                          przeczytać.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Favorite books */}
-                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4 text-white">
-                    <h2 className="text-xl font-bold flex items-center">
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      Ulubione książki
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    <div className="space-y-4">
-                      {displayedFavoriteBooks.length > 0 ? (
-                        <>
-                          {displayedFavoriteBooks.map((book) => (
                             <div
                               key={book.id}
                               className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
@@ -765,10 +692,75 @@ export default function UserProfile({ params }: PageProps) {
                               </Link>
                             </div>
                           ))}
-                          {totalFavoriteBooks > 3 && (
+                          {totalOwnedBooks > 3 && (
                             <div className="text-center">
                               <button
                                 className="px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                                onClick={() => {
+                                  /* Implement loading more */
+                                }}
+                              >
+                                Zobacz więcej ({totalOwnedBooks - 3})
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-[var(--gray-500)] py-6">
+                          Ten użytkownik nie dodał jeszcze książek, które chce
+                          przeczytać.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Favorite books */}
+                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-4 text-white">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      Ulubione książki
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    <div className="space-y-4">
+                      {displayedFavoriteBooks.length > 0 ? (
+                        <>
+                          {displayedFavoriteBooks.map((book) => (
+                            <div
+                              key={book.id}
+                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-yellow-400 transition-all duration-200 shadow-sm hover:shadow"
+                            >
+                              <Link
+                                href={`/books/${book.id}`}
+                                className="flex flex-col space-y-1 hover:text-yellow-600 transition-colors"
+                              >
+                                <span className="font-medium text-[var(--gray-800)]">
+                                  {book.title}
+                                </span>
+                                <span className="text-sm text-[var(--gray-500)]">
+                                  {book.author}
+                                </span>
+                                <span className="text-xs text-[var(--gray-400)]">
+                                  Dodano:{" "}
+                                  {format(book.createdAt, "d MMMM yyyy", {
+                                    locale: pl,
+                                  })}
+                                </span>
+                              </Link>
+                            </div>
+                          ))}
+                          {totalFavoriteBooks > 3 && (
+                            <div className="text-center">
+                              <button
+                                className="px-4 py-2 text-sm text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -862,7 +854,7 @@ export default function UserProfile({ params }: PageProps) {
 
                 {/* Reviews */}
                 <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-                  <div className="bg-gradient-to-r from-amber-600 to-amber-500 p-4 text-white">
+                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-4 text-white">
                     <h2 className="text-xl font-bold flex items-center">
                       <svg
                         className="w-5 h-5 mr-2"
@@ -874,7 +866,7 @@ export default function UserProfile({ params }: PageProps) {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
-                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                         />
                       </svg>
                       Opinie użytkownika
@@ -887,12 +879,12 @@ export default function UserProfile({ params }: PageProps) {
                           {displayedReviews.map((review) => (
                             <div
                               key={review.id}
-                              className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-amber-400 transition-all duration-200"
+                              className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-indigo-400 transition-all duration-200"
                             >
                               <div className="flex justify-between items-start mb-2">
                                 <Link
                                   href={`/books/${review.bookId}`}
-                                  className="font-medium text-[var(--gray-800)] hover:text-amber-600 transition-colors"
+                                  className="font-medium text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
                                 >
                                   {review.bookTitle}
                                 </Link>
@@ -933,7 +925,7 @@ export default function UserProfile({ params }: PageProps) {
                           {user.reviewsCount > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-4 py-2 text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                                className="px-4 py-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
