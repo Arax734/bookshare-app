@@ -261,12 +261,24 @@ export default function Bookshelf() {
             books.map((book) => (
               <div
                 key={book.id}
-                className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] transition-all duration-200 shadow-sm"
+                className={`bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] transition-all duration-200 shadow-sm hover:shadow ${
+                  listType === "owned"
+                    ? "hover:border-[var(--primaryColor)]"
+                    : listType === "exchange"
+                    ? "hover:border-green-500"
+                    : "hover:border-purple-500"
+                }`}
               >
                 <div className="flex flex-col space-y-1">
                   <Link
                     href={`/books/${book.bookId}`}
-                    className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors text-sm"
+                    className={`font-medium transition-colors text-sm ${
+                      listType === "owned"
+                        ? "text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)]"
+                        : listType === "exchange"
+                        ? "text-green-600 hover:text-green-500"
+                        : "text-purple-600 hover:text-purple-500"
+                    }`}
                   >
                     {book.bookTitle}
                   </Link>
@@ -304,7 +316,7 @@ export default function Bookshelf() {
                     {listType === "desired" && (
                       <button
                         onClick={() => deleteDesiredBook(book.id)}
-                        className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg transition-colors"
+                        className="text-xs bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded-lg transition-colors"
                         title="Usuń z listy"
                       >
                         Usuń
@@ -347,7 +359,7 @@ export default function Bookshelf() {
           <BookList
             books={ownedBooks}
             title="Moje książki"
-            color="bg-[var(--primaryColor)]"
+            color="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)]"
             listType="owned"
           />
           <BookList

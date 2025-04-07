@@ -265,6 +265,14 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
+        // Count all books from bookOwnership regardless of status
+        const allBooksQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", unwrappedParams.id)
+        );
+        const allBooksSnapshot = await getDocs(allBooksQuery);
+        const totalBooksCount = allBooksSnapshot.size;
+
         const bookDesireQuery = query(
           collection(db, "bookDesire"),
           where("userId", "==", unwrappedParams.id)
@@ -382,7 +390,7 @@ export default function UserProfile({ params }: PageProps) {
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
-          booksCount: booksCount,
+          booksCount: totalBooksCount, // Use the new total books count
           favoriteBooks: favoriteBooks,
         };
 
@@ -724,7 +732,7 @@ export default function UserProfile({ params }: PageProps) {
               {/* Left book column */}
               <div className="flex-1 min-w-[280px]">
                 {/* Want to read books */}
-                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden mb-4 transition-all duration-200">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
                   <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
@@ -793,7 +801,7 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
 
                 {/* Favorite books */}
-                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-200 mb-4">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200 mb-4">
                   <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
@@ -860,7 +868,7 @@ export default function UserProfile({ params }: PageProps) {
               {/* Right book column */}
               <div className="flex-1 min-w-[280px]">
                 {/* Exchange books */}
-                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden mb-4 transition-all duration-200">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
                   <div className="bg-gradient-to-r from-green-600 to-green-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
@@ -930,7 +938,7 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
 
                 {/* Reviews */}
-                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
