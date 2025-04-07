@@ -495,8 +495,89 @@ export default function UserProfile({ params }: PageProps) {
 
                   {/* Contact buttons */}
                   {currentUser && currentUser.uid !== user.id && (
-                    <div className="flex justify-center gap-2">
-                      {/* Existing contact buttons */}
+                    <div className="flex flex-col gap-2">
+                      {isContact ? (
+                        <div className="flex flex-col gap-2 w-full">
+                          <Link
+                            href={`/exchange?userId=${user.id}`}
+                            className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center text-sm"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-1.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                              />
+                            </svg>
+                            Wymiana z użytkownikiem
+                          </Link>
+                          <button
+                            onClick={handleRemoveContact}
+                            className="w-full px-3 py-1.5 bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] rounded-lg transition-colors duration-200 text-sm"
+                          >
+                            Usuń z kontaktów
+                          </button>
+                        </div>
+                      ) : isPending ? (
+                        invitationDirection === "received" ? (
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="text-xs mb-1 text-center text-[var(--gray-500)]">
+                              To osoba wysłała Ci zaproszenie:
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleAcceptInvite}
+                                className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm"
+                              >
+                                Akceptuj
+                              </button>
+                              <button
+                                onClick={handleRejectInvite}
+                                className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-sm"
+                              >
+                                Odrzuć
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <button
+                              disabled
+                              className="w-full px-3 py-1.5 bg-[var(--gray-200)] text-[var(--gray-500)] rounded-lg cursor-not-allowed text-sm"
+                            >
+                              Zaproszenie wysłane
+                            </button>
+                          </div>
+                        )
+                      ) : (
+                        <button
+                          onClick={handleAddContact}
+                          className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-colors duration-200 shadow-sm hover:shadow text-sm"
+                        >
+                          <span className="flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 mr-1.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                              />
+                            </svg>
+                            Wyślij zaproszenie
+                          </span>
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -643,11 +724,11 @@ export default function UserProfile({ params }: PageProps) {
               {/* Left book column */}
               <div className="flex-1 min-w-[280px]">
                 {/* Want to read books */}
-                <div className="bg-[var(--card-background)] rounded-md shadow-sm overflow-hidden mb-3 transition-all duration-200">
-                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-2.5 text-white">
-                    <h2 className="text-sm font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden mb-4 transition-all duration-200">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-3 text-white">
+                    <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-3.5 h-3.5 mr-1"
+                        className="w-4 h-4 mr-1.5"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -660,26 +741,26 @@ export default function UserProfile({ params }: PageProps) {
                       Chcę przeczytać
                     </h2>
                   </div>
-                  <div className="p-3">
-                    <div className="space-y-2">
+                  <div className="p-4">
+                    <div className="space-y-3">
                       {displayedDesiredBooks.length > 0 ? (
                         <>
                           {displayedDesiredBooks.map((book) => (
                             <div
                               key={book.id}
-                              className="bg-[var(--background)] p-2 rounded-md border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
+                              className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
                               <Link
                                 href={`/books/${book.id}`}
                                 className="flex flex-col space-y-0.5 hover:text-purple-600 transition-colors"
                               >
-                                <span className="font-medium text-xs text-[var(--gray-800)]">
+                                <span className="font-medium text-sm text-[var(--gray-800)]">
                                   {book.title}
                                 </span>
-                                <span className="text-xxs text-[var(--gray-500)]">
+                                <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
                                 </span>
-                                <span className="text-xxs text-[var(--gray-400)]">
+                                <span className="text-xs text-[var(--gray-400)]">
                                   Dodano:{" "}
                                   {format(book.createdAt, "d MMMM yyyy", {
                                     locale: pl,
@@ -691,7 +772,7 @@ export default function UserProfile({ params }: PageProps) {
                           {totalOwnedBooks > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-2 py-1 text-xxs text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                                className="px-3 py-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -702,7 +783,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-xs text-[var(--gray-500)] py-2">
+                        <p className="text-center text-sm text-[var(--gray-500)] py-4">
                           Ten użytkownik nie dodał jeszcze książek, które chce
                           przeczytać.
                         </p>
@@ -849,11 +930,11 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
 
                 {/* Reviews */}
-                <div className="bg-[var(--card-background)] rounded-md shadow-sm overflow-hidden transition-all duration-200">
-                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-2.5 text-white">
-                    <h2 className="text-sm font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-3 text-white">
+                    <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-3.5 h-3.5 mr-1"
+                        className="w-4 h-4 mr-1.5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -868,19 +949,19 @@ export default function UserProfile({ params }: PageProps) {
                       Opinie użytkownika
                     </h2>
                   </div>
-                  <div className="p-3">
-                    <div className="space-y-2">
+                  <div className="p-4">
+                    <div className="space-y-3">
                       {displayedReviews.length > 0 ? (
                         <>
                           {displayedReviews.map((review) => (
                             <div
                               key={review.id}
-                              className="bg-[var(--background)] p-2 rounded-md border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-indigo-400 transition-all duration-200"
+                              className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-indigo-400 transition-all duration-200"
                             >
                               <div className="flex justify-between items-start mb-1">
                                 <Link
                                   href={`/books/${review.bookId}`}
-                                  className="font-medium text-xs text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
+                                  className="font-medium text-sm text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
                                 >
                                   {review.bookTitle}
                                 </Link>
@@ -901,13 +982,15 @@ export default function UserProfile({ params }: PageProps) {
                                   ))}
                                 </div>
                               </div>
-                              <p className="text-xxs text-[var(--gray-500)] mb-1">
+                              <p className="text-xs text-[var(--gray-500)] mb-1">
                                 {review.bookAuthor}
                               </p>
-                              <p className="text-xs italic text-[var(--gray-700)] pb-1 border-b border-[var(--gray-100)]">
-                                "{review.comment}"
-                              </p>
-                              <p className="text-xxs text-[var(--gray-400)] mt-1">
+                              {review.comment && (
+                                <p className="text-xs italic text-[var(--gray-700)] pb-1 border-b border-[var(--gray-100)]">
+                                  "{review.comment}"
+                                </p>
+                              )}
+                              <p className="text-xs text-[var(--gray-400)] mt-1">
                                 {format(
                                   review.createdAt.toDate(),
                                   "d MMMM yyyy",
@@ -921,7 +1004,7 @@ export default function UserProfile({ params }: PageProps) {
                           {user.reviewsCount > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-2 py-1 text-xxs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                                className="px-3 py-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -932,7 +1015,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-xs text-[var(--gray-500)] py-2">
+                        <p className="text-center text-sm text-[var(--gray-500)] py-4">
                           Ten użytkownik nie dodał jeszcze opinii.
                         </p>
                       )}

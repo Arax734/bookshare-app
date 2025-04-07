@@ -2,7 +2,17 @@
 
 import { db, auth } from "@/firebase/config";
 import { pl } from "date-fns/locale";
-import { query, collection, where, orderBy, getDocs } from "firebase/firestore";
+import {
+  query,
+  collection,
+  where,
+  orderBy,
+  getDocs,
+  updateDoc,
+  doc,
+  deleteField,
+  deleteDoc,
+} from "firebase/firestore";
 import Link from "next/link";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -114,46 +124,200 @@ export default function Bookshelf() {
     }
   }, [user]);
 
+  // Add function to update book status
+  const updateBookStatus = async (
+    bookOwnershipId: string,
+    newStatus: string | undefined
+  ) => {
+    if (!user) return;
+
+    try {
+      // Update the book status in Firestore
+      if (newStatus) {
+        await updateDoc(doc(db, "bookOwnership", bookOwnershipId), {
+          status: newStatus,
+        });
+      } else {
+        await updateDoc(doc(db, "bookOwnership", bookOwnershipId), {
+          status: deleteField(),
+        });
+      }
+
+      // Update the local state to reflect the change
+      if (newStatus === "forExchange") {
+        // Moving from "Moje książki" to "Książki do wymiany"
+        const bookToMove = ownedBooks.find(
+          (book) => book.id === bookOwnershipId
+        );
+        if (bookToMove) {
+          setOwnedBooks(
+            ownedBooks.filter((book) => book.id !== bookOwnershipId)
+          );
+          setExchangeBooks([
+            ...exchangeBooks,
+            { ...bookToMove, status: "forExchange" },
+          ]);
+        }
+      } else {
+        // Moving from "Książki do wymiany" to "Moje książki"
+        const bookToMove = exchangeBooks.find(
+          (book) => book.id === bookOwnershipId
+        );
+        if (bookToMove) {
+          setExchangeBooks(
+            exchangeBooks.filter((book) => book.id !== bookOwnershipId)
+          );
+          setOwnedBooks([...ownedBooks, { ...bookToMove, status: undefined }]);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating book status:", error);
+      setError("Wystąpił błąd podczas aktualizacji statusu książki");
+    }
+  };
+
+  // Add the delete function after the updateBookStatus function
+  const deleteDesiredBook = async (bookDesireId: string) => {
+    if (!user) return;
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, "bookDesire", bookDesireId));
+
+      // Update local state
+      setDesiredBooks(desiredBooks.filter((book) => book.id !== bookDesireId));
+    } catch (error) {
+      console.error("Error deleting desired book:", error);
+      setError("Wystąpił błąd podczas usuwania książki");
+    }
+  };
+
   const BookList = ({
     books,
     title,
     color,
+    listType,
   }: {
     books: Book[];
     title: string;
     color: string;
+    listType: "owned" | "exchange" | "desired";
   }) => (
-    <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)] mt-8">
-      <div className={`${color} p-4`}>
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+    <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)] h-full">
+      <div className={`${color} p-3`}>
+        <h2 className="text-base font-bold text-white flex items-center">
+          {/* Icons based on list type */}
+          {listType === "owned" && (
+            <svg
+              className="w-4 h-4 mr-1.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          )}
+
+          {listType === "exchange" && (
+            <svg
+              className="w-4 h-4 mr-1.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+          )}
+
+          {listType === "desired" && (
+            <svg
+              className="w-4 h-4 mr-1.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {title}
+        </h2>
       </div>
-      <div className="p-4">
-        <div className="space-y-4">
+      <div className="p-3">
+        <div className="space-y-2">
           {books.length > 0 ? (
             books.map((book) => (
               <div
                 key={book.id}
-                className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
+                className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] transition-all duration-200 shadow-sm"
               >
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-1">
                   <Link
                     href={`/books/${book.bookId}`}
-                    className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                    className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors text-sm"
                   >
                     {book.bookTitle}
                   </Link>
-                  <p className="text-sm text-[var(--gray-500)]">
+                  <p className="text-xs text-[var(--gray-500)]">
                     {book.bookAuthor}
                   </p>
-                  <p className="text-xs text-[var(--gray-500)]">
-                    Dodano:{" "}
-                    {format(book.createdAt, "d MMMM yyyy", { locale: pl })}
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs text-[var(--gray-400)]">
+                      Dodano:{" "}
+                      {format(book.createdAt, "d MMM yyyy", { locale: pl })}
+                    </p>
+
+                    {/* Move buttons - only show for owned and exchange lists */}
+                    {listType === "owned" && (
+                      <button
+                        onClick={() => updateBookStatus(book.id, "forExchange")}
+                        className="text-xs bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white px-2 py-1 rounded-lg transition-colors"
+                        title="Przenieś do wymiany"
+                      >
+                        Do wymiany →
+                      </button>
+                    )}
+
+                    {listType === "exchange" && (
+                      <button
+                        onClick={() => updateBookStatus(book.id, undefined)}
+                        className="text-xs bg-green-600 hover:bg-green-500  text-white px-2 py-1 rounded-lg transition-colors"
+                        title="Przenieś do moich książek"
+                      >
+                        ← Do moich
+                      </button>
+                    )}
+
+                    {/* Delete button for desired books */}
+                    {listType === "desired" && (
+                      <button
+                        onClick={() => deleteDesiredBook(book.id)}
+                        className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg transition-colors"
+                        title="Usuń z listy"
+                      >
+                        Usuń
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-center text-[var(--gray-500)]">Brak książek</p>
+            <p className="text-center text-xs text-[var(--gray-500)] py-2">
+              Brak książek
+            </p>
           )}
         </div>
       </div>
@@ -174,22 +338,31 @@ export default function Bookshelf() {
 
   return (
     <main className="min-h-screen pb-8 bg-[var(--background)]">
-      <div className="max-w-4xl mx-auto px-4">
-        <BookList
-          books={ownedBooks}
-          title="Moje książki"
-          color="bg-[var(--primaryColor)]"
-        />
-        <BookList
-          books={exchangeBooks}
-          title="Książki do wymiany"
-          color="bg-[var(--secondaryColor)]"
-        />
-        <BookList
-          books={desiredBooks}
-          title="Chcę przeczytać"
-          color="bg-purple-600"
-        />
+      <div className="max-w-6xl mx-auto px-4">
+        <h1 className="text-2xl font-bold mb-6 text-center text-[var(--gray-800)]">
+          Moja półka
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <BookList
+            books={ownedBooks}
+            title="Moje książki"
+            color="bg-[var(--primaryColor)]"
+            listType="owned"
+          />
+          <BookList
+            books={exchangeBooks}
+            title="Książki do wymiany"
+            color="bg-gradient-to-r from-green-600 to-green-500"
+            listType="exchange"
+          />
+          <BookList
+            books={desiredBooks}
+            title="Chcę przeczytać"
+            color="bg-purple-600"
+            listType="desired"
+          />
+        </div>
       </div>
     </main>
   );

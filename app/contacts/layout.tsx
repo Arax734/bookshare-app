@@ -17,9 +17,13 @@ export default function ContactsLayout({
 }>) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { pendingInvites, setPendingInvites } = useNotifications();
+  const {
+    pendingInvites,
+    setPendingInvites,
+    acceptedContactsCount,
+    setAcceptedContactsCount,
+  } = useNotifications();
   const [mounted, setMounted] = useState(false);
-  const [acceptedContactsCount, setAcceptedContactsCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -66,7 +70,7 @@ export default function ContactsLayout({
     };
 
     fetchAcceptedContacts();
-  }, [user]);
+  }, [user, setAcceptedContactsCount]);
 
   if (!mounted) {
     return null;
