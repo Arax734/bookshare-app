@@ -116,10 +116,10 @@ export default function Friends() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="relative">
-          <h2 className="text-2xl font-semibold text-[var(--gray-800)] mb-4">
+          <h2 className="text-xl font-semibold text-[var(--gray-800)] mb-3">
             Zaproszenia do kontaktów ({invites.length})
           </h2>
 
@@ -128,15 +128,15 @@ export default function Friends() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 animate-pulse"
+                  className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-3 animate-pulse"
                 >
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-gray-200 rounded-full mb-3" />
-                    <div className="w-32 h-5 bg-gray-200 rounded mb-2" />
-                    <div className="w-24 h-4 bg-gray-200 rounded mb-2" />
-                    <div className="flex gap-2 mt-2">
-                      <div className="w-8 h-8 bg-gray-200 rounded-lg" />
-                      <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+                    <div className="w-14 h-14 bg-gray-200 rounded-full mb-2" />
+                    <div className="w-28 h-4 bg-gray-200 rounded mb-1" />
+                    <div className="w-20 h-3 bg-gray-200 rounded mb-2" />
+                    <div className="flex gap-2 mt-1">
+                      <div className="w-7 h-7 bg-gray-200 rounded-lg" />
+                      <div className="w-7 h-7 bg-gray-200 rounded-lg" />
                     </div>
                   </div>
                 </div>
@@ -149,39 +149,39 @@ export default function Friends() {
                   {invites.map((invite) => (
                     <div
                       key={invite.id}
-                      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow"
+                      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-3 shadow hover:shadow-md transition-shadow"
                     >
                       <div className="flex flex-col items-center text-center">
                         <Link
                           href={`/users/${invite.userId}`}
-                          className="hover:opacity-80 transition-opacity relative w-16 h-16 mb-3"
+                          className="hover:opacity-80 transition-opacity relative w-14 h-14 mb-2"
                         >
                           <Image
                             src={invite.senderData?.photoURL || defaultAvatar}
                             alt={invite.senderData?.displayName || ""}
                             className="rounded-full object-cover"
                             fill
-                            sizes="64px"
+                            sizes="56px"
                           />
                         </Link>
                         <div>
                           <Link
                             href={`/users/${invite.userId}`}
-                            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-lg mb-1"
+                            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-base mb-0.5"
                           >
                             {invite.senderData?.displayName}
                           </Link>
-                          <p className="text-sm text-[var(--gray-500)] mb-4">
+                          <p className="text-xs text-[var(--gray-500)] mb-3">
                             {invite.senderData?.email}
                           </p>
                           <div className="flex gap-2 justify-center">
                             <button
                               onClick={() => handleAcceptInvite(invite.id)}
-                              className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                              className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                               title="Akceptuj zaproszenie"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -196,11 +196,11 @@ export default function Friends() {
                             </button>
                             <button
                               onClick={() => handleRejectInvite(invite.id)}
-                              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                               title="Odrzuć zaproszenie"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -220,8 +220,8 @@ export default function Friends() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 rounded-lg">
-                  <p className="text-[var(--gray-500)]">
+                <div className="text-center py-8 rounded-lg">
+                  <p className="text-[var(--gray-500)] text-sm">
                     Nie masz żadnych oczekujących zaproszeń
                   </p>
                 </div>

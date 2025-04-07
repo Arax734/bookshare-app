@@ -443,12 +443,12 @@ export default function UserProfile({ params }: PageProps) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left column - user profile and statistics */}
           <div className="lg:w-1/3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto hide-scrollbar pb-10 px-1">
-            {/* User profile card */}
+            {/* User profile card with statistics inside */}
             <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-8">
-              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-4 text-white relative">
-                <h2 className="text-xl font-bold flex items-center">
+              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-3 text-white relative">
+                <h2 className="text-lg font-bold flex items-center">
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -463,11 +463,11 @@ export default function UserProfile({ params }: PageProps) {
                   Profil użytkownika
                 </h2>
               </div>
-              <div className="p-6">
-                <div className="flex flex-col space-y-6">
+              <div className="p-5">
+                <div className="flex flex-col space-y-5">
                   <div className="flex flex-col items-center space-y-4">
                     {/* Profile photo */}
-                    <div className="relative w-32 h-32 rounded-3xl overflow-hidden shadow">
+                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden shadow">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
                         alt="Profile"
@@ -479,7 +479,7 @@ export default function UserProfile({ params }: PageProps) {
 
                     {/* User name and join date */}
                     <div className="text-center space-y-1">
-                      <h1 className="text-2xl font-bold text-[var(--gray-800)] transition-colors duration-200">
+                      <h1 className="text-xl font-bold text-[var(--gray-800)] transition-colors duration-200">
                         {user.displayName}
                       </h1>
                       <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
@@ -538,104 +538,100 @@ export default function UserProfile({ params }: PageProps) {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
 
-            {/* Statistics card */}
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-4 text-white">
-                <h2 className="text-xl font-bold flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                  Statystyki
-                </h2>
-              </div>
-              <div className="p-3">
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    {
-                      label: "Książek",
-                      value: user.booksCount,
-                      icon: (
-                        <svg
-                          className="w-5 h-5 text-blue-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  {/* Statistics section - moved from separate card to inside profile */}
+                  <div className="relative mt-2 w-full border-t border-[var(--gray-200)] pt-4">
+                    <h3 className="text-sm font-medium text-[var(--gray-700)] mb-3 flex items-center">
+                      <svg
+                        className="w-4 h-4 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      Statystyki
+                    </h3>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        {
+                          label: "Książek",
+                          value: user.booksCount,
+                          icon: (
+                            <svg
+                              className="w-5 h-5 text-blue-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                              />
+                            </svg>
+                          ),
+                        },
+                        {
+                          label: "Opinii",
+                          value: user.reviewsCount,
+                          icon: (
+                            <svg
+                              className="w-5 h-5 text-amber-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                              />
+                            </svg>
+                          ),
+                        },
+                        {
+                          label: "Średnia ocen",
+                          value: user.averageRating.toFixed(1),
+                          icon: (
+                            <svg
+                              className="w-5 h-5 text-green-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          ),
+                        },
+                      ].map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="flex flex-col items-center p-1.5 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] shadow-sm hover:shadow transition-all duration-200"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                          />
-                        </svg>
-                      ),
-                    },
-                    {
-                      label: "Opinii",
-                      value: user.reviewsCount,
-                      icon: (
-                        <svg
-                          className="w-5 h-5 text-amber-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                          />
-                        </svg>
-                      ),
-                    },
-                    {
-                      label: "Średnia ocen",
-                      value: user.averageRating.toFixed(1),
-                      icon: (
-                        <svg
-                          className="w-5 h-5 text-green-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      ),
-                    },
-                  ].map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="flex flex-col items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] shadow-sm hover:shadow transition-all duration-200"
-                    >
-                      <div className="mb-1">{stat.icon}</div>
-                      <p className="text-base font-bold text-[var(--gray-800)] transition-colors duration-200">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs text-[var(--gray-500)] transition-colors duration-200">
-                        {stat.label}
-                      </p>
+                          <div className="mb-0.5">{stat.icon}</div>
+                          <p className="text-sm font-bold text-[var(--gray-800)] transition-colors duration-200">
+                            {stat.value}
+                          </p>
+                          <p className="text-xs text-[var(--gray-500)] transition-colors duration-200">
+                            {stat.label}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -647,11 +643,11 @@ export default function UserProfile({ params }: PageProps) {
               {/* Left book column */}
               <div className="flex-1 min-w-[280px]">
                 {/* Want to read books */}
-                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-6">
-                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4 text-white">
-                    <h2 className="text-xl font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-md shadow-sm overflow-hidden mb-3 transition-all duration-200">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-2.5 text-white">
+                    <h2 className="text-sm font-bold flex items-center">
                       <svg
-                        className="w-5 h-5 mr-2"
+                        className="w-3.5 h-3.5 mr-1"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -664,26 +660,26 @@ export default function UserProfile({ params }: PageProps) {
                       Chcę przeczytać
                     </h2>
                   </div>
-                  <div className="p-5">
-                    <div className="space-y-4">
+                  <div className="p-3">
+                    <div className="space-y-2">
                       {displayedDesiredBooks.length > 0 ? (
                         <>
                           {displayedDesiredBooks.map((book) => (
                             <div
                               key={book.id}
-                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
+                              className="bg-[var(--background)] p-2 rounded-md border border-[var(--gray-200)] hover:border-purple-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
                               <Link
                                 href={`/books/${book.id}`}
-                                className="flex flex-col space-y-1 hover:text-purple-600 transition-colors"
+                                className="flex flex-col space-y-0.5 hover:text-purple-600 transition-colors"
                               >
-                                <span className="font-medium text-[var(--gray-800)]">
+                                <span className="font-medium text-xs text-[var(--gray-800)]">
                                   {book.title}
                                 </span>
-                                <span className="text-sm text-[var(--gray-500)]">
+                                <span className="text-xxs text-[var(--gray-500)]">
                                   {book.author}
                                 </span>
-                                <span className="text-xs text-[var(--gray-400)]">
+                                <span className="text-xxs text-[var(--gray-400)]">
                                   Dodano:{" "}
                                   {format(book.createdAt, "d MMMM yyyy", {
                                     locale: pl,
@@ -695,7 +691,7 @@ export default function UserProfile({ params }: PageProps) {
                           {totalOwnedBooks > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                                className="px-2 py-1 text-xxs text-purple-600 hover:text-purple-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -706,7 +702,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-[var(--gray-500)] py-6">
+                        <p className="text-center text-xs text-[var(--gray-500)] py-2">
                           Ten użytkownik nie dodał jeszcze książek, które chce
                           przeczytać.
                         </p>
@@ -716,11 +712,11 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
 
                 {/* Favorite books */}
-                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-4 text-white">
-                    <h2 className="text-xl font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-200 mb-4">
+                  <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-3 text-white">
+                    <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-5 h-5 mr-2"
+                        className="w-4 h-4 mr-1.5"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -729,23 +725,23 @@ export default function UserProfile({ params }: PageProps) {
                       Ulubione książki
                     </h2>
                   </div>
-                  <div className="p-5">
-                    <div className="space-y-4">
+                  <div className="p-4">
+                    <div className="space-y-3">
                       {displayedFavoriteBooks.length > 0 ? (
                         <>
                           {displayedFavoriteBooks.map((book) => (
                             <div
                               key={book.id}
-                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-yellow-400 transition-all duration-200 shadow-sm hover:shadow"
+                              className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] hover:border-yellow-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
                               <Link
                                 href={`/books/${book.id}`}
-                                className="flex flex-col space-y-1 hover:text-yellow-600 transition-colors"
+                                className="flex flex-col space-y-0.5 hover:text-yellow-600 transition-colors"
                               >
-                                <span className="font-medium text-[var(--gray-800)]">
+                                <span className="font-medium text-sm text-[var(--gray-800)]">
                                   {book.title}
                                 </span>
-                                <span className="text-sm text-[var(--gray-500)]">
+                                <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
                                 </span>
                                 <span className="text-xs text-[var(--gray-400)]">
@@ -760,7 +756,7 @@ export default function UserProfile({ params }: PageProps) {
                           {totalFavoriteBooks > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-4 py-2 text-sm text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
+                                className="px-3 py-1.5 text-xs text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -771,7 +767,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-[var(--gray-500)] py-6">
+                        <p className="text-center text-sm text-[var(--gray-500)] py-4">
                           Ten użytkownik nie dodał jeszcze ulubionych książek.
                         </p>
                       )}
@@ -783,11 +779,11 @@ export default function UserProfile({ params }: PageProps) {
               {/* Right book column */}
               <div className="flex-1 min-w-[280px]">
                 {/* Exchange books */}
-                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden mb-6 transition-all duration-200">
-                  <div className="bg-gradient-to-r from-green-600 to-green-500 p-4 text-white">
-                    <h2 className="text-xl font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden mb-4 transition-all duration-200">
+                  <div className="bg-gradient-to-r from-green-600 to-green-500 p-3 text-white">
+                    <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-5 h-5 mr-2"
+                        className="w-4 h-4 mr-1.5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -802,23 +798,23 @@ export default function UserProfile({ params }: PageProps) {
                       Książki do wymiany
                     </h2>
                   </div>
-                  <div className="p-5">
-                    <div className="space-y-4">
+                  <div className="p-4">
+                    <div className="space-y-3">
                       {displayedExchangeBooks.length > 0 ? (
                         <>
                           {displayedExchangeBooks.map((book) => (
                             <div
                               key={book.id}
-                              className="bg-[var(--background)] p-3 rounded-xl border border-[var(--gray-200)] hover:border-green-400 transition-all duration-200 shadow-sm hover:shadow"
+                              className="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] hover:border-green-400 transition-all duration-200 shadow-sm hover:shadow"
                             >
                               <Link
                                 href={`/books/${book.id}`}
-                                className="flex flex-col space-y-1 hover:text-green-600 transition-colors"
+                                className="flex flex-col space-y-0.5 hover:text-green-600 transition-colors"
                               >
-                                <span className="font-medium text-[var(--gray-800)]">
+                                <span className="font-medium text-sm text-[var(--gray-800)]">
                                   {book.title}
                                 </span>
-                                <span className="text-sm text-[var(--gray-500)]">
+                                <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
                                 </span>
                                 <span className="text-xs text-[var(--gray-400)]">
@@ -833,7 +829,7 @@ export default function UserProfile({ params }: PageProps) {
                           {totalExchangeBooks > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-4 py-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                                className="px-3 py-1.5 text-xs text-green-600 hover:text-green-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -844,7 +840,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-[var(--gray-500)] py-6">
+                        <p className="text-center text-sm text-[var(--gray-500)] py-4">
                           Ten użytkownik nie ma książek do wymiany.
                         </p>
                       )}
@@ -853,11 +849,11 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
 
                 {/* Reviews */}
-                <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-4 text-white">
-                    <h2 className="text-xl font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-md shadow-sm overflow-hidden transition-all duration-200">
+                  <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-2.5 text-white">
+                    <h2 className="text-sm font-bold flex items-center">
                       <svg
-                        className="w-5 h-5 mr-2"
+                        className="w-3.5 h-3.5 mr-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -872,27 +868,27 @@ export default function UserProfile({ params }: PageProps) {
                       Opinie użytkownika
                     </h2>
                   </div>
-                  <div className="p-5">
-                    <div className="space-y-5">
+                  <div className="p-3">
+                    <div className="space-y-2">
                       {displayedReviews.length > 0 ? (
                         <>
                           {displayedReviews.map((review) => (
                             <div
                               key={review.id}
-                              className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-indigo-400 transition-all duration-200"
+                              className="bg-[var(--background)] p-2 rounded-md border border-[var(--gray-200)] shadow-sm hover:shadow hover:border-indigo-400 transition-all duration-200"
                             >
-                              <div className="flex justify-between items-start mb-2">
+                              <div className="flex justify-between items-start mb-1">
                                 <Link
                                   href={`/books/${review.bookId}`}
-                                  className="font-medium text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
+                                  className="font-medium text-xs text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
                                 >
                                   {review.bookTitle}
                                 </Link>
                                 <div className="flex">
-                                  {[...Array(5)].map((_, i) => (
+                                  {[...Array(10)].map((_, i) => (
                                     <svg
                                       key={i}
-                                      className={`w-4 h-4 ${
+                                      className={`w-2 h-2 ${
                                         i < review.rating
                                           ? "text-amber-400"
                                           : "text-gray-300"
@@ -905,13 +901,13 @@ export default function UserProfile({ params }: PageProps) {
                                   ))}
                                 </div>
                               </div>
-                              <p className="text-sm text-[var(--gray-500)] mb-2">
+                              <p className="text-xxs text-[var(--gray-500)] mb-1">
                                 {review.bookAuthor}
                               </p>
-                              <p className="text-sm italic text-[var(--gray-700)] pb-2 border-b border-[var(--gray-100)]">
+                              <p className="text-xs italic text-[var(--gray-700)] pb-1 border-b border-[var(--gray-100)]">
                                 "{review.comment}"
                               </p>
-                              <p className="text-xs text-[var(--gray-400)] mt-2">
+                              <p className="text-xxs text-[var(--gray-400)] mt-1">
                                 {format(
                                   review.createdAt.toDate(),
                                   "d MMMM yyyy",
@@ -925,7 +921,7 @@ export default function UserProfile({ params }: PageProps) {
                           {user.reviewsCount > 3 && (
                             <div className="text-center">
                               <button
-                                className="px-4 py-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                                className="px-2 py-1 text-xxs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                                 onClick={() => {
                                   /* Implement loading more */
                                 }}
@@ -936,7 +932,7 @@ export default function UserProfile({ params }: PageProps) {
                           )}
                         </>
                       ) : (
-                        <p className="text-center text-[var(--gray-500)] py-6">
+                        <p className="text-center text-xs text-[var(--gray-500)] py-2">
                           Ten użytkownik nie dodał jeszcze opinii.
                         </p>
                       )}

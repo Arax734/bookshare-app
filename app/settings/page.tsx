@@ -425,7 +425,7 @@ export default function Settings() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-[border] duration-200"
+            className="w-full px-3 py-1.5 rounded-lg border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-[border] duration-200 text-sm"
             required
           />
         </div>
@@ -454,17 +454,17 @@ export default function Settings() {
               </div>
             </div>
           )}
-          <h1 className="text-2xl font-bold mb-6 text-[var(--foreground)] transition-colors duration-200">
+          <h1 className="text-xl font-bold mb-5 text-[var(--foreground)] transition-colors duration-200">
             Ustawienia profilu
           </h1>
 
           <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-              <h2 className="text-xl font-bold">Ustawienia ogólne</h2>
+            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-3 text-white">
+              <h2 className="text-lg font-bold">Ustawienia ogólne</h2>
             </div>
-            <div className="p-6">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-center space-x-3 mb-5">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
                   {(isImageLoading || isUploading) && (
                     <div className="absolute inset-0 bg-[var(--gray-200)] bg-opacity-50 flex items-center justify-center">
                       <div className="w-6 h-6 border-2 border-[var(--primaryColorLight)] border-t-transparent rounded-full animate-spin"></div>
@@ -501,7 +501,7 @@ export default function Settings() {
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Email
@@ -510,7 +510,7 @@ export default function Settings() {
                       type="email"
                       defaultValue={user?.email || ""}
                       disabled
-                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200"
+                      className="w-full px-3 py-1.5 rounded-lg border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200 text-sm"
                     />
                   </div>
 
@@ -546,8 +546,8 @@ export default function Settings() {
                     <textarea
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      rows={4}
-                      className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                      rows={3}
+                      className="w-full px-3 py-1.5 rounded-lg border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
                       placeholder="Napisz coś o sobie..."
                     />
                   </div>
@@ -556,7 +556,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={isSaving || !isFormChanged}
-                      className="w-full px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm"
                     >
                       {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
                     </button>
@@ -567,20 +567,20 @@ export default function Settings() {
           </div>
 
           <div className="my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
-            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-              <h2 className="text-xl font-bold">Bezpieczeństwo</h2>
+            <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-3 text-white">
+              <h2 className="text-lg font-bold">Bezpieczeństwo</h2>
             </div>
-            <div className="p-6">
+            <div className="p-5">
               <div className="space-y-4">
                 {authMethod === "password" && (
                   <button
                     onClick={() => setIsChangePasswordModalOpen(true)}
-                    className="w-full px-4 py-3 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-xl transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between"
+                    className="w-full px-3 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-lg transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between text-sm"
                   >
                     <span>Zmień hasło</span>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                      className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -594,7 +594,7 @@ export default function Settings() {
                 )}
                 <button
                   onClick={() => setIsDeleteModalOpen(true)}
-                  className="w-full px-4 py-3 text-left text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all duration-200 shadow-sm hover:shadow flex items-center justify-between group"
+                  className="w-full px-3 py-2 text-left text-white bg-red-500 hover:bg-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-between group"
                 >
                   <span>Usuń konto</span>
                 </button>
@@ -607,10 +607,10 @@ export default function Settings() {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
+            <h2 className="text-lg font-bold mb-3 text-[var(--foreground)]">
               Usuń konto
             </h2>
-            <p className="text-[var(--foreground)] mb-6">
+            <p className="text-[var(--foreground)] mb-4 text-sm">
               Tej operacji nie można cofnąć. Wszystkie Twoje dane zostaną trwale
               usunięte.
             </p>
@@ -656,7 +656,7 @@ export default function Settings() {
                     (authMethod === "password" && !password) ||
                     isLoading
                   }
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   {isLoading ? "Weryfikacja..." : "Usuń konto"}
                 </button>
@@ -668,8 +668,8 @@ export default function Settings() {
 
       {isChangePasswordModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">
-            <h2 className="text-xl font-bold mb-4 text-[var(--foreground)]">
+          <div className="bg-[var(--card-background)] rounded-xl shadow-lg p-5 max-w-md w-full mx-4 transition-all duration-200">
+            <h2 className="text-lg font-bold mb-3 text-[var(--foreground)]">
               Zmień hasło
             </h2>
             <form onSubmit={handlePasswordChange} className="space-y-4">

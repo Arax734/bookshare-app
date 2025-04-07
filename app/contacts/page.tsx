@@ -165,7 +165,7 @@ export default function Contacts() {
   const renderContactCard = (contact: ExtendedUserContact) => (
     <div
       key={contact.id}
-      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-4 shadow hover:shadow-md transition-shadow relative"
+      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-3 shadow hover:shadow-md transition-shadow relative"
     >
       {contact.status === "pending" && (
         <div className="absolute top-2 right-2">
@@ -179,14 +179,14 @@ export default function Contacts() {
           href={`/users/${
             contact.isReverse ? contact.userId : contact.contactId
           }`}
-          className="hover:opacity-80 transition-opacity relative w-16 h-16 mb-3"
+          className="hover:opacity-80 transition-opacity relative w-14 h-14 mb-2"
         >
           <Image
             src={contact.contactPhotoURL || defaultAvatar}
             alt={contact.contactDisplayName || ""}
             className="rounded-full object-cover"
             fill
-            sizes="(max-width: 768px) 64px, 96px"
+            sizes="(max-width: 768px) 56px, 72px"
             quality={100}
             priority={true}
             loading="eager"
@@ -197,11 +197,11 @@ export default function Contacts() {
             href={`/users/${
               contact.isReverse ? contact.userId : contact.contactId
             }`}
-            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-lg mb-1"
+            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-base mb-0.5"
           >
             {contact.contactDisplayName}
           </Link>
-          <p className="text-sm text-[var(--gray-500)]">
+          <p className="text-xs text-[var(--gray-500)]">
             {contact.contactEmail}
           </p>
         </div>
@@ -213,7 +213,7 @@ export default function Contacts() {
     <div className="min-h-screen bg-[var(--background)] pb-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="relative">
-          <h2 className="text-2xl font-semibold text-[var(--gray-800)] mb-4">
+          <h2 className="text-xl font-semibold text-[var(--gray-800)] mb-3">
             Twoje kontakty (
             {contacts.filter((contact) => contact.status === "accepted").length}
             )
@@ -226,7 +226,7 @@ export default function Contacts() {
               {contacts.length > 0 ? (
                 <div className="space-y-8">
                   <div>
-                    <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
+                    <h3 className="text-base font-medium text-[var(--gray-700)] mb-3">
                       Zaakceptowane kontakty
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -238,7 +238,7 @@ export default function Contacts() {
 
                   {contacts.some((contact) => contact.status === "pending") && (
                     <div>
-                      <h3 className="text-lg font-medium text-[var(--gray-700)] mb-4">
+                      <h3 className="text-base font-medium text-[var(--gray-700)] mb-3">
                         Oczekujące zaproszenia
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -250,11 +250,11 @@ export default function Contacts() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-12 rounded-lg">
-                  <p className="text-[var(--gray-500)]">
+                <div className="text-center py-8 rounded-lg">
+                  <p className="text-[var(--gray-500)] text-sm">
                     Nie masz jeszcze żadnych kontaktów
                   </p>
-                  <p className="text-sm text-[var(--gray-400)] mt-2">
+                  <p className="text-xs text-[var(--gray-400)] mt-2">
                     Użyj wyszukiwarki powyżej, aby dodać nowe kontakty
                   </p>
                 </div>
@@ -264,26 +264,26 @@ export default function Contacts() {
         </div>
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
-            <h3 className="text-[var(--gray-800)] font-semibold p-4 border-b border-[var(--gray-200)]">
+            <h3 className="text-[var(--gray-800)] font-semibold p-3 border-b border-[var(--gray-200)] text-base">
               Wyniki wyszukiwania
             </h3>
             <div className="divide-y divide-[var(--gray-200)]">
               {searchResults.map((result) => (
                 <div
                   key={result.id}
-                  className="p-4 flex items-center justify-between"
+                  className="p-3 flex items-center justify-between"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
                     <Link
                       href={`/users/${result.id}`}
                       className="hover:opacity-80 transition-opacity"
                     >
-                      <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden">
                         <Image
                           src={result.photoURL || defaultAvatar}
                           alt={result.displayName}
                           fill
-                          sizes="40px"
+                          sizes="32px"
                           quality={100}
                           className="object-cover"
                           loading="eager"
@@ -304,8 +304,7 @@ export default function Contacts() {
                   </div>
                   <button
                     onClick={() => addContact(result.email)}
-                    className="px-4 py-2 bg-[var(--primaryColor)] text-white rounded-lg
-                     hover:bg-[var(--primaryColorLight)] transition-colors"
+                    className="px-3 py-1.5 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors text-sm"
                   >
                     Dodaj do kontaktów
                   </button>
@@ -315,8 +314,8 @@ export default function Contacts() {
           </div>
         )}
         {isSearching && (
-          <div className="text-center py-4">
-            <div className="w-6 h-6 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="text-center py-3">
+            <div className="w-5 h-5 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
         )}
       </div>
