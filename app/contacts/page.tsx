@@ -255,7 +255,14 @@ export default function Contacts() {
                     Nie masz jeszcze żadnych kontaktów
                   </p>
                   <p className="text-xs text-[var(--gray-400)] mt-2">
-                    Użyj wyszukiwarki powyżej, aby dodać nowe kontakty
+                    Użyj{" "}
+                    <Link
+                      href="/contacts/search"
+                      className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] hover:underline transition-colors"
+                    >
+                      wyszukiwarki
+                    </Link>
+                    , aby dodać nowe kontakty
                   </p>
                 </div>
               )}

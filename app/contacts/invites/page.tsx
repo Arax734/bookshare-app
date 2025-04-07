@@ -32,7 +32,8 @@ interface Invitation {
 
 export default function Friends() {
   const { user } = useAuth();
-  const { refreshPendingInvites } = useNotifications();
+  const { refreshPendingInvites, refreshAcceptedContactsCount } =
+    useNotifications();
   const [invites, setInvites] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const defaultAvatar = "/images/default-avatar.png";
@@ -93,7 +94,9 @@ export default function Friends() {
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
 
+      // Refresh both pending invites and accepted contacts counts
       refreshPendingInvites();
+      refreshAcceptedContactsCount(); // Add this line to update the accepted contacts count
     } catch (error) {
       console.error("Error accepting invite:", error);
     }
