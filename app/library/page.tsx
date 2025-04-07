@@ -214,7 +214,7 @@ export default function Library() {
 
   return (
     <div className="max-w-6xl mx-auto pb-8">
-      <h1 className="text-3xl font-bold mb-8 text-center text-[var(--gray-800)]">
+      <h1 className="text-2xl font-bold mb-6 text-center text-[var(--gray-800)]">
         Biblioteka książek
       </h1>
 
@@ -233,11 +233,11 @@ export default function Library() {
                   ? "Wyszukaj po autorze..."
                   : "Wyszukaj po ISBN..."
               }
-              className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+              className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
             />
             <button
               type="submit"
-              className="px-5 py-3 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors shadow-sm font-medium whitespace-nowrap"
+              className="px-4 py-1.5 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors shadow-sm font-medium whitespace-nowrap text-sm"
             >
               Szukaj
             </button>
@@ -246,7 +246,7 @@ export default function Library() {
             <button
               type="button"
               onClick={() => setSearchType("title")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
                 searchType === "title"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -257,7 +257,7 @@ export default function Library() {
             <button
               type="button"
               onClick={() => setSearchType("author")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
                 searchType === "author"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -268,7 +268,7 @@ export default function Library() {
             <button
               type="button"
               onClick={() => setSearchType("isbn")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
                 searchType === "isbn"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -318,8 +318,8 @@ export default function Library() {
                 </div>
               </div>
 
-              <div className="p-4 space-y-4 flex-1">
-                <div className="bg-[var(--gray-50)] rounded-lg p-3">
+              <div className="p-3 space-y-3 flex-1">
+                <div className="bg-[var(--gray-50)] rounded-lg p-2">
                   <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
                     <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
                     Autorzy
@@ -344,8 +344,8 @@ export default function Library() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-[var(--gray-50)] rounded-lg p-2">
                     <div className="flex items-center mb-1">
                       <CalendarIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
                       <h3 className="font-medium text-[var(--gray-800)]">
@@ -357,7 +357,7 @@ export default function Library() {
                     </p>
                   </div>
 
-                  <div className="bg-[var(--gray-50)] rounded-lg p-3">
+                  <div className="bg-[var(--gray-50)] rounded-lg p-2">
                     <div className="flex items-center mb-1">
                       <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
                       <h3 className="font-medium text-[var(--gray-800)]">
@@ -399,7 +399,7 @@ export default function Library() {
                 )}
                 <Link
                   href={`/books/${padBookId(book.id)}`}
-                  className="px-3 py-1.5 bg-[var(--primaryColor)] text-white text-sm rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
+                  className="px-2 py-1 bg-[var(--primaryColor)] text-white text-xs rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
                 >
                   Zobacz szczegóły
                 </Link>
@@ -413,13 +413,13 @@ export default function Library() {
         <div className="mt-10 text-center space-y-4">
           {hasMoreResults ? (
             <button
-              className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-3 px-6 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-2 px-4 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               onClick={loadMoreBooks}
               disabled={isLoadingMore}
             >
               {isLoadingMore ? (
                 <span className="flex items-center justify-center">
-                  <span className="animate-spin h-5 w-5 mr-2 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
+                  <span className="animate-spin h-4 w-4 mr-1.5 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
                   Ładowanie...
                 </span>
               ) : (
@@ -427,8 +427,8 @@ export default function Library() {
               )}
             </button>
           ) : (
-            <div className="text-center p-4">
-              <p className="text-[var(--gray-700)]">
+            <div className="text-center p-3">
+              <p className="text-[var(--gray-700)] text-sm">
                 Nie znaleziono więcej wyników dla podanych kryteriów
               </p>
               <button

@@ -168,8 +168,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4 flex-1">
-        <div className="bg-[var(--gray-50)] rounded-lg p-3">
+      <div className="p-3 space-y-3 flex-1">
+        <div className="bg-[var(--gray-50)] rounded-lg p-2">
           <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
             <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
             Autorzy
@@ -194,18 +194,20 @@ export default function Home() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="bg-[var(--gray-50)] rounded-lg p-3">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-[var(--gray-50)] rounded-lg p-2">
             <div className="flex items-center mb-1">
-              <CalendarIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
-              <h3 className="font-medium text-[var(--gray-800)]">Rok</h3>
+              <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)] mr-1" />
+              <h3 className="font-medium text-[var(--gray-800)] text-xs">
+                Rok
+              </h3>
             </div>
-            <p className="text-[var(--gray-700)]">
+            <p className="text-[var(--gray-700)] text-xs">
               {book.publicationYear || "—"}
             </p>
           </div>
 
-          <div className="bg-[var(--gray-50)] rounded-lg p-3">
+          <div className="bg-[var(--gray-50)] rounded-lg p-2">
             <div className="flex items-center mb-1">
               <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
               <h3 className="font-medium text-[var(--gray-800)]">Język</h3>
@@ -228,7 +230,7 @@ export default function Home() {
       <div className="px-4 py-3 border-t border-[var(--gray-100)] flex items-center justify-between bg-[var(--gray-50)]">
         <Link
           href={`/books/${book.id}`}
-          className="px-3 py-1.5 bg-[var(--primaryColor)] text-white text-sm rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
+          className="px-2 py-1 bg-[var(--primaryColor)] text-white text-xs rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
         >
           Zobacz szczegóły
         </Link>
@@ -247,19 +249,19 @@ export default function Home() {
   return (
     <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">
             Witaj w BookShare
           </h1>
-          <p className="text-[var(--gray-500)]">
+          <p className="text-[var(--gray-500)] text-sm">
             Odkryj książki dopasowane do Twoich zainteresowań
           </p>
         </div>
 
         {recommendations.byGenre.filter((group) => group.books.length > 0)
           .length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
+          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
               Polecane w Twoich ulubionych gatunkach
             </h2>
             <div className="space-y-8">
@@ -271,13 +273,13 @@ export default function Home() {
                   return (
                     <div
                       key={group.category}
-                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                      className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
                     >
                       <button
                         onClick={() => toggleSection("genre", group.category)}
                         className="w-full flex items-center justify-between text-left"
                       >
-                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
                           {group.category}
                         </h3>
                         <svg
@@ -316,8 +318,8 @@ export default function Home() {
 
         {recommendations.byAuthor.filter((group) => group.books.length > 0)
           .length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
+          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
               Więcej od Twoich ulubionych autorów
             </h2>
             <div className="space-y-8">
@@ -329,13 +331,13 @@ export default function Home() {
                   return (
                     <div
                       key={group.category}
-                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                      className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
                     >
                       <button
                         onClick={() => toggleSection("author", group.category)}
                         className="w-full flex items-center justify-between text-left"
                       >
-                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
                           {group.category}
                         </h3>
                         <svg
@@ -374,8 +376,8 @@ export default function Home() {
 
         {recommendations.byLanguage.filter((group) => group.books.length > 0)
           .length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
+          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
               Książki w preferowanych językach
             </h2>
             <div className="space-y-8">
@@ -387,7 +389,7 @@ export default function Home() {
                   return (
                     <div
                       key={group.category}
-                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                      className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
                     >
                       <button
                         onClick={() =>
@@ -395,7 +397,7 @@ export default function Home() {
                         }
                         className="w-full flex items-center justify-between text-left"
                       >
-                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
                           {group.category}
                         </h3>
                         <svg
@@ -434,8 +436,8 @@ export default function Home() {
 
         {recommendations.byDecade.filter((group) => group.books.length > 0)
           .length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">
+          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
               Z okresu, który Cię interesuje
             </h2>
             <div className="space-y-8">
@@ -447,13 +449,13 @@ export default function Home() {
                   return (
                     <div
                       key={group.category}
-                      className="bg-[var(--background)] rounded-xl p-6 shadow-sm"
+                      className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
                     >
                       <button
                         onClick={() => toggleSection("decade", group.category)}
                         className="w-full flex items-center justify-between text-left"
                       >
-                        <h3 className="text-lg font-semibold text-[var(--foreground)] pb-2">
+                        <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
                           {group.category}
                         </h3>
                         <svg
@@ -495,14 +497,14 @@ export default function Home() {
           !recommendations.byLanguage.some((group) => group.books.length > 0) &&
           !recommendations.byDecade.some((group) => group.books.length > 0) && (
             <div className="text-center py-12">
-              <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">
+              <BookOpenIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
                 Brak spersonalizowanych rekomendacji
               </h2>
-              <p className="text-[var(--gray-500)] max-w-md mx-auto">
+              <p className="text-[var(--gray-500)] max-w-md mx-auto text-sm">
                 Aby otrzymać spersonalizowane rekomendacje:
               </p>
-              <ul className="text-[var(--gray-500)] mt-4 space-y-2">
+              <ul className="text-[var(--gray-500)] mt-2 space-y-1 text-xs">
                 <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
                 <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
                 <li>• Sprawdź książki różnych autorów</li>
