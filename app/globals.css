@@ -9,6 +9,7 @@
   --primaryColor: #007304;
   --primaryColorHover: #007304;
   --primaryColorLight: #00a305;
+  --primaryColorLighter: #00b106;
   --primaryColorLightMax: #b6ffb8;
   --secondaryColor: #95cc7f;
   --secondaryColorLight: #a8d994;
@@ -36,6 +37,9 @@
   --subject-text: #166534;
   --domain-bg: #f3e8ff;
   --domain-text: #6b21a8;
+
+  --pending-text: rgb(202 138 4);
+  --pending-bg: rgb(254 252 232);
 }
 
 .dark {
@@ -100,6 +104,9 @@
   /* Shadow */
   --shadow-color: rgba(0, 0, 0, 0.5);
   --shadow-light: rgba(0, 0, 0, 0.3);
+
+  --pending-text: rgb(255, 228, 171);
+  --pending-bg: rgb(199, 136, 0);
 }
 
 body {
