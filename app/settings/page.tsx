@@ -257,15 +257,39 @@ export default function Settings() {
           collection(db, "userContacts"),
           where("contactId", "==", user.uid)
         );
+        const bookDesire = query(
+          collection(db, "bookDesire"),
+          where("userId", "==", user.uid)
+        );
+        const bookFavorites = query(
+          collection(db, "bookFavorites"),
+          where("userId", "==", user.uid)
+        );
+        const bookOwnership = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", user.uid)
+        );
 
-        const [contactsSnapshot1, contactsSnapshot2] = await Promise.all([
+        const [
+          contactsSnapshot1,
+          contactsSnapshot2,
+          bookDesireSnapshot,
+          bookFavoritesSnapshot,
+          bookOwnershipSnapshot,
+        ] = await Promise.all([
           getDocs(userContactsQuery1),
           getDocs(userContactsQuery2),
+          getDocs(bookDesire),
+          getDocs(bookFavorites),
+          getDocs(bookOwnership),
         ]);
 
         const deleteContactsPromises = [
           ...contactsSnapshot1.docs.map((doc) => deleteDoc(doc.ref)),
           ...contactsSnapshot2.docs.map((doc) => deleteDoc(doc.ref)),
+          ...bookDesireSnapshot.docs.map((doc) => deleteDoc(doc.ref)),
+          ...bookFavoritesSnapshot.docs.map((doc) => deleteDoc(doc.ref)),
+          ...bookOwnershipSnapshot.docs.map((doc) => deleteDoc(doc.ref)),
         ];
         await Promise.all(deleteContactsPromises);
 
@@ -586,7 +610,7 @@ export default function Settings() {
                     >
                       <path
                         fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a 1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                         clipRule="evenodd"
                       />
                     </svg>

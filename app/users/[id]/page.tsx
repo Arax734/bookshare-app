@@ -475,7 +475,7 @@ export default function UserProfile({ params }: PageProps) {
                 <div className="flex flex-col space-y-5">
                   <div className="flex flex-col items-center space-y-4">
                     {/* Profile photo */}
-                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden shadow">
+                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
                         alt="Profile"
