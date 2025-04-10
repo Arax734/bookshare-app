@@ -185,8 +185,8 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[var(--background)] p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         <div className="relative">
           <div className="relative">
             <input
@@ -197,10 +197,10 @@ export default function Search() {
                 searchUsers(e.target.value);
               }}
               placeholder="Szukaj użytkowników po emailu, imieniu lub numerze telefonu..."
-              className="pl-10 w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+              className="pl-10 w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
             />
             <svg
-              className="w-5 h-5 text-[var(--gray-400)] absolute left-3 top-1/2 -translate-y-1/2"
+              className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--gray-400)] absolute left-3 top-1/2 -translate-y-1/2"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -213,40 +213,46 @@ export default function Search() {
             </svg>
           </div>
         </div>
+
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
-            <h3 className="text-[var(--gray-800)] font-semibold p-4 border-b border-[var(--gray-200)]">
+            <h3 className="text-[var(--gray-800)] font-semibold p-2 sm:p-4 border-b border-[var(--gray-200)] text-sm sm:text-base">
               Wyniki wyszukiwania
             </h3>
             <div className="divide-y divide-[var(--gray-200)]">
               {searchResults.map((result) => (
                 <div
                   key={result.id}
-                  className="p-4 flex items-center justify-between"
+                  className="p-2 sm:p-4 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 sm:gap-3"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3 w-full xs:w-auto">
                     <Link
                       href={`/users/${result.id}`}
                       className="hover:opacity-80 transition-opacity"
                     >
-                      <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                      <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0">
                         <Image
                           src={result.photoURL || defaultAvatar}
                           alt={result.displayName}
                           fill
+                          sizes="(max-width: 640px) 32px, 40px"
                           className="object-cover"
+                          loading="eager"
+                          quality={100}
                         />
                       </div>
                     </Link>
                     <div>
                       <Link
                         href={`/users/${result.id}`}
-                        className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors"
+                        className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors text-sm sm:text-base"
                       >
                         {result.displayName}
                       </Link>
-                      <p className="text-sm text-[var(--gray-500)]">
-                        {result.email}
+                      <p className="text-xs sm:text-sm text-[var(--gray-500)] pointer-events-none">
+                        <span className="text-[var(--gray-500)]">
+                          {result.email}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -256,7 +262,7 @@ export default function Search() {
                         result.pendingInvite &&
                         acceptInvite(result.pendingInvite.id)
                       }
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                      className="w-full xs:w-auto px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs sm:text-sm"
                     >
                       Zaakceptuj zaproszenie
                     </button>
@@ -264,11 +270,11 @@ export default function Search() {
                     <button
                       onClick={() => addContact(result.email)}
                       disabled={result.isPending}
-                      className={`px-4 py-2 ${
+                      className={`w-full xs:w-auto px-3 sm:px-4 py-1.5 sm:py-2 ${
                         result.isPending
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)]"
-                      } text-white rounded-lg transition-colors`}
+                      } text-white rounded-lg transition-colors text-xs sm:text-sm`}
                     >
                       {result.isPending
                         ? "Zaproszenie wysłane"
@@ -280,9 +286,10 @@ export default function Search() {
             </div>
           </div>
         )}
+
         {isSearching && (
-          <div className="text-center py-4">
-            <div className="w-6 h-6 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="text-center py-3 sm:py-4">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
         )}
       </div>

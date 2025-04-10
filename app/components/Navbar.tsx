@@ -490,7 +490,7 @@ export default function Navbar() {
             <span className="font-medium">Moja półka</span>
           </a>
 
-          <a
+          <Link
             href="/contacts"
             className="flex items-center space-x-3 text-[var(--foreground)] p-3 rounded-xl hover:bg-[var(--gray-100)] transition-colors relative"
             onClick={() => setMobileMenuOpen(false)}
@@ -503,13 +503,15 @@ export default function Navbar() {
             >
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
             </svg>
-            <span className="font-medium">Kontakty</span>
-            {pendingInvites > 0 && (
-              <div className="absolute left-7 top-2 bg-[var(--danger)] text-[var(--danger-text)] text-xs font-medium w-4 h-4 rounded-full flex items-center justify-center">
-                {pendingInvites}
-              </div>
-            )}
-          </a>
+            <div className="flex items-center">
+              <span className="font-medium">Kontakty</span>
+              {pendingInvites > 0 && (
+                <div className="ml-2 bg-red-500 text-white text-xs font-medium px-1.5 min-w-[20px] h-5 rounded-full flex items-center justify-center">
+                  {pendingInvites}
+                </div>
+              )}
+            </div>
+          </Link>
         </div>
 
         {/* Divider */}
@@ -519,22 +521,22 @@ export default function Navbar() {
         <div className="p-4 space-y-3">
           {user && (
             <>
-              <a
+              <Link
                 href={`/users/${user.uid}`}
                 className="flex items-center space-x-3 text-[var(--foreground)] p-3 rounded-xl hover:bg-[var(--gray-100)] transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <UserCircleIcon width={20} height={20} />
                 <span className="font-medium">Profil</span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/settings"
                 className="flex items-center space-x-3 text-[var(--foreground)] p-3 rounded-xl hover:bg-[var(--gray-100)] transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <SettingsIcon width={20} height={20} />
                 <span className="font-medium">Ustawienia</span>
-              </a>
+              </Link>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
@@ -549,21 +551,20 @@ export default function Navbar() {
           )}
 
           {/* Theme toggle in mobile menu */}
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--gray-100)] transition-colors">
+          <button
+            className="flex w-full items-center justify-between p-3 rounded-xl transition-colors"
+            onClick={toggleTheme}
+          >
             <span className="font-medium text-[var(--foreground)]">
-              Tryb ciemny
+              {theme === "light" ? "Tryb ciemny" : "Tryb jasny"}
             </span>
-            <button
-              onClick={toggleTheme}
-              className="text-[var(--foreground)] hover:text-[var(--primaryColorHover)] p-1 rounded-full"
-            >
-              {theme === "light" ? (
-                <MoonIcon className="h-6 w-6" />
-              ) : (
-                <SunIcon className="h-6 w-6" />
-              )}
-            </button>
-          </div>
+
+            {theme === "light" ? (
+              <MoonIcon className="h-6 w-6" />
+            ) : (
+              <SunIcon className="h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
     </nav>
