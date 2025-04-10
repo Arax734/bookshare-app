@@ -28,6 +28,27 @@ interface FavoriteWithBookDetails extends Favorite {
   bookAuthor: string;
 }
 
+// Add this function before the main component
+const formatBookTitle = (title: string | undefined): string => {
+  if (!title) return "Tytuł niedostępny";
+
+  if (title.includes("/")) {
+    const firstPart = title.split("/")[0].trim();
+
+    if (firstPart.length > 60) {
+      return firstPart.substring(0, 57) + "...";
+    }
+
+    return firstPart;
+  }
+
+  if (title.length > 60) {
+    return title.substring(0, 57) + "...";
+  }
+
+  return title;
+};
+
 export default function Favorites({
   params,
 }: {
@@ -144,7 +165,8 @@ export default function Favorites({
 
             return {
               ...favorite,
-              bookTitle: bookData.title || "Książka niedostępna",
+              bookTitle:
+                formatBookTitle(bookData.title) || "Książka niedostępna",
               bookAuthor: bookData.author || "Autor nieznany",
             };
           } catch (error) {
@@ -227,8 +249,9 @@ export default function Favorites({
                         <Link
                           href={`/books/${favorite.bookId}`}
                           className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
+                          title={favorite.bookTitle} // Add title attribute to show full title on hover
                         >
-                          {favorite.bookTitle}
+                          {formatBookTitle(favorite.bookTitle)}
                         </Link>
                         <p className="text-sm text-[var(--gray-500)]">
                           {favorite.bookAuthor}

@@ -135,6 +135,26 @@ export default function UserProfile({ params }: PageProps) {
     }
   };
 
+  const formatBookTitle = (title: string | undefined): string => {
+    if (!title) return "Tytuł niedostępny";
+
+    if (title.includes("/")) {
+      const firstPart = title.split("/")[0].trim();
+
+      if (firstPart.length > 60) {
+        return firstPart.substring(0, 57) + "...";
+      }
+
+      return firstPart;
+    }
+
+    if (title.length > 60) {
+      return title.substring(0, 57) + "...";
+    }
+
+    return title;
+  };
+
   const checkContactStatus = async (profileUserId: string) => {
     if (!currentUser) return;
 
@@ -763,7 +783,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-purple-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -828,7 +848,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-yellow-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -901,7 +921,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-green-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -942,7 +962,7 @@ export default function UserProfile({ params }: PageProps) {
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-4 h-4 mr-1.5"
+                        className="w-4 h-4 mr-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -971,7 +991,7 @@ export default function UserProfile({ params }: PageProps) {
                                   href={`/books/${review.bookId}`}
                                   className="font-medium text-sm text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
                                 >
-                                  {review.bookTitle}
+                                  {formatBookTitle(review.bookTitle)}
                                 </Link>
                                 <div className="flex">
                                   {[...Array(10)].map((_, i) => (

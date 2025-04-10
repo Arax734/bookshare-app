@@ -4,9 +4,10 @@ import { BookOpenIcon } from "./svg-icons/BookOpenIcon";
 interface BookCoverProps {
   isbn?: string;
   title: string;
+  size: "L" | "M" | "S";
 }
 
-export default function BookCover({ isbn, title }: BookCoverProps) {
+export default function BookCover({ isbn, title, size }: BookCoverProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -37,7 +38,7 @@ export default function BookCover({ isbn, title }: BookCoverProps) {
   };
 
   return (
-    <div className="relative aspect-[2/3] overflow-hidden bg-[var(--gray-50)]">
+    <div className="relative aspect-[2/3] overflow-hidden bg-[var(--gray-50)] rounded-lg">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-[var(--gray-100)]">
           <div className="w-8 h-8 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full animate-spin"></div>
@@ -46,7 +47,7 @@ export default function BookCover({ isbn, title }: BookCoverProps) {
 
       {error ? (
         <div className="absolute inset-0 flex items-center justify-center bg-[var(--gray-100)]">
-          <BookOpenIcon className="w-16 h-16 text-[var(--gray-300)]" />
+          <BookOpenIcon className="w-12 h-12 text-[var(--gray-300)]" />
         </div>
       ) : (
         <img
@@ -54,7 +55,7 @@ export default function BookCover({ isbn, title }: BookCoverProps) {
           src={`https://covers.openlibrary.org/b/isbn/${isbn.replace(
             /-/g,
             ""
-          )}-M.jpg`}
+          )}-${size}.jpg`}
           alt={`Okładka: ${title}`}
           className={`object-cover w-full h-full transition-opacity duration-300 ${
             loading ? "opacity-0" : "opacity-100"

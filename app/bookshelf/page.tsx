@@ -192,6 +192,27 @@ export default function Bookshelf() {
     }
   };
 
+  // Add this function after the fetchBooks function
+  const formatBookTitle = (title: string | undefined): string => {
+    if (!title) return "Tytuł niedostępny";
+
+    if (title.includes("/")) {
+      const firstPart = title.split("/")[0].trim();
+
+      if (firstPart.length > 60) {
+        return firstPart.substring(0, 57) + "...";
+      }
+
+      return firstPart;
+    }
+
+    if (title.length > 60) {
+      return title.substring(0, 57) + "...";
+    }
+
+    return title;
+  };
+
   const BookList = ({
     books,
     title,
@@ -256,7 +277,7 @@ export default function Bookshelf() {
         </h2>
       </div>
       <div className="p-3">
-        <div className="space-y-2">
+        <div className="space-y-4">
           {books.length > 0 ? (
             books.map((book) => (
               <div
@@ -279,8 +300,9 @@ export default function Bookshelf() {
                         ? "text-green-600 hover:text-green-500"
                         : "text-purple-600 hover:text-purple-500"
                     }`}
+                    title={book.bookTitle} // Add full title as tooltip
                   >
-                    {book.bookTitle}
+                    {formatBookTitle(book.bookTitle)}
                   </Link>
                   <p className="text-xs text-[var(--gray-500)]">
                     {book.bookAuthor}

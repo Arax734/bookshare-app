@@ -370,8 +370,12 @@ export default function Library() {
                 </div>
 
                 <div className="p-3 flex gap-3">
-                  <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0">
-                    <BookCover isbn={book.isbnIssn} title={book.title} />
+                  <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
+                    <BookCover
+                      isbn={book.isbnIssn}
+                      title={book.title}
+                      size={"M"}
+                    />
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col">
