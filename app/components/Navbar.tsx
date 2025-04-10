@@ -23,6 +23,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { useNotifications } from "../contexts/NotificationsContext";
+import Link from "next/link";
 
 export default function Navbar() {
   const router = useRouter();
@@ -417,7 +418,10 @@ export default function Navbar() {
         {/* User Profile Section in Mobile Menu */}
         {user && (
           <div className="p-4 border-b border-[var(--gray-100)]">
-            <div className="flex items-center space-x-3">
+            <Link
+              href={`/users/${user.uid}`}
+              className="flex items-center space-x-3"
+            >
               <div className="relative w-10 h-10 rounded-full overflow-hidden">
                 <Image
                   src={userData?.photoURL || defaultAvatar}
@@ -435,7 +439,7 @@ export default function Navbar() {
                   {user.email}
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         )}
 
