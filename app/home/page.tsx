@@ -143,7 +143,7 @@ export default function Home() {
   const renderBookCard = (book: Book) => (
     <div
       key={book.id}
-      className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-[var(--gray-100)] flex flex-col"
+      className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden hover:shadow-md border border-[var(--gray-100)] flex flex-col"
     >
       <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4">
         <div className="flex justify-between items-start gap-2">
@@ -220,7 +220,7 @@ export default function Home() {
 
         {book.genre && (
           <div className="flex flex-wrap gap-1">
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--genre-bg)] text-[var(--genre-text)]">
               {book.genre}
             </span>
           </div>

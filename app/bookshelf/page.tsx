@@ -263,7 +263,7 @@ export default function Bookshelf() {
                 key={book.id}
                 className={`bg-[var(--background)] p-2.5 rounded-lg border border-[var(--gray-200)] transition-all duration-200 shadow-sm hover:shadow ${
                   listType === "owned"
-                    ? "hover:border-[var(--primaryColor)]"
+                    ? "hover:border-[var(--primaryColorLighter)]"
                     : listType === "exchange"
                     ? "hover:border-green-500"
                     : "hover:border-purple-500"
@@ -274,7 +274,7 @@ export default function Bookshelf() {
                     href={`/books/${book.bookId}`}
                     className={`font-medium transition-colors text-sm ${
                       listType === "owned"
-                        ? "text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)]"
+                        ? "text-[var(--primaryColorLight)] hover:text-[var(--primaryColorLighter)]"
                         : listType === "exchange"
                         ? "text-green-600 hover:text-green-500"
                         : "text-purple-600 hover:text-purple-500"
