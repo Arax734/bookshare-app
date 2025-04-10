@@ -270,14 +270,14 @@ export default function Library() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto pb-8">
-      <h1 className="text-2xl font-bold mb-6 text-center text-[var(--gray-800)]">
+    <div className="max-w-6xl mx-auto pb-8 px-4 sm:px-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-[var(--gray-800)]">
         Biblioteka książek
       </h1>
 
-      <form onSubmit={handleSearch} className="mb-8">
+      <form onSubmit={handleSearch} className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-3 max-w-lg mx-auto">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={searchQuery}
@@ -298,11 +298,13 @@ export default function Library() {
               Szukaj
             </button>
           </div>
-          <div className="flex justify-center gap-2">
+
+          {/* Search type selection buttons */}
+          <div className="flex justify-center gap-2 text-xs sm:text-sm">
             <button
               type="button"
               onClick={() => setSearchType("title")}
-              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
+              className={`px-2 py-1 rounded-lg transition-colors ${
                 searchType === "title"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -313,7 +315,7 @@ export default function Library() {
             <button
               type="button"
               onClick={() => setSearchType("author")}
-              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
+              className={`px-2 py-1 rounded-lg transition-colors ${
                 searchType === "author"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -324,7 +326,7 @@ export default function Library() {
             <button
               type="button"
               onClick={() => setSearchType("isbn")}
-              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
+              className={`px-2 py-1 rounded-lg transition-colors ${
                 searchType === "isbn"
                   ? "bg-[var(--primaryColor)] text-white"
                   : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
@@ -346,16 +348,16 @@ export default function Library() {
         </div>
       ) : (
         <>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {books.map((book) => (
               <div
                 key={book.id}
                 className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
               >
-                <div className="bg-[var(--primaryColor)] px-3 py-2">
+                <div className="bg-[var(--primaryColor)] px-2 sm:px-3 py-2">
                   <div className="flex justify-between items-start gap-2">
                     <h2
-                      className="text-sm font-semibold text-white flex-1"
+                      className="text-xs sm:text-sm font-semibold text-white flex-1"
                       title={book.title}
                     >
                       {formatBookTitle(book.title) || "Tytuł niedostępny"}
@@ -375,9 +377,9 @@ export default function Library() {
                   </div>
                 </div>
 
-                <div className="p-3 flex gap-3">
+                <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
                   {hasValidCover(book.isbnIssn) && (
-                    <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
+                    <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
                       <BookCover
                         isbn={book.isbnIssn}
                         title={book.title}
@@ -387,14 +389,14 @@ export default function Library() {
                   )}
 
                   <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="mb-2">
+                    <div className="mb-1 sm:mb-2">
                       <div className="flex items-center gap-1 text-xs">
                         <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
                         <span className="text-[var(--gray-700)] font-medium">
                           Autor:
                         </span>
                       </div>
-                      <div className="text-xs text-[var(--gray-600)]">
+                      <div className="text-xs text-[var(--gray-600)] line-clamp-3">
                         {book.author ? (
                           splitAuthors(book.author).length > 2 ? (
                             <div title={book.author}>
@@ -417,7 +419,7 @@ export default function Library() {
                       </div>
                     </div>
 
-                    <div className="flex gap-3 text-xs mb-2">
+                    <div className="flex flex-wrap gap-2 text-xs mb-1 sm:mb-2">
                       <div className="flex items-center gap-1">
                         <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
                         <span className="text-[var(--gray-600)]">

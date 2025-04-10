@@ -159,14 +159,7 @@ export default function Navbar() {
             alt="BookShare"
             width={105}
             height={75}
-            className="max-sm:hidden m-1"
-          />
-          <Image
-            src="/bookshare-logo2.svg"
-            alt="BookShare"
-            width={42}
-            height={42}
-            className="hidden max-sm:block m-1"
+            className=" m-1"
           />
         </a>
       </div>
@@ -296,7 +289,7 @@ export default function Navbar() {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="text-foreground hover:text-[var(--primaryColorHover)] transition-colors duration-200 p-1.5 md:p-2 mr-2 md:mr-5 rounded-full hover:bg-[var(--secondaryColorLight)]"
+          className="hidden md:flex text-foreground hover:text-[var(--primaryColorHover)] transition-colors duration-200 p-1.5 md:p-2 mr-2 md:mr-5 rounded-full hover:bg-[var(--secondaryColorLight)]"
           aria-label="Toggle theme"
         >
           {theme === "light" ? (
@@ -316,7 +309,7 @@ export default function Navbar() {
         </button>
 
         {/* User profile - adjusted for mobile */}
-        <div className="relative">
+        <div className="relative hidden md:flex">
           {showSkeleton ? (
             <div className="flex items-center space-x-2 sm:space-x-3 bg-[var(--primaryColor)] h-9 md:h-11 rounded-full px-2 sm:px-3 md:px-4 py-2 animate-pulse">
               <div className="w-16 md:w-24 h-5 bg-[var(--gray-300)] rounded-full hidden sm:block" />

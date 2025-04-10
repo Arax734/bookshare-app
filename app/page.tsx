@@ -151,30 +151,30 @@ export default function Register() {
   };
 
   return (
-    <main className="relative w-full h-screen overflow-hidden">
+    <main className="relative w-full min-h-screen overflow-hidden">
       <BackgroundVideo />
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <div className="absolute inset-0 flex justify-center items-center">
-        <div className="bg-white p-6 rounded-3xl shadow-lg max-w-md w-full h-auto">
-          <h1 className="text-xl text-black font-bold text-center mb-8">
+      <div className="absolute inset-0 flex justify-center items-center px-4 py-6 sm:px-0">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg w-full max-w-[320px] xs:max-w-[380px] sm:max-w-md">
+          <h1 className="text-lg sm:text-xl text-black font-bold text-center mb-4 sm:mb-8">
             Rejestracja
           </h1>
           {errorMessage && (
             <div
-              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+              className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded relative mb-4 text-xs sm:text-sm"
               role="alert"
             >
               <span className="block sm:inline">{errorMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="my-4">
-            <div className="flex gap-4 mb-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="my-3 sm:my-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
               <div className="flex-1">
-                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex shadow appearance-none border rounded-2xl sm:rounded-3xl w-full py-2.5 sm:py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                   <UserIcon />
                   <input
-                    className="w-full focus:outline-none ml-3"
+                    className="w-full focus:outline-none ml-2 sm:ml-3 text-sm"
                     {...register("firstName")}
                     type="text"
                     placeholder="Imię"
@@ -188,10 +188,10 @@ export default function Register() {
               </div>
 
               <div className="flex-1">
-                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                <div className="flex shadow appearance-none border rounded-2xl sm:rounded-3xl w-full py-2.5 sm:py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                   <UserIcon />
                   <input
-                    className="w-full focus:outline-none ml-3"
+                    className="w-full focus:outline-none ml-2 sm:ml-3 text-sm"
                     {...register("lastName")}
                     type="text"
                     placeholder="Nazwisko"
@@ -205,31 +205,31 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="mb-4">
-              <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+            <div className="mb-3 sm:mb-4">
+              <div className="flex shadow appearance-none border rounded-2xl sm:rounded-3xl w-full py-2.5 sm:py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
                 <div className="flex justify-center items-center">
-                  <EmailIcon width={20} height={20} fill="gray" />
+                  <EmailIcon width={18} height={18} fill="gray" />
                 </div>
                 <input
-                  className="w-full h-full focus:outline-none ml-3"
+                  className="w-full h-full focus:outline-none ml-2 sm:ml-3 text-sm"
                   {...register("email")}
                   type="email"
                   placeholder="Email"
                 />
               </div>
               {errors.email && (
-                <p className="text-red-500 text-xs mt-2">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
             </div>
 
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
               <div className="flex-1">
-                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                  <LockIcon width={20} height={20} fill="gray" />
+                <div className="flex shadow appearance-none border rounded-2xl sm:rounded-3xl w-full py-2.5 sm:py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                  <LockIcon width={18} height={18} fill="gray" />
                   <input
-                    className="w-full focus:outline-none ml-3"
+                    className="w-full focus:outline-none ml-2 sm:ml-3 text-sm"
                     {...register("password")}
                     type="password"
                     placeholder="Hasło"
@@ -243,10 +243,10 @@ export default function Register() {
               </div>
 
               <div className="flex-1">
-                <div className="flex shadow appearance-none border rounded-3xl w-full py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
-                  <LockIcon width={20} height={20} fill="gray" />
+                <div className="flex shadow appearance-none border rounded-2xl sm:rounded-3xl w-full py-2.5 sm:py-3 px-3 text-gray-700 leading-tight transition-all duration-200 ease-in-out focus-within:ring-[0.5px] focus-within:ring-[--primaryColorLight] focus-within:border-[--primaryColorLight]">
+                  <LockIcon width={18} height={18} fill="gray" />
                   <input
-                    className="w-full focus:outline-none ml-3"
+                    className="w-full focus:outline-none ml-2 sm:ml-3 text-sm"
                     {...register("repeatPassword")}
                     type="password"
                     placeholder="Powtórz hasło"
@@ -260,49 +260,49 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="flex items-center justify-center mb-3 mt-8">
+            <div className="flex items-center justify-center mb-3 sm:mb-4 mt-5 sm:mt-6">
               <button
                 type="submit"
-                className="shadow rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105"
+                className="shadow rounded-2xl sm:rounded-3xl bg-[--primaryColor] hover:bg-[--primaryColorLight] text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline transition-all duration-300 text-sm"
                 disabled={loading}
               >
                 {loading ? "Rejestracja..." : "Zarejestruj się"}
               </button>
             </div>
 
-            <div className="flex items-center justify-between my-8">
+            <div className="flex items-center justify-between my-4 sm:my-6">
               <div className="h-[1px] w-full bg-gray-300 mr-2" />
-              <label className="text-gray-500 whitespace-nowrap px-2">
+              <label className="text-gray-500 whitespace-nowrap px-2 text-xs sm:text-sm">
                 lub
               </label>
               <div className="h-[1px] w-full bg-gray-300 ml-2" />
             </div>
 
-            <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="flex items-center justify-center gap-4 mb-4 sm:mb-6">
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110"
+                className="flex shadow border rounded-full w-auto py-1.5 sm:py-2 px-2.5 sm:px-3 text-gray-700 transition-transform duration-300 hover:scale-110"
                 disabled={loading}
               >
-                <GoogleIcon width={20} height={20} />
+                <GoogleIcon width={18} height={18} />
               </button>
               <button
                 type="button"
                 onClick={handleFacebookSignIn}
-                className="flex shadow border rounded-full w-auto py-2 px-3 text-gray-700 transition-transform duration-300 hover:scale-110"
+                className="flex shadow border rounded-full w-auto py-1.5 sm:py-2 px-2.5 sm:px-3 text-gray-700 transition-transform duration-300 hover:scale-110"
                 disabled={loading}
               >
-                <FacebookIcon width={20} height={20} />
+                <FacebookIcon width={18} height={18} />
               </button>
             </div>
           </form>
 
-          <div className="text-center text-sm">
+          <div className="flex-col flex text-center mt-2 sm:mt-3 text-xs sm:text-sm">
             <span className="text-gray-600">Masz już konto? </span>
             <Link
               href="/login"
-              className="text-[--primaryColor] hover:text-[--primaryColorLight] font-semibold"
+              className="text-[--primaryColor] hover:text-[--primaryColorLight] font-semibold mt-1"
             >
               Zaloguj się
             </Link>
