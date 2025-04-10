@@ -330,7 +330,7 @@ export default function Navbar() {
             <button
               ref={buttonRef}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-2 sm:space-x-3 hover:bg-[var(--primaryColorHover)] bg-[var(--primaryColor)] h-9 md:h-11 rounded-full px-2 sm:px-3 md:px-4 py-2 transition-colors duration-200"
+              className="hidden md:flex items-center space-x-2 sm:space-x-3 hover:bg-[var(--primaryColorHover)] bg-[var(--primaryColor)] h-9 md:h-11 rounded-full px-2 sm:px-3 md:px-4 py-2 transition-colors duration-200"
             >
               <span className="text-white text-sm md:text-base hidden sm:block">
                 {userData?.displayName || user?.displayName || "Użytkownik"}
@@ -347,7 +347,7 @@ export default function Navbar() {
                   loading="eager"
                 />
               </div>
-              <div className="absolute right-2 md:right-3 bottom-1 flex items-center justify-center bg-gray-200 rounded-full w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hidden sm:flex">
+              <div className="absolute right-2 md:right-3 bottom-1 flex items-center justify-center bg-gray-200 rounded-full w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 sm:flex">
                 <ArrowDownIcon width={8} height={8} fill="var(--text-black)" />
               </div>
             </button>

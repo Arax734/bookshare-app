@@ -169,7 +169,7 @@ export default function Contacts() {
     >
       {contact.status === "pending" && (
         <div className="absolute top-2 right-2">
-          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--pending-bg)] text-[var(--pending-text)]">
             Oczekujące
           </span>
         </div>
@@ -197,7 +197,7 @@ export default function Contacts() {
             href={`/users/${
               contact.isReverse ? contact.userId : contact.contactId
             }`}
-            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors block text-base mb-0.5"
+            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColorLighter)] transition-colors block text-base mb-0.5"
           >
             {contact.contactDisplayName}
           </Link>
