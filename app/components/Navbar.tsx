@@ -350,7 +350,7 @@ export default function Navbar() {
           {/* User dropdown menu - same as before */}
           <div
             ref={menuRef}
-            className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
+            className={`absolute right-0 top-10 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
               isMenuOpen
                 ? "opacity-100 scale-100 translate-y-0"
                 : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
