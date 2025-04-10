@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
@@ -189,21 +189,48 @@ export default function Library() {
     }
   };
 
-  const loadMoreBooks = () => {
-    if (nextPage) {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const loadMoreBooks = useCallback(() => {
+    if (nextPage && !isLoadingMore) {
       fetchBooks(nextPage, true);
     }
-  };
+  }, [nextPage, isLoadingMore, fetchBooks]);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && nextPage && hasMoreResults) {
+          loadMoreBooks();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentLoadMoreRef = loadMoreRef.current;
+    if (currentLoadMoreRef) {
+      observerRef.current.observe(currentLoadMoreRef);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMoreBooks, nextPage, hasMoreResults]);
 
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
 
-    // Check if title contains a slash (/) which often separates Polish/English versions
     if (title.includes("/")) {
-      // Get the first part (usually Polish title)
       const firstPart = title.split("/")[0].trim();
 
-      // If first part is still too long, truncate it
       if (firstPart.length > 60) {
         return firstPart.substring(0, 57) + "...";
       }
@@ -211,7 +238,6 @@ export default function Library() {
       return firstPart;
     }
 
-    // For titles without slashes but still very long
     if (title.length > 60) {
       return title.substring(0, 57) + "...";
     }
@@ -243,7 +269,6 @@ export default function Library() {
         Biblioteka książek
       </h1>
 
-      {/* Updated search form */}
       <form onSubmit={handleSearch} className="mb-8">
         <div className="flex flex-col gap-3 max-w-lg mx-auto">
           <div className="flex gap-2">
@@ -314,162 +339,150 @@ export default function Library() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {books.map((book) => (
-            <div
-              key={book.id}
-              className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
-            >
-              {/* Header with title and rating */}
-              <div className="bg-[var(--primaryColor)] px-3 py-2">
-                <div className="flex justify-between items-start gap-2">
-                  <h2
-                    className="text-sm font-semibold text-white flex-1"
-                    title={book.title}
-                  >
-                    {formatBookTitle(book.title) || "Tytuł niedostępny"}
-                  </h2>
-                  <div className="flex items-center bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shrink-0">
-                    <svg
-                      className="w-3 h-3 text-yellow-300"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+        <>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {books.map((book) => (
+              <div
+                key={book.id}
+                className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
+              >
+                <div className="bg-[var(--primaryColor)] px-3 py-2">
+                  <div className="flex justify-between items-start gap-2">
+                    <h2
+                      className="text-sm font-semibold text-white flex-1"
+                      title={book.title}
                     >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="ml-0.5 text-white text-xs font-medium">
-                      {book.averageRating ? book.averageRating : "—"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Main content */}
-              <div className="p-3 flex gap-3">
-                {/* Book cover */}
-                <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0">
-                  <BookCover isbn={book.isbnIssn} title={book.title} />
-                </div>
-
-                {/* Book info */}
-                <div className="flex-1 min-w-0 flex flex-col">
-                  {/* Improved author display */}
-                  <div className="mb-2">
-                    <div className="flex items-center gap-1 text-xs">
-                      <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
-                      <span className="text-[var(--gray-700)] font-medium">
-                        Autor:
+                      {formatBookTitle(book.title) || "Tytuł niedostępny"}
+                    </h2>
+                    <div className="flex items-center bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shrink-0">
+                      <svg
+                        className="w-3 h-3 text-yellow-300"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="ml-0.5 text-white text-xs font-medium">
+                        {book.averageRating ? book.averageRating : "—"}
                       </span>
                     </div>
-                    <div className="text-xs text-[var(--gray-600)]">
-                      {book.author ? (
-                        splitAuthors(book.author).length > 2 ? (
-                          <div title={book.author}>
-                            <div>{splitAuthors(book.author)[0]}</div>
-                            <div>{splitAuthors(book.author)[1]}</div>
-                            <div className="text-[var(--gray-500)] italic">
-                              {`i ${
-                                splitAuthors(book.author).length - 2
-                              } więcej`}
-                            </div>
-                          </div>
-                        ) : (
-                          splitAuthors(book.author).map((author, i) => (
-                            <div key={i}>{author}</div>
-                          ))
-                        )
-                      ) : (
-                        "Nieznany autor"
-                      )}
-                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 flex gap-3">
+                  <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0">
+                    <BookCover isbn={book.isbnIssn} title={book.title} />
                   </div>
 
-                  {/* Year + Language in one row */}
-                  <div className="flex gap-3 text-xs mb-2">
-                    <div className="flex items-center gap-1">
-                      <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
-                      <span className="text-[var(--gray-600)]">
-                        {book.publicationYear || "—"}
-                      </span>
-                    </div>
-                    {book.language && (
-                      <div className="flex items-center gap-1">
-                        <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
-                        <span className="text-[var(--gray-600)] capitalize">
-                          {book.language}
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="mb-2">
+                      <div className="flex items-center gap-1 text-xs">
+                        <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                        <span className="text-[var(--gray-700)] font-medium">
+                          Autor:
                         </span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Genre/Category with color styling from book details page */}
-                  {(book.genre || book.kind) && (
-                    <div className="mb-2">
-                      <div className="flex flex-wrap gap-1">
-                        {book.genre && (
-                          <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--genre-bg)] text-[var(--genre-text)] rounded-full">
-                            {book.genre}
-                          </span>
-                        )}
-                        {book.kind && book.genre !== book.kind && (
-                          <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--subject-bg)] text-[var(--subject-text)] rounded-full">
-                            {book.kind}
-                          </span>
+                      <div className="text-xs text-[var(--gray-600)]">
+                        {book.author ? (
+                          splitAuthors(book.author).length > 2 ? (
+                            <div title={book.author}>
+                              <div>{splitAuthors(book.author)[0]}</div>
+                              <div>{splitAuthors(book.author)[1]}</div>
+                              <div className="text-[var(--gray-500)] italic">
+                                {`i ${
+                                  splitAuthors(book.author).length - 2
+                                } więcej`}
+                              </div>
+                            </div>
+                          ) : (
+                            splitAuthors(book.author).map((author, i) => (
+                              <div key={i}>{author}</div>
+                            ))
+                          )
+                        ) : (
+                          "Nieznany autor"
                         )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Button-style link */}
-                  <div className="mt-auto pt-1 text-right">
-                    <Link
-                      href={`/books/${padBookId(book.id)}`}
-                      className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
-                    >
-                      Zobacz szczegóły →
-                    </Link>
+                    <div className="flex gap-3 text-xs mb-2">
+                      <div className="flex items-center gap-1">
+                        <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                        <span className="text-[var(--gray-600)]">
+                          {book.publicationYear || "—"}
+                        </span>
+                      </div>
+                      {book.language && (
+                        <div className="flex items-center gap-1">
+                          <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                          <span className="text-[var(--gray-600)] capitalize">
+                            {book.language}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {(book.genre || book.kind) && (
+                      <div className="mb-2">
+                        <div className="flex flex-wrap gap-1">
+                          {book.genre && (
+                            <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--genre-bg)] text-[var(--genre-text)] rounded-full">
+                              {book.genre}
+                            </span>
+                          )}
+                          {book.kind && book.genre !== book.kind && (
+                            <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--subject-bg)] text-[var(--subject-text)] rounded-full">
+                              {book.kind}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-auto pt-1 text-right">
+                      <Link
+                        href={`/books/${padBookId(book.id)}`}
+                        className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
+                      >
+                        Zobacz szczegóły →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
 
-      {nextPage && (
-        <div className="mt-10 text-center space-y-4">
-          {hasMoreResults ? (
-            <button
-              className="bg-[var(--card-background)] border border-[var(--btn-secondary-border)] shadow-sm text-[var(--btn-secondary-text)] font-medium py-2 px-4 rounded-lg transition-all hover:bg-[var(--btn-secondary-bg-hover)] hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              onClick={loadMoreBooks}
-              disabled={isLoadingMore}
-            >
-              {isLoadingMore ? (
-                <span className="flex items-center justify-center">
-                  <span className="animate-spin h-4 w-4 mr-1.5 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
-                  Ładowanie...
-                </span>
-              ) : (
-                "Pokaż więcej książek"
+          {nextPage && (
+            <div ref={loadMoreRef} className="w-full py-8 flex justify-center">
+              {isLoadingMore && (
+                <div className="flex items-center">
+                  <span className="animate-spin h-5 w-5 mr-2 border-t-2 border-b-2 border-[var(--primaryColor)] rounded-full"></span>
+                  <span className="text-[var(--gray-700)] text-sm">
+                    Ładowanie...
+                  </span>
+                </div>
               )}
-            </button>
-          ) : (
-            <div className="text-center p-3">
-              <p className="text-[var(--gray-700)] text-sm">
-                Nie znaleziono więcej wyników dla podanych kryteriów
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  fetchBooks("/api/books?limit=10");
-                }}
-                className="mt-2 text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] transition-colors"
-              >
-                Wróć do wszystkich książek
-              </button>
+
+              {!hasMoreResults && nextPage && (
+                <div className="text-center p-3">
+                  <p className="text-[var(--gray-700)] text-sm">
+                    Nie znaleziono więcej wyników dla podanych kryteriów
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      fetchBooks("/api/books?limit=10");
+                    }}
+                    className="mt-2 text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] transition-colors text-sm"
+                  >
+                    Wróć do wszystkich książek
+                  </button>
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
