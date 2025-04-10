@@ -135,6 +135,26 @@ export default function UserProfile({ params }: PageProps) {
     }
   };
 
+  const formatBookTitle = (title: string | undefined): string => {
+    if (!title) return "Tytuł niedostępny";
+
+    if (title.includes("/")) {
+      const firstPart = title.split("/")[0].trim();
+
+      if (firstPart.length > 60) {
+        return firstPart.substring(0, 57) + "...";
+      }
+
+      return firstPart;
+    }
+
+    if (title.length > 60) {
+      return title.substring(0, 57) + "...";
+    }
+
+    return title;
+  };
+
   const checkContactStatus = async (profileUserId: string) => {
     if (!currentUser) return;
 
@@ -446,17 +466,17 @@ export default function UserProfile({ params }: PageProps) {
   if (!user) return <div>Nie znaleziono użytkownika</div>;
 
   return (
-    <main className="mx-auto px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
+    <main className="mx-auto px-2 sm:px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Left column - user profile and statistics */}
-          <div className="lg:w-1/3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto hide-scrollbar pb-10 px-1">
+          <div className="lg:w-1/3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto hide-scrollbar pb-6 sm:pb-10 px-1">
             {/* User profile card with statistics inside */}
-            <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-8">
-              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-3 text-white relative">
-                <h2 className="text-lg font-bold flex items-center">
+            <div className="bg-[var(--card-background)] rounded-xl sm:rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-4 sm:mb-8">
+              <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 sm:p-3 text-white relative">
+                <h2 className="text-base sm:text-lg font-bold flex items-center">
                   <svg
-                    className="w-4 h-4 mr-2"
+                    className="w-4 h-4 mr-1 sm:mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -471,11 +491,11 @@ export default function UserProfile({ params }: PageProps) {
                   Profil użytkownika
                 </h2>
               </div>
-              <div className="p-5">
-                <div className="flex flex-col space-y-5">
-                  <div className="flex flex-col items-center space-y-4">
+              <div className="p-3 sm:p-5">
+                <div className="flex flex-col space-y-4 sm:space-y-5">
+                  <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                     {/* Profile photo */}
-                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden">
+                    <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-xl sm:rounded-2xl overflow-hidden">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
                         alt="Profile"
@@ -487,10 +507,10 @@ export default function UserProfile({ params }: PageProps) {
 
                     {/* User name and join date */}
                     <div className="text-center space-y-1">
-                      <h1 className="text-xl font-bold text-[var(--gray-800)] transition-colors duration-200">
+                      <h1 className="text-lg sm:text-xl font-bold text-[var(--gray-800)] transition-colors duration-200">
                         {user.displayName}
                       </h1>
-                      <p className="text-[var(--gray-500)] text-sm font-medium transition-colors duration-200">
+                      <p className="text-xs sm:text-sm text-[var(--gray-500)] font-medium transition-colors duration-200">
                         Dołączył(a):{" "}
                         {user.creationTime
                           ? format(new Date(user.creationTime), "d MMMM yyyy", {
@@ -508,10 +528,10 @@ export default function UserProfile({ params }: PageProps) {
                         <div className="flex flex-col gap-2 w-full">
                           <Link
                             href={`/exchange?userId=${user.id}`}
-                            className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center text-sm"
+                            className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center text-xs sm:text-sm"
                           >
                             <svg
-                              className="w-4 h-4 mr-1.5"
+                              className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -527,7 +547,7 @@ export default function UserProfile({ params }: PageProps) {
                           </Link>
                           <button
                             onClick={handleRemoveContact}
-                            className="w-full px-3 py-1.5 bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] rounded-lg transition-colors duration-200 text-sm"
+                            className="w-full px-3 py-1.5 bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] rounded-lg transition-colors duration-200 text-xs sm:text-sm"
                           >
                             Usuń z kontaktów
                           </button>
@@ -566,11 +586,11 @@ export default function UserProfile({ params }: PageProps) {
                       ) : (
                         <button
                           onClick={handleAddContact}
-                          className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-colors duration-200 shadow-sm hover:shadow text-sm"
+                          className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-colors duration-200 shadow-sm hover:shadow text-xs sm:text-sm"
                         >
                           <span className="flex items-center justify-center">
                             <svg
-                              className="w-4 h-4 mr-1.5"
+                              className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -590,13 +610,13 @@ export default function UserProfile({ params }: PageProps) {
                   )}
 
                   {/* Contact info */}
-                  <div className="mt-4 space-y-2 border-t border-[var(--gray-200)] pt-4">
-                    <div className="flex items-center text-[var(--gray-500)]">
-                      <EnvelopeIcon className="w-5 h-5 mr-2" />
-                      <span>{user.email}</span>
+                  <div className="mt-3 sm:mt-4 space-y-2 border-t border-[var(--gray-200)] pt-3 sm:pt-4">
+                    <div className="flex items-center text-[var(--gray-500)] text-xs sm:text-sm">
+                      <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+                      <span className="break-all">{user.email}</span>
                     </div>
-                    <div className="flex items-center text-[var(--gray-500)]">
-                      <PhoneIcon className="w-5 h-5 mr-2" />
+                    <div className="flex items-center text-[var(--gray-500)] text-xs sm:text-sm">
+                      <PhoneIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
                       <span>{formatPhoneNumber(user.phoneNumber)}</span>
                     </div>
                   </div>
@@ -604,10 +624,10 @@ export default function UserProfile({ params }: PageProps) {
                   {/* Bio - if exists */}
                   {user.bio && (
                     <div className="relative mt-2 w-full">
-                      <div className="bg-[var(--background)] rounded-xl p-4 shadow-sm border border-[var(--gray-200)]">
-                        <h3 className="text-sm font-medium text-[var(--gray-700)] mb-2 flex items-center">
+                      <div className="bg-[var(--background)] rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-[var(--gray-200)]">
+                        <h3 className="text-xs sm:text-sm font-medium text-[var(--gray-700)] mb-1.5 sm:mb-2 flex items-center">
                           <svg
-                            className="w-4 h-4 mr-1"
+                            className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -621,18 +641,18 @@ export default function UserProfile({ params }: PageProps) {
                           </svg>
                           O mnie
                         </h3>
-                        <p className="text-sm leading-relaxed text-[var(--gray-600)] italic relative">
+                        <p className="text-xs sm:text-sm leading-relaxed text-[var(--gray-600)] italic relative">
                           {user.bio}
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Statistics section - moved from separate card to inside profile */}
-                  <div className="relative mt-2 w-full border-t border-[var(--gray-200)] pt-4">
-                    <h3 className="text-sm font-medium text-[var(--gray-700)] mb-3 flex items-center">
+                  {/* Statistics section */}
+                  <div className="relative mt-2 w-full border-t border-[var(--gray-200)] pt-3 sm:pt-4">
+                    <h3 className="text-xs sm:text-sm font-medium text-[var(--gray-700)] mb-2 sm:mb-3 flex items-center">
                       <svg
-                        className="w-4 h-4 mr-1"
+                        className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -646,7 +666,7 @@ export default function UserProfile({ params }: PageProps) {
                       </svg>
                       Statystyki
                     </h3>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-1 xs:grid-cols-3 gap-1.5">
                       {[
                         {
                           label: "Książek",
@@ -726,17 +746,17 @@ export default function UserProfile({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Right column - book collections in 2 columns */}
+          {/* Right column - book collections */}
           <div className="lg:w-2/3">
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-4 sm:gap-6">
               {/* Left book column */}
-              <div className="flex-1 min-w-[280px]">
+              <div className="w-full md:flex-1 min-w-0 md:min-w-[280px]">
                 {/* Want to read books */}
-                <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
-                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-3 text-white">
-                    <h2 className="text-base font-bold flex items-center">
+                <div className="bg-[var(--card-background)] rounded-lg sm:rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-2 sm:p-3 text-white">
+                    <h2 className="text-sm sm:text-base font-bold flex items-center">
                       <svg
-                        className="w-4 h-4 mr-1.5"
+                        className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -749,7 +769,7 @@ export default function UserProfile({ params }: PageProps) {
                       Chcę przeczytać
                     </h2>
                   </div>
-                  <div className="p-4">
+                  <div className="p-3 sm:p-4">
                     <div className="space-y-3">
                       {displayedDesiredBooks.length > 0 ? (
                         <>
@@ -763,7 +783,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-purple-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -800,7 +820,7 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Favorite books */}
+                {/* Favorite books - similar adjustments to padding and text sizes */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200 mb-4">
                   <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
@@ -828,7 +848,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-yellow-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -866,8 +886,8 @@ export default function UserProfile({ params }: PageProps) {
               </div>
 
               {/* Right book column */}
-              <div className="flex-1 min-w-[280px]">
-                {/* Exchange books */}
+              <div className="w-full md:flex-1 min-w-0 md:min-w-[280px]">
+                {/* Exchange books - similar adjustments */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
                   <div className="bg-gradient-to-r from-green-600 to-green-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
@@ -901,7 +921,7 @@ export default function UserProfile({ params }: PageProps) {
                                 className="flex flex-col space-y-0.5 hover:text-green-600 transition-colors"
                               >
                                 <span className="font-medium text-sm text-[var(--gray-800)]">
-                                  {book.title}
+                                  {formatBookTitle(book.title)}
                                 </span>
                                 <span className="text-xs text-[var(--gray-500)]">
                                   {book.author}
@@ -937,12 +957,12 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Reviews */}
+                {/* Reviews - similar adjustments */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
                       <svg
-                        className="w-4 h-4 mr-1.5"
+                        className="w-4 h-4 mr-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -971,7 +991,7 @@ export default function UserProfile({ params }: PageProps) {
                                   href={`/books/${review.bookId}`}
                                   className="font-medium text-sm text-[var(--gray-800)] hover:text-indigo-600 transition-colors"
                                 >
-                                  {review.bookTitle}
+                                  {formatBookTitle(review.bookTitle)}
                                 </Link>
                                 <div className="flex">
                                   {[...Array(10)].map((_, i) => (

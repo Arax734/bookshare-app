@@ -162,14 +162,15 @@ export default function Contacts() {
     }
   };
 
+  // Update the contact card render function
   const renderContactCard = (contact: ExtendedUserContact) => (
     <div
       key={contact.id}
-      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-3 shadow hover:shadow-md transition-shadow relative"
+      className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] p-2 sm:p-3 shadow hover:shadow-md transition-shadow relative"
     >
       {contact.status === "pending" && (
-        <div className="absolute top-2 right-2">
-          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--pending-bg)] text-[var(--pending-text)]">
+        <div className="absolute top-1 sm:top-2 right-1 sm:right-2">
+          <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-[var(--pending-bg)] text-[var(--pending-text)]">
             Oczekujące
           </span>
         </div>
@@ -179,14 +180,14 @@ export default function Contacts() {
           href={`/users/${
             contact.isReverse ? contact.userId : contact.contactId
           }`}
-          className="hover:opacity-80 transition-opacity relative w-14 h-14 mb-2"
+          className="hover:opacity-80 transition-opacity relative w-12 sm:w-14 h-12 sm:h-14 mb-1 sm:mb-2"
         >
           <Image
             src={contact.contactPhotoURL || defaultAvatar}
             alt={contact.contactDisplayName || ""}
             className="rounded-full object-cover"
             fill
-            sizes="(max-width: 768px) 56px, 72px"
+            sizes="(max-width: 640px) 48px, 56px"
             quality={100}
             priority={true}
             loading="eager"
@@ -197,11 +198,11 @@ export default function Contacts() {
             href={`/users/${
               contact.isReverse ? contact.userId : contact.contactId
             }`}
-            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColorLighter)] transition-colors block text-base mb-0.5"
+            className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColorLighter)] transition-colors block text-sm sm:text-base mb-0.5"
           >
             {contact.contactDisplayName}
           </Link>
-          <p className="text-xs text-[var(--gray-500)]">
+          <p className="text-[10px] sm:text-xs text-[var(--gray-500)]">
             {contact.contactEmail}
           </p>
         </div>
@@ -210,10 +211,10 @@ export default function Contacts() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pb-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="max-w-4xl space-y-4 sm:space-y-6">
         <div className="relative">
-          <h2 className="text-xl font-semibold text-[var(--gray-800)] mb-3">
+          <h2 className="text-lg sm:text-xl font-semibold text-[var(--gray-800)] mb-2 sm:mb-3">
             Twoje kontakty (
             {contacts.filter((contact) => contact.status === "accepted").length}
             )
@@ -224,12 +225,12 @@ export default function Contacts() {
           ) : (
             <>
               {contacts.length > 0 ? (
-                <div className="space-y-8">
+                <div className="space-y-6 sm:space-y-8">
                   <div>
-                    <h3 className="text-base font-medium text-[var(--gray-700)] mb-3">
+                    <h3 className="text-sm sm:text-base font-medium text-[var(--gray-700)] mb-2 sm:mb-3">
                       Zaakceptowane kontakty
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                       {contacts
                         .filter((contact) => contact.status === "accepted")
                         .map(renderContactCard)}
@@ -238,10 +239,10 @@ export default function Contacts() {
 
                   {contacts.some((contact) => contact.status === "pending") && (
                     <div>
-                      <h3 className="text-base font-medium text-[var(--gray-700)] mb-3">
+                      <h3 className="text-sm sm:text-base font-medium text-[var(--gray-700)] mb-2 sm:mb-3">
                         Oczekujące zaproszenia
                       </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                         {contacts
                           .filter((contact) => contact.status === "pending")
                           .map(renderContactCard)}
@@ -250,7 +251,7 @@ export default function Contacts() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 rounded-lg">
+                <div className="text-center py-6 sm:py-8 rounded-lg">
                   <p className="text-[var(--gray-500)] text-sm">
                     Nie masz jeszcze żadnych kontaktów
                   </p>
@@ -269,16 +270,18 @@ export default function Contacts() {
             </>
           )}
         </div>
+
+        {/* Update the contact card styles for better mobile display */}
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
-            <h3 className="text-[var(--gray-800)] font-semibold p-3 border-b border-[var(--gray-200)] text-base">
+            <h3 className="text-[var(--gray-800)] font-semibold p-2 sm:p-3 border-b border-[var(--gray-200)] text-sm sm:text-base">
               Wyniki wyszukiwania
             </h3>
             <div className="divide-y divide-[var(--gray-200)]">
               {searchResults.map((result) => (
                 <div
                   key={result.id}
-                  className="p-3 flex items-center justify-between"
+                  className="p-2 sm:p-3 flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2"
                 >
                   <div className="flex items-center space-x-2">
                     <Link
@@ -300,29 +303,24 @@ export default function Contacts() {
                     <div>
                       <Link
                         href={`/users/${result.id}`}
-                        className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors"
+                        className="font-medium text-[var(--gray-800)] hover:text-[var(--primaryColor)] transition-colors text-sm"
                       >
                         {result.displayName}
                       </Link>
-                      <p className="text-sm text-[var(--gray-500)]">
+                      <p className="text-xs text-[var(--gray-500)]">
                         {result.email}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => addContact(result.email)}
-                    className="px-3 py-1.5 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors text-sm"
+                    className="px-3 py-1.5 bg-[var(--primaryColor)] text-white rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors text-xs sm:text-sm"
                   >
                     Dodaj do kontaktów
                   </button>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-        {isSearching && (
-          <div className="text-center py-3">
-            <div className="w-5 h-5 border-2 border-[var(--primaryColor)] border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
         )}
       </div>

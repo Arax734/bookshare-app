@@ -525,21 +525,21 @@ export default function Settings() {
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="space-y-3">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                    <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Email
                     </label>
                     <input
                       type="email"
                       defaultValue={user?.email || ""}
                       disabled
-                      className="w-full px-3 py-1.5 rounded-lg border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200 text-sm"
+                      className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--gray-200)] bg-[var(--gray-100)] text-[var(--gray-500)] transition-[border] duration-200"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
+                    <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1 transition-colors duration-200">
                       Numer telefonu
                     </label>
                     <PhoneInput
@@ -557,30 +557,30 @@ export default function Settings() {
                       disableSearchIcon={true}
                     />
                     {!isPhoneValid && phoneNumber && (
-                      <p className="mt-1 text-sm text-red-500">
+                      <p className="mt-1 text-xs sm:text-sm text-red-500">
                         Wprowadź poprawny numer telefonu
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] transition-colors duration-200">
+                    <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] transition-colors duration-200 mb-1">
                       Bio
                     </label>
                     <textarea
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-1.5 rounded-lg border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
+                      className="w-full px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
                       placeholder="Napisz coś o sobie..."
                     />
                   </div>
 
-                  <div className="pt-4 transition-all duration-200">
+                  <div className="pt-3 sm:pt-4 transition-all duration-200">
                     <button
                       type="submit"
                       disabled={isSaving || !isFormChanged}
-                      className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm"
+                      className="w-full px-3 py-1.5 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-xs sm:text-sm"
                     >
                       {isSaving ? "Zapisywanie..." : "Zapisz zmiany"}
                     </button>
@@ -590,16 +590,16 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
+          <div className="my-6 sm:my-8 bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-3 text-white">
-              <h2 className="text-lg font-bold">Bezpieczeństwo</h2>
+              <h2 className="text-base sm:text-lg font-bold">Bezpieczeństwo</h2>
             </div>
-            <div className="p-5">
-              <div className="space-y-4">
+            <div className="p-4 sm:p-5">
+              <div className="space-y-3 sm:space-y-4">
                 {authMethod === "password" && (
                   <button
                     onClick={() => setIsChangePasswordModalOpen(true)}
-                    className="w-full px-3 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-lg transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between text-sm"
+                    className="w-full px-3 py-2 text-left text-white bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] rounded-lg transition-all duration-200 shadow-sm hover:shadow hover:scale-[1.02] flex items-center justify-between text-xs sm:text-sm"
                   >
                     <span>Zmień hasło</span>
                     <svg
@@ -618,7 +618,7 @@ export default function Settings() {
                 )}
                 <button
                   onClick={() => setIsDeleteModalOpen(true)}
-                  className="w-full px-3 py-2 text-left text-white bg-red-500 hover:bg-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-between group"
+                  className="w-full px-3 py-2 text-left text-white bg-red-500 hover:bg-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-between group text-xs sm:text-sm"
                 >
                   <span>Usuń konto</span>
                 </button>
@@ -629,12 +629,12 @@ export default function Settings() {
       </main>
 
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-6 max-w-md w-full mx-4 transition-all duration-200">
-            <h2 className="text-lg font-bold mb-3 text-[var(--foreground)]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--card-background)] rounded-2xl shadow-lg p-4 sm:p-6 max-w-md w-full mx-auto transition-all duration-200">
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-[var(--foreground)]">
               Usuń konto
             </h2>
-            <p className="text-[var(--foreground)] mb-4 text-sm">
+            <p className="text-[var(--foreground)] mb-4 text-xs sm:text-sm">
               Tej operacji nie można cofnąć. Wszystkie Twoje dane zostaną trwale
               usunięte.
             </p>
@@ -643,24 +643,24 @@ export default function Settings() {
               {renderAuthenticationSection()}
               {error && <p className="text-red-500 text-sm">{error}</p>}
 
-              <div className="flex items-center mb-4">
+              <div className="flex items-start sm:items-center mb-4">
                 <input
                   type="checkbox"
                   id="confirm"
                   checked={confirmDelete}
                   onChange={(e) => setConfirmDelete(e.target.checked)}
-                  className="mr-2"
+                  className="mr-2 mt-1 sm:mt-0"
                   required
                 />
                 <label
                   htmlFor="confirm"
-                  className="text-sm text-[var(--foreground)]"
+                  className="text-xs sm:text-sm text-[var(--foreground)]"
                 >
                   Potwierdzam, że chcę trwale usunąć moje konto
                 </label>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -669,7 +669,7 @@ export default function Settings() {
                     setConfirmDelete(false);
                     setError("");
                   }}
-                  className="flex-1 px-4 py-2 bg-[var(--gray-200)] text-[var(--foreground)] rounded-xl hover:bg-[var(--gray-300)] transition-colors duration-200"
+                  className="w-full px-4 py-2 bg-[var(--gray-200)] text-[var(--foreground)] rounded-xl hover:bg-[var(--gray-300)] transition-colors duration-200"
                 >
                   Anuluj
                 </button>
@@ -680,7 +680,7 @@ export default function Settings() {
                     (authMethod === "password" && !password) ||
                     isLoading
                   }
-                  className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="w-full px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   {isLoading ? "Weryfikacja..." : "Usuń konto"}
                 </button>
@@ -691,55 +691,59 @@ export default function Settings() {
       )}
 
       {isChangePasswordModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-[var(--card-background)] rounded-xl shadow-lg p-5 max-w-md w-full mx-4 transition-all duration-200">
-            <h2 className="text-lg font-bold mb-3 text-[var(--foreground)]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--card-background)] rounded-xl shadow-lg p-4 sm:p-5 max-w-md w-full mx-auto transition-all duration-200">
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-[var(--foreground)]">
               Zmień hasło
             </h2>
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
                   Obecne hasło
                 </label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
                   Nowe hasło
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
                   Potwierdź nowe hasło
                 </label>
                 <input
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
                   required
                 />
               </div>
               {passwordError && (
-                <p className="text-red-500 text-sm">{passwordError}</p>
+                <p className="text-red-500 text-xs sm:text-sm">
+                  {passwordError}
+                </p>
               )}
               {successMessage && (
-                <p className="text-green-500 text-sm">{successMessage}</p>
+                <p className="text-green-500 text-xs sm:text-sm">
+                  {successMessage}
+                </p>
               )}
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -749,7 +753,7 @@ export default function Settings() {
                     setConfirmNewPassword("");
                     setPasswordError("");
                   }}
-                  className="flex-1 px-4 py-2 bg-[var(--gray-200)] text-[var(--foreground)] rounded-xl hover:bg-[var(--gray-300)] transition-colors duration-200"
+                  className="w-full px-4 py-2 bg-[var(--gray-200)] text-[var(--foreground)] rounded-xl hover:bg-[var(--gray-300)] transition-colors duration-200"
                 >
                   Anuluj
                 </button>
@@ -758,7 +762,7 @@ export default function Settings() {
                   disabled={
                     !currentPassword || !newPassword || !confirmNewPassword
                   }
-                  className="flex-1 px-4 py-2 bg-[var(--primaryColor)] text-white rounded-xl hover:bg-[var(--primaryColorLight)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-[var(--primaryColor)] text-white rounded-xl hover:bg-[var(--primaryColorLight)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Weryfikacja..." : "Zmień hasło"}
                 </button>
