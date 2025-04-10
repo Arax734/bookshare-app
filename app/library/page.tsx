@@ -195,6 +195,30 @@ export default function Library() {
     }
   };
 
+  const formatBookTitle = (title: string | undefined): string => {
+    if (!title) return "Tytuł niedostępny";
+
+    // Check if title contains a slash (/) which often separates Polish/English versions
+    if (title.includes("/")) {
+      // Get the first part (usually Polish title)
+      const firstPart = title.split("/")[0].trim();
+
+      // If first part is still too long, truncate it
+      if (firstPart.length > 60) {
+        return firstPart.substring(0, 57) + "...";
+      }
+
+      return firstPart;
+    }
+
+    // For titles without slashes but still very long
+    if (title.length > 60) {
+      return title.substring(0, 57) + "...";
+    }
+
+    return title;
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -290,134 +314,122 @@ export default function Library() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-10 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {books.map((book) => (
             <div
               key={book.id}
-              className="bg-[var(--card-background)] rounded-xl shadow overflow-hidden transition-all duration-300 border border-[var(--gray-100)] flex flex-col"
+              className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
             >
-              <div className="flex flex-col md:flex-row">
-                {/* Book Cover Image */}
-                <div className="w-full md:w-1/3 bg-[var(--gray-50)]">
-                  <BookCover isbn={book.isbnIssn} title={book.title} />
-                </div>
-
-                {/* Book Info */}
-                <div className="flex-1 flex flex-col">
-                  <div className="bg-[var(--primaryColor)] p-4">
-                    <div className="flex justify-between items-start">
-                      <h2
-                        className="text-lg font-bold text-white line-clamp-2 flex-1"
-                        title={book.title}
-                      >
-                        {book.title || "Tytuł niedostępny"}
-                      </h2>
-                      <div className="flex items-center bg-white/10 backdrop-blur-sm px-2 py-1 rounded-lg shrink-0">
-                        <svg
-                          className="w-4 h-4 text-yellow-300"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <span className="ml-1 text-white text-sm font-medium">
-                          {book.averageRating
-                            ? `${book.averageRating}`
-                            : "Brak"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Rest of your book info content */}
-                  <div className="p-3 space-y-3 flex-1">
-                    <div className="bg-[var(--gray-50)] rounded-lg p-2">
-                      <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
-                        <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
-                        Autorzy
-                      </h3>
-                      {book.author ? (
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                          {splitAuthors(book.author).map((author, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center text-sm text-[var(--gray-700)] truncate"
-                              title={author}
-                            >
-                              <span className="w-1.5 h-1.5 bg-[var(--primaryColor)] rounded-full mr-2 flex-shrink-0"></span>
-                              <span className="truncate">{author}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-[var(--gray-500)] italic">
-                          Nieznany autor
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="bg-[var(--gray-50)] rounded-lg p-2">
-                        <div className="flex items-center mb-1">
-                          <CalendarIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
-                          <h3 className="font-medium text-[var(--gray-800)]">
-                            Rok
-                          </h3>
-                        </div>
-                        <p className="text-[var(--gray-700)]">
-                          {book.publicationYear || "—"}
-                        </p>
-                      </div>
-
-                      <div className="bg-[var(--gray-50)] rounded-lg p-2">
-                        <div className="flex items-center mb-1">
-                          <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
-                          <h3 className="font-medium text-[var(--gray-800)]">
-                            Język
-                          </h3>
-                        </div>
-                        <p className="text-[var(--gray-700)] capitalize">
-                          {book.language || "—"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {(book.genre || book.subject || book.domain) && (
-                      <div className="flex flex-wrap gap-1">
-                        {book.genre && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--genre-bg)] text-[var(--genre-text)]">
-                            {book.genre}
-                          </span>
-                        )}
-                        {book.subject && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--subject-bg)] text-[var(--subject-text)]">
-                            {book.subject}
-                          </span>
-                        )}
-                        {book.domain && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--domain-bg)] text-[var(--domain-text)]">
-                            {book.domain}
-                          </span>
-                        )}
-                      </div>
-                    )}
+              {/* Header with title and rating */}
+              <div className="bg-[var(--primaryColor)] px-3 py-2">
+                <div className="flex justify-between items-start gap-2">
+                  <h2
+                    className="text-sm font-semibold text-white flex-1"
+                    title={book.title}
+                  >
+                    {formatBookTitle(book.title) || "Tytuł niedostępny"}
+                  </h2>
+                  <div className="flex items-center bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shrink-0">
+                    <svg
+                      className="w-3 h-3 text-yellow-300"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="ml-0.5 text-white text-xs font-medium">
+                      {book.averageRating ? book.averageRating : "—"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Footer with ISBN and details link remains the same */}
-              <div className="px-4 py-3 border-t border-[var(--gray-100)] flex items-center justify-between bg-[var(--gray-50)]">
-                {book.isbnIssn && (
-                  <div className="text-xs text-[var(--gray-500)]">
-                    ISBN: <span className="font-medium">{book.isbnIssn}</span>
+              {/* Main content */}
+              <div className="p-3 flex gap-3">
+                {/* Book cover */}
+                <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0">
+                  <BookCover isbn={book.isbnIssn} title={book.title} />
+                </div>
+
+                {/* Book info */}
+                <div className="flex-1 min-w-0 flex flex-col">
+                  {/* Improved author display */}
+                  <div className="mb-2">
+                    <div className="flex items-center gap-1 text-xs">
+                      <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                      <span className="text-[var(--gray-700)] font-medium">
+                        Autor:
+                      </span>
+                    </div>
+                    <div className="text-xs text-[var(--gray-600)]">
+                      {book.author ? (
+                        splitAuthors(book.author).length > 2 ? (
+                          <div title={book.author}>
+                            <div>{splitAuthors(book.author)[0]}</div>
+                            <div>{splitAuthors(book.author)[1]}</div>
+                            <div className="text-[var(--gray-500)] italic">
+                              {`i ${
+                                splitAuthors(book.author).length - 2
+                              } więcej`}
+                            </div>
+                          </div>
+                        ) : (
+                          splitAuthors(book.author).map((author, i) => (
+                            <div key={i}>{author}</div>
+                          ))
+                        )
+                      ) : (
+                        "Nieznany autor"
+                      )}
+                    </div>
                   </div>
-                )}
-                <Link
-                  href={`/books/${padBookId(book.id)}`}
-                  className="px-2 py-1 bg-[var(--primaryColor)] text-[var(--text-white)] text-xs rounded-lg hover:bg-[var(--primaryColorLight)] transition-colors font-medium ml-auto"
-                >
-                  Zobacz szczegóły
-                </Link>
+
+                  {/* Year + Language in one row */}
+                  <div className="flex gap-3 text-xs mb-2">
+                    <div className="flex items-center gap-1">
+                      <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                      <span className="text-[var(--gray-600)]">
+                        {book.publicationYear || "—"}
+                      </span>
+                    </div>
+                    {book.language && (
+                      <div className="flex items-center gap-1">
+                        <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                        <span className="text-[var(--gray-600)] capitalize">
+                          {book.language}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Genre/Category with color styling from book details page */}
+                  {(book.genre || book.kind) && (
+                    <div className="mb-2">
+                      <div className="flex flex-wrap gap-1">
+                        {book.genre && (
+                          <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--genre-bg)] text-[var(--genre-text)] rounded-full">
+                            {book.genre}
+                          </span>
+                        )}
+                        {book.kind && book.genre !== book.kind && (
+                          <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--subject-bg)] text-[var(--subject-text)] rounded-full">
+                            {book.kind}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Button-style link */}
+                  <div className="mt-auto pt-1 text-right">
+                    <Link
+                      href={`/books/${padBookId(book.id)}`}
+                      className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
+                    >
+                      Zobacz szczegóły →
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
