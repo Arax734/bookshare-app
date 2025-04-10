@@ -373,17 +373,17 @@ export default function Library() {
                 {(book.genre || book.subject || book.domain) && (
                   <div className="flex flex-wrap gap-1">
                     {book.genre && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--genre-bg)] text-[var(--genre-text)]">
                         {book.genre}
                       </span>
                     )}
                     {book.subject && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--subject-bg)] text-[var(--subject-text)]">
                         {book.subject}
                       </span>
                     )}
                     {book.domain && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--domain-bg)] text-[var(--domain-text)]">
                         {book.domain}
                       </span>
                     )}

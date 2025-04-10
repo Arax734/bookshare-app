@@ -158,7 +158,7 @@ export default function Navbar() {
           <div className="relative h-5/6">
             <a
               href="/home"
-              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-[var(--primaryColorHover)] hover:bg-[var(--secondaryColorLight)]  transition-all duration-200"
               onMouseEnter={() => setActiveTooltip("home")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
@@ -184,7 +184,7 @@ export default function Navbar() {
           <div className="relative h-5/6">
             <a
               href="/library"
-              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-[var(--primaryColorHover)] hover:bg-[var(--secondaryColorLight)]  transition-all duration-200"
               onMouseEnter={() => setActiveTooltip("library")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
@@ -200,8 +200,8 @@ export default function Navbar() {
             {delayedTooltip === "library" && (
               <div
                 className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
-                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow opacity-0
-                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+  px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
+  animate-[tooltipAppear_0.2s_ease-out_forwards]"
               >
                 Biblioteka
               </div>
@@ -211,7 +211,7 @@ export default function Navbar() {
           <div className="relative h-5/6">
             <a
               href={user ? `/bookshelf` : "/login"}
-              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-[var(--primaryColorHover)] hover:bg-[var(--secondaryColorLight)]  transition-all duration-200"
               onMouseEnter={() => setActiveTooltip("bookshelf")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
@@ -241,7 +241,7 @@ export default function Navbar() {
           <div className="relative h-5/6">
             <a
               href="/contacts"
-              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-primary hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700 transition-all duration-200 relative"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-[var(--primaryColorHover)] hover:bg-[var(--secondaryColorLight)] transition-all duration-200 relative"
               onMouseEnter={() => setActiveTooltip("contacts")}
               onMouseLeave={() => setActiveTooltip(null)}
             >
@@ -276,7 +276,7 @@ export default function Navbar() {
         <div className="flex items-center">
           <button
             onClick={toggleTheme}
-            className="text-foreground hover:text-primary transition-all duration-200 p-2 mr-5 rounded-full hover:bg-[var(--secondaryColorLight)] dark:hover:bg-gray-700"
+            className="text-foreground hover:text-[var(--primaryColorHover)] transition-all duration-200 p-2 mr-5 rounded-full hover:bg-[var(--secondaryColorLight)] "
             aria-label="Toggle theme"
           >
             {theme === "light" ? (
@@ -306,7 +306,7 @@ export default function Navbar() {
               <button
                 ref={buttonRef}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center space-x-3 hover:bg-[var(--primaryColorLight)] bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 transition-colors duration-200"
+                className="flex items-center space-x-3 hover:bg-[var(--primaryColorHover)] bg-[var(--primaryColor)] h-11 rounded-full px-4 py-2 transition-colors duration-200"
               >
                 <span className="text-white text-base">
                   {userData?.displayName || user?.displayName || "Użytkownik"}
@@ -340,21 +340,21 @@ export default function Navbar() {
               <div className="py-1">
                 <a
                   href={user ? `/users/${user.uid}` : "/login"}
-                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--menuColorHover)] transition-colors duration-200 ease-in-out"
                 >
                   <UserCircleIcon width={20} height={20} className="mr-3" />
                   <span className="font-medium">Profil</span>
                 </a>
                 <a
                   href="/settings"
-                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                  className="flex items-center px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--menuColorHover)] transition-colors duration-200 ease-in-out"
                 >
                   <SettingsIcon width={20} height={20} className="mr-3" />
                   <span className="font-medium">Ustawienia</span>
                 </a>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center w-full px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-200)] transition-colors duration-200 ease-in-out"
+                  className="flex items-center w-full px-4 py-3 text-sm text-[var(--gray-700)] hover:bg-[var(--menuColorHover)] transition-colors duration-200 ease-in-out"
                 >
                   <LogoutIcon width={20} height={20} className="mr-3" />
                   <span className="font-medium">Wyloguj się</span>
