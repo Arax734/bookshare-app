@@ -245,6 +245,12 @@ export default function Library() {
     return title;
   };
 
+  // Function to check if book has a valid cover
+  const hasValidCover = (isbn: string | undefined): boolean => {
+    // Books need a valid ISBN to fetch a cover
+    return !!isbn && isbn.trim().length > 0;
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -370,13 +376,15 @@ export default function Library() {
                 </div>
 
                 <div className="p-3 flex gap-3">
-                  <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
-                    <BookCover
-                      isbn={book.isbnIssn}
-                      title={book.title}
-                      size={"M"}
-                    />
-                  </div>
+                  {hasValidCover(book.isbnIssn) && (
+                    <div className="w-20 h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
+                      <BookCover
+                        isbn={book.isbnIssn}
+                        title={book.title}
+                        size={"M"}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="mb-2">
@@ -434,11 +442,16 @@ export default function Library() {
                               {book.genre}
                             </span>
                           )}
-                          {book.kind && book.genre !== book.kind && (
-                            <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--subject-bg)] text-[var(--subject-text)] rounded-full">
-                              {book.kind}
-                            </span>
-                          )}
+                          {book.kind &&
+                            book.genre !== book.kind &&
+                            !book.kind.toLowerCase().includes("książka") &&
+                            !book.kind.toLowerCase().includes("książki") &&
+                            book.kind.toLowerCase() !== "book" &&
+                            book.kind.toLowerCase() !== "books" && (
+                              <span className="inline-flex text-xs px-2 py-0.5 bg-[var(--subject-bg)] text-[var(--subject-text)] rounded-full">
+                                {book.kind}
+                              </span>
+                            )}
                         </div>
                       </div>
                     )}

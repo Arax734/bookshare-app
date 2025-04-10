@@ -57,6 +57,7 @@ export default function BookDetails({ params }: PageProps) {
   const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [coverVisible, setCoverVisible] = useState(true);
 
   // Add this helper function inside your BookDetails component
   const formatBookTitle = (title: string | undefined): string => {
@@ -113,6 +114,17 @@ export default function BookDetails({ params }: PageProps) {
     fetchBookDetails();
   }, [unwrappedParams.id]);
 
+  useEffect(() => {
+    if (book) {
+      // If there's no ISBN, hide the cover container
+      if (!book.isbnIssn || book.isbnIssn.trim() === "") {
+        setCoverVisible(false);
+      } else {
+        setCoverVisible(true);
+      }
+    }
+  }, [book]);
+
   if (isLoading) return <LoadingSpinner />;
 
   if (error) {
@@ -158,17 +170,16 @@ export default function BookDetails({ params }: PageProps) {
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)]">
           <div className="bg-[var(--primaryColor)] p-4">
-            <div className="flex justify-between items-center">
-              <h1
-                className="text-xl font-bold text-white"
-                title={book.title} // Show full title on hover
-              >
-                {formatBookTitle(book.title)}
-              </h1>
-              <div className="flex justify-between items-center ml-5">
-                <BookOwnershipButton bookId={unwrappedParams.id} />
-                <BookDesireButton bookId={unwrappedParams.id} />
-                <BookFavoriteButton bookId={unwrappedParams.id} />
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center">
+                <h1 className="text-xl font-bold text-white break-words">
+                  {formatBookTitle(book.title)}
+                </h1>
+                <div className="flex justify-between items-center ml-5 shrink-0">
+                  <BookOwnershipButton bookId={unwrappedParams.id} />
+                  <BookDesireButton bookId={unwrappedParams.id} />
+                  <BookFavoriteButton bookId={unwrappedParams.id} />
+                </div>
               </div>
             </div>
           </div>
@@ -176,19 +187,21 @@ export default function BookDetails({ params }: PageProps) {
           <div className="p-4">
             {/* Book cover and main info section */}
             <div className="flex flex-col md:flex-row gap-6 mb-5">
-              {/* Book cover */}
-              <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
-                <div className="rounded-lg overflow-hidden shadow-md">
-                  <BookCover
-                    isbn={book.isbnIssn}
-                    title={book.title}
-                    size={"L"}
-                  />
+              {/* Book cover - only render container if cover is visible */}
+              {coverVisible && (
+                <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
+                  <div className="rounded-lg overflow-hidden shadow-md">
+                    <BookCover
+                      isbn={book.isbnIssn}
+                      title={book.title}
+                      size={"L"}
+                      onError={() => setCoverVisible(false)}
+                    />
+                  </div>
                 </div>
-                {/* Rating display could go here if needed */}
-              </div>
+              )}
 
-              {/* Main book details */}
+              {/* Main book details - will stretch full width when cover is hidden */}
               <div className="flex-1 space-y-4">
                 {/* Authors section */}
                 <div className="bg-[var(--gray-50)] rounded-lg p-3">
