@@ -12,6 +12,8 @@ import {
   doc,
   deleteField,
   deleteDoc,
+  startAfter,
+  limit,
 } from "firebase/firestore";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -52,6 +54,31 @@ export default function Bookshelf() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Add pagination state
+  const [booksPerPage] = useState(6);
+  const [lastVisibleDoc, setLastVisibleDoc] = useState<{
+    owned: any | null;
+    exchange: any | null;
+    desired: any | null;
+  }>({ owned: null, exchange: null, desired: null });
+  const [hasMoreBooks, setHasMoreBooks] = useState({
+    owned: false,
+    exchange: false,
+    desired: false,
+  });
+  const [loadingMore, setLoadingMore] = useState({
+    owned: false,
+    exchange: false,
+    desired: false,
+  });
+
+  // Update search state
+  const [searchParams, setSearchParams] = useState({
+    title: "",
+    author: "",
+  });
+  const [isSearchActive, setIsSearchActive] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -70,16 +97,19 @@ export default function Bookshelf() {
     try {
       setIsLoading(true);
 
+      // Add limit to queries
       const ownershipsQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2) // Get more items to separate into owned and exchange books
       );
 
       const desiresQuery = query(
         collection(db, "bookDesire"),
         where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage)
       );
 
       const [ownershipsSnapshot, desiresSnapshot] = await Promise.all([
@@ -87,12 +117,38 @@ export default function Bookshelf() {
         getDocs(desiresQuery),
       ]);
 
+      // Store the last documents for pagination
+      const lastVisible = {
+        owned:
+          ownershipsSnapshot.docs.length > 0
+            ? ownershipsSnapshot.docs[ownershipsSnapshot.docs.length - 1]
+            : null,
+        desired:
+          desiresSnapshot.docs.length > 0
+            ? desiresSnapshot.docs[desiresSnapshot.docs.length - 1]
+            : null,
+      };
+      setLastVisibleDoc({
+        ...lastVisibleDoc,
+        owned: lastVisible.owned,
+        desired: lastVisible.desired,
+      });
+
+      // Check if there are more books
+      setHasMoreBooks({
+        owned: ownershipsSnapshot.docs.length >= booksPerPage,
+        exchange: ownershipsSnapshot.docs.length >= booksPerPage,
+        desired: desiresSnapshot.docs.length >= booksPerPage,
+      });
+
       const processBooks = async (docs: any[], isDesired = false) => {
         return Promise.all(
           docs.map(async (doc) => {
             const bookDetails = await fetchBookDetails(doc.data().bookId);
             return {
               id: doc.id,
+              bookId: doc.data().bookId, // Explicitly include bookId
+              userId: doc.data().userId, // Explicitly include userId
               ...doc.data(),
               createdAt: doc.data().createdAt.toDate(),
               bookTitle: bookDetails?.title || "Książka niedostępna",
@@ -105,17 +161,247 @@ export default function Bookshelf() {
       const ownerships = await processBooks(ownershipsSnapshot.docs);
       const desires = await processBooks(desiresSnapshot.docs);
 
-      setOwnedBooks(ownerships.filter((book) => !book.status));
-      setExchangeBooks(
-        ownerships.filter((book) => book.status === "forExchange")
+      const owned = ownerships.filter((book) => !book.status);
+      const exchange = ownerships.filter(
+        (book) => book.status === "forExchange"
       );
+
+      setOwnedBooks(owned.slice(0, booksPerPage));
+      setExchangeBooks(exchange.slice(0, booksPerPage));
       setDesiredBooks(desires);
+
+      // Update last docs for exchange books separately
+      if (exchange.length > 0) {
+        const lastExchangeDoc = ownershipsSnapshot.docs.find(
+          (doc) => doc.data().status === "forExchange"
+        );
+        setLastVisibleDoc((prev) => ({
+          ...prev,
+          exchange: lastExchangeDoc || null,
+        }));
+      }
     } catch (error) {
       console.error("Error fetching books:", error);
       setError("Wystąpił błąd podczas ładowania książek");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Add this after the existing fetchBooks function
+
+  const fetchBooksWithSearch = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Clear existing books first
+      setOwnedBooks([]);
+      setExchangeBooks([]);
+      setDesiredBooks([]);
+
+      // Normalize search queries - lowercase for case-insensitive matching
+      const normalizedTitle = searchParams.title.toLowerCase().trim();
+      const normalizedAuthor = searchParams.author.toLowerCase().trim();
+
+      // Create separate queries for each book category
+      // Query for owned books
+      const ownedQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", user.uid),
+        where("status", "==", null),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Query for exchange books
+      const exchangeQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", user.uid),
+        where("status", "==", "forExchange"),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Query for desired books
+      const desiredQuery = query(
+        collection(db, "bookDesire"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Execute all queries in parallel
+      const [ownedSnapshot, exchangeSnapshot, desiredSnapshot] =
+        await Promise.all([
+          getDocs(ownedQuery),
+          getDocs(exchangeQuery),
+          getDocs(desiredQuery),
+        ]);
+
+      // Update pagination state
+      setLastVisibleDoc({
+        owned:
+          ownedSnapshot.docs.length > 0
+            ? ownedSnapshot.docs[ownedSnapshot.docs.length - 1]
+            : null,
+        exchange:
+          exchangeSnapshot.docs.length > 0
+            ? exchangeSnapshot.docs[exchangeSnapshot.docs.length - 1]
+            : null,
+        desired:
+          desiredSnapshot.docs.length > 0
+            ? desiredSnapshot.docs[desiredSnapshot.docs.length - 1]
+            : null,
+      });
+
+      // Set hasMoreBooks flags
+      setHasMoreBooks({
+        owned: ownedSnapshot.docs.length >= booksPerPage,
+        exchange: exchangeSnapshot.docs.length >= booksPerPage,
+        desired: desiredSnapshot.docs.length >= booksPerPage,
+      });
+
+      // Process books function
+      const processBooks = async (docs: any[]) => {
+        return Promise.all(
+          docs.map(async (doc) => {
+            const bookDetails = await fetchBookDetails(doc.data().bookId);
+            return {
+              id: doc.id,
+              bookId: doc.data().bookId,
+              userId: doc.data().userId,
+              ...doc.data(),
+              createdAt: doc.data().createdAt.toDate(),
+              bookTitle: bookDetails?.title || "Książka niedostępna",
+              bookAuthor: bookDetails?.author || "Autor nieznany",
+            };
+          })
+        );
+      };
+
+      // Process all three categories of books
+      const [ownedBooks, exchangeBooks, desiredBooks] = await Promise.all([
+        processBooks(ownedSnapshot.docs),
+        processBooks(exchangeSnapshot.docs),
+        processBooks(desiredSnapshot.docs),
+      ]);
+
+      // Apply search filters to each category separately
+      let filteredOwnedBooks = ownedBooks;
+      let filteredExchangeBooks = exchangeBooks;
+      let filteredDesiredBooks = desiredBooks;
+
+      if (normalizedTitle && normalizedAuthor) {
+        // Filter by both title and author
+        filteredOwnedBooks = ownedBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+
+        filteredExchangeBooks = exchangeBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+
+        filteredDesiredBooks = desiredBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+      } else if (normalizedTitle) {
+        // Filter by title only
+        filteredOwnedBooks = ownedBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+
+        filteredExchangeBooks = exchangeBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+
+        filteredDesiredBooks = desiredBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+      } else if (normalizedAuthor) {
+        // Filter by author only
+        filteredOwnedBooks = ownedBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+
+        filteredExchangeBooks = exchangeBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+
+        filteredDesiredBooks = desiredBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+      }
+
+      // Update state with filtered results
+      setOwnedBooks(filteredOwnedBooks.slice(0, booksPerPage));
+      setExchangeBooks(filteredExchangeBooks.slice(0, booksPerPage));
+      setDesiredBooks(filteredDesiredBooks.slice(0, booksPerPage));
+    } catch (error) {
+      console.error("Error searching books:", error);
+      setError("Wystąpił błąd podczas wyszukiwania książek");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to handle search form submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearchActive(true);
+
+    // Reset pagination states
+    setLastVisibleDoc({ owned: null, exchange: null, desired: null });
+    setHasMoreBooks({ owned: false, exchange: false, desired: false });
+
+    // Clear current results before searching
+    setOwnedBooks([]);
+    setExchangeBooks([]);
+    setDesiredBooks([]);
+
+    // Fetch books with search parameters
+    fetchBooksWithSearch();
+  };
+
+  // Function to clear search and reset to normal view
+  const clearSearch = () => {
+    const resetParams = {
+      title: "",
+      author: "",
+    };
+
+    setSearchParams(resetParams);
+    setIsSearchActive(false);
+    fetchBooks(); // Fetch books without search parameters
   };
 
   useEffect(() => {
@@ -211,6 +497,145 @@ export default function Bookshelf() {
     }
 
     return title;
+  };
+
+  // Modify the existing loadMoreBooks function to support search
+
+  const loadMoreBooks = async (listType: "owned" | "exchange" | "desired") => {
+    if (!user || !lastVisibleDoc[listType]) return;
+
+    try {
+      setLoadingMore((prev) => ({ ...prev, [listType]: true }));
+
+      let booksQuery;
+
+      // Create appropriate query based on list type
+      if (listType === "desired") {
+        booksQuery = query(
+          collection(db, "bookDesire"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisibleDoc[listType]),
+          limit(booksPerPage * 2) // Get more for filtering
+        );
+      } else if (listType === "owned") {
+        booksQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", user.uid),
+          where("status", "==", null),
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisibleDoc.owned),
+          limit(booksPerPage * 2)
+        );
+      } else {
+        booksQuery = query(
+          collection(db, "bookOwnership"),
+          where("userId", "==", user.uid),
+          where("status", "==", "forExchange"),
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisibleDoc.exchange),
+          limit(booksPerPage * 2)
+        );
+      }
+
+      const booksSnapshot = await getDocs(booksQuery);
+
+      // Check if there are more books
+      const hasMore = booksSnapshot.docs.length >= booksPerPage;
+      setHasMoreBooks((prev) => ({ ...prev, [listType]: hasMore }));
+
+      // Save the last document for pagination
+      if (booksSnapshot.docs.length > 0) {
+        setLastVisibleDoc((prev) => ({
+          ...prev,
+          [listType]: booksSnapshot.docs[booksSnapshot.docs.length - 1],
+        }));
+      }
+
+      const processBooks = async (docs: any[]) => {
+        return Promise.all(
+          docs.map(async (doc) => {
+            const bookDetails = await fetchBookDetails(doc.data().bookId);
+            return {
+              id: doc.id,
+              bookId: doc.data().bookId, // Make sure bookId is included
+              userId: doc.data().userId, // Make sure userId is included
+              ...doc.data(),
+              createdAt: doc.data().createdAt.toDate(),
+              bookTitle: bookDetails?.title || "Książka niedostępna",
+              bookAuthor: bookDetails?.author || "Autor nieznany",
+            };
+          })
+        );
+      };
+
+      let newBooks = await processBooks(booksSnapshot.docs);
+
+      // Apply search filtering if search is active
+      if (isSearchActive && (searchParams.title || searchParams.author)) {
+        const normalizedTitle = searchParams.title.toLowerCase().trim();
+        const normalizedAuthor = searchParams.author.toLowerCase().trim();
+
+        if (normalizedTitle && normalizedAuthor) {
+          newBooks = newBooks.filter((book) => {
+            const formattedTitle = formatBookTitle(
+              book.bookTitle
+            ).toLowerCase();
+            return (
+              (formattedTitle.includes(normalizedTitle) ||
+                book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+              book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+            );
+          });
+        } else if (normalizedTitle) {
+          newBooks = newBooks.filter((book) => {
+            const formattedTitle = formatBookTitle(
+              book.bookTitle
+            ).toLowerCase();
+            return (
+              formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)
+            );
+          });
+        } else if (normalizedAuthor) {
+          newBooks = newBooks.filter((book) =>
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        }
+      }
+
+      // Update state with the new books (with deduplication)
+      if (listType === "owned") {
+        setOwnedBooks((prev) => {
+          const existingIds = new Set(prev.map((book) => book.id));
+          const uniqueNewBooks = newBooks.filter(
+            (book) => !existingIds.has(book.id)
+          );
+          return [...prev, ...uniqueNewBooks];
+        });
+      } else if (listType === "exchange") {
+        setExchangeBooks((prev) => {
+          const existingIds = new Set(prev.map((book) => book.id));
+          const uniqueNewBooks = newBooks.filter(
+            (book) => !existingIds.has(book.id)
+          );
+          return [...prev, ...uniqueNewBooks];
+        });
+      } else {
+        setDesiredBooks((prev) => {
+          const existingIds = new Set(prev.map((book) => book.id));
+          const uniqueNewBooks = newBooks.filter(
+            (book) => !existingIds.has(book.id)
+          );
+          return [...prev, ...uniqueNewBooks];
+        });
+      }
+    } catch (error) {
+      console.error(`Error loading more ${listType} books:`, error);
+      setError(`Wystąpił błąd podczas ładowania dodatkowych książek`);
+    } finally {
+      setLoadingMore((prev) => ({ ...prev, [listType]: false }));
+    }
   };
 
   const BookList = ({
@@ -353,10 +778,375 @@ export default function Bookshelf() {
               Brak książek
             </p>
           )}
+
+          {/* Add Load More button */}
+          {hasMoreBooks[listType] && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => loadMoreBooks(listType)}
+                disabled={loadingMore[listType]}
+                className={`text-sm px-4 py-2 rounded-lg transition-colors ${
+                  listType === "owned"
+                    ? "bg-[var(--primaryColorLight)] hover:bg-[var(--primaryColorLighter)] text-white"
+                    : listType === "exchange"
+                    ? "bg-green-500 hover:bg-green-400 text-white"
+                    : "bg-purple-500 hover:bg-purple-400 text-white"
+                }`}
+              >
+                {loadingMore[listType] ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Ładowanie...
+                  </span>
+                ) : (
+                  "Załaduj więcej"
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+
+  const SearchForm = () => {
+    // Add local state for the form inputs
+    const [localSearchParams, setLocalSearchParams] = useState({
+      title: searchParams.title,
+      author: searchParams.author,
+    });
+
+    // Handle form submission with the local values
+    const handleSubmitSearch = (e: React.FormEvent) => {
+      e.preventDefault();
+
+      // Capture the current values to use directly
+      const currentSearchParams = {
+        title: localSearchParams.title,
+        author: localSearchParams.author,
+      };
+
+      // If both search fields are empty, treat it as a search clear
+      if (
+        !currentSearchParams.title.trim() &&
+        !currentSearchParams.author.trim()
+      ) {
+        clearSearch();
+        return;
+      }
+
+      // Update parent state
+      setSearchParams(currentSearchParams);
+      setIsSearchActive(true);
+
+      // Reset pagination states
+      setLastVisibleDoc({ owned: null, exchange: null, desired: null });
+      setHasMoreBooks({ owned: false, exchange: false, desired: false });
+
+      // Clear current results before searching
+      setOwnedBooks([]);
+      setExchangeBooks([]);
+      setDesiredBooks([]);
+
+      // Call fetchBooksWithSearch with the current search params directly
+      // This avoids waiting for the state update
+      fetchBooksWithSearchDirect(currentSearchParams);
+    };
+
+    return (
+      <form
+        onSubmit={handleSubmitSearch}
+        className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)] mb-6 p-4"
+      >
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <label
+              htmlFor="searchTitle"
+              className="block text-sm font-medium mb-1 text-[var(--gray-700)]"
+            >
+              Szukaj po tytule
+            </label>
+            <input
+              type="text"
+              id="searchTitle"
+              value={localSearchParams.title}
+              onChange={(e) =>
+                setLocalSearchParams({
+                  ...localSearchParams,
+                  title: e.target.value,
+                })
+              }
+              placeholder="Wpisz tytuł książki..."
+              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primaryColorLight)]"
+            />
+          </div>
+
+          <div className="flex-1">
+            <label
+              htmlFor="searchAuthor"
+              className="block text-sm font-medium mb-1 text-[var(--gray-700)]"
+            >
+              Szukaj po autorze
+            </label>
+            <input
+              type="text"
+              id="searchAuthor"
+              value={localSearchParams.author}
+              onChange={(e) =>
+                setLocalSearchParams({
+                  ...localSearchParams,
+                  author: e.target.value,
+                })
+              }
+              placeholder="Wpisz autora książki..."
+              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primaryColorLight)]"
+            />
+          </div>
+
+          <div className="flex items-end space-x-2">
+            <button
+              type="submit"
+              className="h-10 px-4 py-2 bg-[var(--primaryColor)] hover:bg-[var(--primaryColorLight)] text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              Szukaj
+            </button>
+
+            {isSearchActive && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="h-10 px-4 py-2 border border-[var(--gray-300)] hover:bg-[var(--gray-100)] rounded-lg transition-colors text-sm"
+              >
+                Wyczyść
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isSearchActive && (
+          <div className="mt-3 text-sm text-[var(--gray-500)] flex items-center">
+            <svg
+              className="w-4 h-4 mr-1"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              ></path>
+            </svg>
+            <span>Aktywne filtry wyszukiwania</span>
+          </div>
+        )}
+      </form>
+    );
+  };
+
+  // Add this new function
+  const fetchBooksWithSearchDirect = async (searchParamsToUse: {
+    title: string;
+    author: string;
+  }) => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Use the passed parameters instead of accessing state
+      const normalizedTitle = searchParamsToUse.title.toLowerCase().trim();
+      const normalizedAuthor = searchParamsToUse.author.toLowerCase().trim();
+
+      // Rest of the function is the same, but use normalizedTitle and normalizedAuthor
+      // from the parameters instead of from searchParams state
+
+      // Create separate queries for each book category
+      // Query for owned books
+      const ownedQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", user.uid),
+        where("status", "==", null),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Query for exchange books
+      const exchangeQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", user.uid),
+        where("status", "==", "forExchange"),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Query for desired books
+      const desiredQuery = query(
+        collection(db, "bookDesire"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc"),
+        limit(booksPerPage * 2)
+      );
+
+      // Execute all queries in parallel
+      const [ownedSnapshot, exchangeSnapshot, desiredSnapshot] =
+        await Promise.all([
+          getDocs(ownedQuery),
+          getDocs(exchangeQuery),
+          getDocs(desiredQuery),
+        ]);
+
+      // Update pagination state
+      setLastVisibleDoc({
+        owned:
+          ownedSnapshot.docs.length > 0
+            ? ownedSnapshot.docs[ownedSnapshot.docs.length - 1]
+            : null,
+        exchange:
+          exchangeSnapshot.docs.length > 0
+            ? exchangeSnapshot.docs[exchangeSnapshot.docs.length - 1]
+            : null,
+        desired:
+          desiredSnapshot.docs.length > 0
+            ? desiredSnapshot.docs[desiredSnapshot.docs.length - 1]
+            : null,
+      });
+
+      // Set hasMoreBooks flags
+      setHasMoreBooks({
+        owned: ownedSnapshot.docs.length >= booksPerPage,
+        exchange: exchangeSnapshot.docs.length >= booksPerPage,
+        desired: desiredSnapshot.docs.length >= booksPerPage,
+      });
+
+      // Process books function
+      const processBooks = async (docs: any[]) => {
+        return Promise.all(
+          docs.map(async (doc) => {
+            const bookDetails = await fetchBookDetails(doc.data().bookId);
+            return {
+              id: doc.id,
+              bookId: doc.data().bookId,
+              userId: doc.data().userId,
+              ...doc.data(),
+              createdAt: doc.data().createdAt.toDate(),
+              bookTitle: bookDetails?.title || "Książka niedostępna",
+              bookAuthor: bookDetails?.author || "Autor nieznany",
+            };
+          })
+        );
+      };
+
+      // Process all three categories of books
+      const [ownedBooks, exchangeBooks, desiredBooks] = await Promise.all([
+        processBooks(ownedSnapshot.docs),
+        processBooks(exchangeSnapshot.docs),
+        processBooks(desiredSnapshot.docs),
+      ]);
+
+      // Apply search filters to each category separately
+      let filteredOwnedBooks = ownedBooks;
+      let filteredExchangeBooks = exchangeBooks;
+      let filteredDesiredBooks = desiredBooks;
+
+      if (normalizedTitle && normalizedAuthor) {
+        // Filter by both title and author
+        filteredOwnedBooks = ownedBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+
+        filteredExchangeBooks = exchangeBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+
+        filteredDesiredBooks = desiredBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            (formattedTitle.includes(normalizedTitle) ||
+              book.bookTitle?.toLowerCase().includes(normalizedTitle)) &&
+            book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+          );
+        });
+      } else if (normalizedTitle) {
+        // Filter by title only
+        filteredOwnedBooks = ownedBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+
+        filteredExchangeBooks = exchangeBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+
+        filteredDesiredBooks = desiredBooks.filter((book) => {
+          const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
+          return (
+            formattedTitle.includes(normalizedTitle) ||
+            book.bookTitle?.toLowerCase().includes(normalizedTitle)
+          );
+        });
+      } else if (normalizedAuthor) {
+        // Filter by author only
+        filteredOwnedBooks = ownedBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+
+        filteredExchangeBooks = exchangeBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+
+        filteredDesiredBooks = desiredBooks.filter((book) =>
+          book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
+        );
+      }
+
+      // Update state with filtered results
+      setOwnedBooks(filteredOwnedBooks.slice(0, booksPerPage));
+      setExchangeBooks(filteredExchangeBooks.slice(0, booksPerPage));
+      setDesiredBooks(filteredDesiredBooks.slice(0, booksPerPage));
+    } catch (error) {
+      console.error("Error searching books:", error);
+      setError("Wystąpił błąd podczas wyszukiwania książek");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (error) {
     return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -377,6 +1167,10 @@ export default function Bookshelf() {
           Moja półka
         </h1>
 
+        {/* Add the search form */}
+        <SearchForm />
+
+        {/* Always show all book lists */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BookList
             books={ownedBooks}
@@ -397,6 +1191,19 @@ export default function Bookshelf() {
             listType="desired"
           />
         </div>
+
+        {/* Show a message when no search results */}
+        {isSearchActive &&
+          (searchParams.title || searchParams.author) &&
+          ownedBooks.length === 0 &&
+          exchangeBooks.length === 0 &&
+          desiredBooks.length === 0 && (
+            <div className="text-center mt-8 p-6 bg-[var(--card-background)] rounded-xl shadow-sm border border-[var(--gray-100)]">
+              <p className="text-[var(--gray-600)]">
+                Nie znaleziono książek pasujących do kryteriów wyszukiwania.
+              </p>
+            </div>
+          )}
       </div>
     </main>
   );
