@@ -80,6 +80,11 @@ export default function Home() {
     [key: string]: boolean;
   }>({});
 
+  // Add state to track the active category filter
+  const [activeFilter, setActiveFilter] = useState<
+    "genre" | "author" | "language"
+  >("genre");
+
   useEffect(() => {
     const fetchRecommendationCategories = async () => {
       if (!user) return;
@@ -312,6 +317,112 @@ export default function Home() {
     </div>
   );
 
+  // Create a skeleton loader component for books
+  const BookSkeleton = () => (
+    <div className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col animate-pulse">
+      {/* Title bar skeleton */}
+      <div className="bg-[var(--gray-200)] px-2 sm:px-3 py-5">
+        <div className="flex justify-between items-start gap-2">
+          <div className="h-3 bg-[var(--gray-300)] rounded w-3/4"></div>
+          <div className="h-3 bg-[var(--gray-300)] rounded w-8"></div>
+        </div>
+      </div>
+
+      {/* Content skeleton */}
+      <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
+        {/* Book cover skeleton */}
+        <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-200)] flex-shrink-0"></div>
+
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Author skeleton */}
+          <div className="mb-1 sm:mb-2">
+            <div className="h-2 bg-[var(--gray-300)] rounded w-16 mb-1"></div>
+            <div className="h-2 bg-[var(--gray-200)] rounded w-full mb-1"></div>
+            <div className="h-2 bg-[var(--gray-200)] rounded w-2/3"></div>
+          </div>
+
+          {/* Year and language skeleton */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            <div className="h-2 bg-[var(--gray-300)] rounded w-12"></div>
+            <div className="h-2 bg-[var(--gray-300)] rounded w-16"></div>
+          </div>
+
+          {/* Genre skeleton */}
+          <div className="mb-2">
+            <div className="h-4 bg-[var(--gray-200)] rounded-full w-20"></div>
+          </div>
+
+          {/* Button skeleton */}
+          <div className="mt-auto pt-1 text-right">
+            <div className="h-6 bg-[var(--gray-300)] rounded w-24 ml-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Create a function to render the filter tabs
+  const renderCategoryFilters = () => {
+    return (
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center mb-6">
+        <div className="bg-[var(--card-background)] p-1 rounded-lg shadow-sm flex">
+          <button
+            onClick={() => setActiveFilter("genre")}
+            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
+              activeFilter === "genre"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
+            }`}
+          >
+            Gatunki
+          </button>
+          <button
+            onClick={() => setActiveFilter("author")}
+            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
+              activeFilter === "author"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
+            }`}
+          >
+            Autorzy
+          </button>
+          <button
+            onClick={() => setActiveFilter("language")}
+            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
+              activeFilter === "language"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
+            }`}
+          >
+            Języki
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Create a helper function to get the recommendations for the active filter
+  // Remove the title property as we don't need it anymore
+  const getActiveRecommendations = () => {
+    switch (activeFilter) {
+      case "genre":
+        return {
+          recommendations: recommendations.byGenre,
+          type: "genre",
+        };
+      case "author":
+        return {
+          recommendations: recommendations.byAuthor,
+          type: "author",
+        };
+      case "language":
+        return {
+          recommendations: recommendations.byLanguage,
+          type: "language",
+        };
+    }
+  };
+
   if (authLoading || isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
@@ -319,6 +430,15 @@ export default function Home() {
       </div>
     );
   }
+
+  // Check if there are any recommendations at all
+  const hasAnyRecommendations =
+    recommendations.byGenre.length > 0 ||
+    recommendations.byAuthor.length > 0 ||
+    recommendations.byLanguage.length > 0;
+
+  // Get the current active recommendations
+  const activeRecommendationsData = getActiveRecommendations();
 
   return (
     <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
@@ -332,225 +452,117 @@ export default function Home() {
           </p>
         </div>
 
-        {recommendations.byGenre.length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
-            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
-              Polecane w Twoich ulubionych gatunkach
-            </h2>
-            <div className="space-y-8">
-              {recommendations.byGenre.map((group) => {
-                const key = `genre-${group.category}`;
-                const isExpanded = expandedSections[key] ?? false;
-                const isLoading = loadingCategories[key] ?? false;
+        {hasAnyRecommendations && (
+          <>
+            {/* Add the category filters */}
+            {renderCategoryFilters()}
 
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("genre", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
-                          isExpanded ? "rotate-180" : "rotate-0"
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+            <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+              <div className="space-y-8">
+                {activeRecommendationsData.recommendations.length > 0 ? (
+                  activeRecommendationsData.recommendations.map((group) => {
+                    const key = `${activeRecommendationsData.type}-${group.category}`;
+                    const isExpanded = expandedSections[key] ?? false;
+                    const isLoading = loadingCategories[key] ?? false;
+
+                    return (
+                      <div
+                        key={group.category}
+                        className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        isExpanded
-                          ? "max-h-[2000px] opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      {isLoading ? (
-                        <div className="flex justify-center py-12">
-                          <LoadingSpinner />
+                        <button
+                          onClick={() =>
+                            toggleSection(
+                              activeRecommendationsData.type,
+                              group.category
+                            )
+                          }
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
+                            {group.category}
+                          </h3>
+                          <svg
+                            className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                              isExpanded ? "rotate-180" : "rotate-0"
+                            }`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            isExpanded
+                              ? "max-h-[2000px] opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          {isLoading ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                              {/* Replace LoadingSpinner with book skeletons */}
+                              {[1, 2, 3, 4].map((i) => (
+                                <BookSkeleton key={i} />
+                              ))}
+                            </div>
+                          ) : group.books.length > 0 ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                              {group.books.map((book) => renderBookCard(book))}
+                            </div>
+                          ) : (
+                            <div className="py-8 text-center text-[var(--gray-500)]">
+                              Nie znaleziono książek{" "}
+                              {activeFilter === "genre"
+                                ? "w tej kategorii"
+                                : activeFilter === "author"
+                                ? "tego autora"
+                                : "w tym języku"}
+                              .
+                            </div>
+                          )}
                         </div>
-                      ) : group.books.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                          {group.books.map((book) => renderBookCard(book))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center text-[var(--gray-500)]">
-                          Nie znaleziono książek w tej kategorii.
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="py-8 text-center text-[var(--gray-500)]">
+                    Nie znaleziono rekomendacji dla{" "}
+                    {activeFilter === "genre"
+                      ? "gatunków"
+                      : activeFilter === "author"
+                      ? "autorów"
+                      : "języków"}
+                    .
                   </div>
-                );
-              })}
-            </div>
-          </section>
+                )}
+              </div>
+            </section>
+          </>
         )}
 
-        {recommendations.byAuthor.length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
-            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
-              Więcej od Twoich ulubionych autorów
+        {!hasAnyRecommendations && (
+          <div className="text-center py-12">
+            <BookOpenIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+              Brak spersonalizowanych rekomendacji
             </h2>
-            <div className="space-y-8">
-              {recommendations.byAuthor.map((group) => {
-                const key = `author-${group.category}`;
-                const isExpanded = expandedSections[key] ?? false;
-                const isLoading = loadingCategories[key] ?? false;
-
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("author", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
-                          isExpanded ? "rotate-180" : "rotate-0"
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        isExpanded
-                          ? "max-h-[2000px] opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      {isLoading ? (
-                        <div className="flex justify-center py-12">
-                          <LoadingSpinner />
-                        </div>
-                      ) : group.books.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                          {group.books.map((book) => renderBookCard(book))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center text-[var(--gray-500)]">
-                          Nie znaleziono książek tego autora.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+            <p className="text-[var(--gray-500)] max-w-md mx-auto text-sm">
+              Aby otrzymać spersonalizowane rekomendacje:
+            </p>
+            <ul className="text-[var(--gray-500)] mt-2 space-y-1 text-xs">
+              <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
+              <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
+              <li>• Sprawdź książki różnych autorów</li>
+            </ul>
+          </div>
         )}
-
-        {recommendations.byLanguage.length > 0 && (
-          <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
-            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">
-              Książki w preferowanych językach
-            </h2>
-            <div className="space-y-8">
-              {recommendations.byLanguage.map((group) => {
-                const key = `language-${group.category}`;
-                const isExpanded = expandedSections[key] ?? false;
-                const isLoading = loadingCategories[key] ?? false;
-
-                return (
-                  <div
-                    key={group.category}
-                    className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
-                  >
-                    <button
-                      onClick={() => toggleSection("language", group.category)}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
-                        {group.category}
-                      </h3>
-                      <svg
-                        className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
-                          isExpanded ? "rotate-180" : "rotate-0"
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        isExpanded
-                          ? "max-h-[2000px] opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      {isLoading ? (
-                        <div className="flex justify-center py-12">
-                          <LoadingSpinner />
-                        </div>
-                      ) : group.books.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                          {group.books.map((book) => renderBookCard(book))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center text-[var(--gray-500)]">
-                          Nie znaleziono książek w tym języku.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {recommendations.byGenre.length === 0 &&
-          recommendations.byAuthor.length === 0 &&
-          recommendations.byLanguage.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpenIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
-                Brak spersonalizowanych rekomendacji
-              </h2>
-              <p className="text-[var(--gray-500)] max-w-md mx-auto text-sm">
-                Aby otrzymać spersonalizowane rekomendacje:
-              </p>
-              <ul className="text-[var(--gray-500)] mt-2 space-y-1 text-xs">
-                <li>• Oceń więcej książek (minimum 7/10 gwiazdek)</li>
-                <li>• Przeglądaj i oceniaj książki z różnych gatunków</li>
-                <li>• Sprawdź książki różnych autorów</li>
-              </ul>
-            </div>
-          )}
       </div>
     </main>
   );
