@@ -80,10 +80,15 @@ export default function Home() {
     [key: string]: boolean;
   }>({});
 
-  // Add state to track the active category filter
-  const [activeFilter, setActiveFilter] = useState<
-    "genre" | "author" | "language"
-  >("genre");
+  // Replace selectedFilters with a more detailed structure
+  const [selectedFilters, setSelectedFilters] = useState({
+    genre: null as string | null,
+    author: null as string | null,
+    language: null as string | null,
+  });
+
+  // Add state for filtered books
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
   useEffect(() => {
     const fetchRecommendationCategories = async () => {
@@ -121,6 +126,62 @@ export default function Home() {
 
     fetchRecommendationCategories();
   }, [user]);
+
+  // Add a new function to fetch combined filtered books
+  const fetchFilteredBooks = async () => {
+    if (!user) return;
+
+    // Don't fetch if no filters are selected
+    if (
+      !selectedFilters.genre &&
+      !selectedFilters.author &&
+      !selectedFilters.language
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Build query parameters from selected filters
+      const params = new URLSearchParams();
+      params.append("userId", user.uid);
+
+      if (selectedFilters.genre) {
+        params.append("genre", selectedFilters.genre);
+      }
+      if (selectedFilters.author) {
+        params.append("author", selectedFilters.author);
+      }
+      if (selectedFilters.language) {
+        params.append("language", selectedFilters.language);
+      }
+
+      const response = await fetch(
+        `/api/recommendations/filtered?${params.toString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch filtered books");
+      }
+
+      const data = await response.json();
+      setFilteredBooks(data.books);
+    } catch (error) {
+      console.error("Error fetching filtered books:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFilteredBooks();
+  }, [
+    selectedFilters.genre,
+    selectedFilters.author,
+    selectedFilters.language,
+    user,
+  ]);
 
   const fetchCategoryBooks = async (categoryType: string, category: string) => {
     const key = `${categoryType}-${category}`;
@@ -361,66 +422,275 @@ export default function Home() {
     </div>
   );
 
-  // Create a function to render the filter tabs
+  // Update renderCategoryFilters function with improved styling
   const renderCategoryFilters = () => {
+    // Filter selection functionality (unchanged)
+    const selectFilter = (
+      type: "genre" | "author" | "language",
+      value: string | null
+    ) => {
+      setSelectedFilters((prev) => ({
+        ...prev,
+        [type]: prev[type] === value ? null : value,
+      }));
+    };
+
     return (
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center mb-6">
-        <div className="bg-[var(--card-background)] p-1 rounded-lg shadow-sm flex">
-          <button
-            onClick={() => setActiveFilter("genre")}
-            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
-              activeFilter === "genre"
-                ? "bg-[var(--primaryColor)] text-white"
-                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
-            }`}
-          >
-            Gatunki
-          </button>
-          <button
-            onClick={() => setActiveFilter("author")}
-            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
-              activeFilter === "author"
-                ? "bg-[var(--primaryColor)] text-white"
-                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
-            }`}
-          >
-            Autorzy
-          </button>
-          <button
-            onClick={() => setActiveFilter("language")}
-            className={`px-4 py-2 mx-2 rounded-md text-sm font-medium transition-colors flex-1 ${
-              activeFilter === "language"
-                ? "bg-[var(--primaryColor)] text-white"
-                : "text-[var(--gray-600)] hover:bg-[var(--gray-100)]"
-            }`}
-          >
-            Języki
-          </button>
+      <div className="sticky top-14 z-10 pt-4 pb-3 bg-[var(--background)] mb-6">
+        <div className="max-w-5xl mx-auto px-3">
+          <h3 className="text-center text-sm font-medium mb-3 text-[var(--gray-700)]">
+            Filtruj rekomendacje
+          </h3>
+
+          {/* Filter value selectors with improved styling */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Genre filters */}
+            <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
+              <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
+                Gatunki
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1 custom-scrollbar">
+                {recommendations.byGenre.map((item) => (
+                  <button
+                    key={item.category}
+                    onClick={() => selectFilter("genre", item.category)}
+                    className={`text-xs px-3 py-1.5 rounded-full transition-all duration-200 ${
+                      selectedFilters.genre === item.category
+                        ? "bg-[var(--primaryColor)] text-white shadow-sm"
+                        : "bg-[var(--gray-50)] text-[var(--gray-700)] hover:bg-[var(--gray-100)] border border-[var(--gray-100)]"
+                    }`}
+                  >
+                    {item.category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Author filters - with individual author parsing */}
+            <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
+              <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Autorzy
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1 custom-scrollbar">
+                {/* Process each author group to extract individual authors */}
+                {recommendations.byAuthor.flatMap((item) => {
+                  // Get individual authors from the complex string
+                  const authors = splitAuthors(item.category);
+
+                  // Return a button for each individual author, with the original group as data attribute
+                  return authors
+                    .map((author, index) => {
+                      // Skip publishers or very short names (likely not authors)
+                      if (author.length < 4) return null;
+
+                      // Remove dates and normalize the author name
+                      const cleanAuthor = author
+                        .replace(/\(\d{4}-\d{4}\)/g, "")
+                        .replace(/\(\d{4}-\s*\)/g, "")
+                        .trim();
+
+                      return (
+                        <button
+                          key={`${item.category}-${index}`}
+                          onClick={() => selectFilter("author", cleanAuthor)}
+                          className={`text-xs px-3 py-1.5 rounded-full transition-all duration-200 ${
+                            selectedFilters.author === cleanAuthor
+                              ? "bg-[var(--primaryColor)] text-white shadow-sm"
+                              : "bg-[var(--gray-50)] text-[var(--gray-700)] hover:bg-[var(--gray-100)] border border-[var(--gray-100)]"
+                          }`}
+                          title={item.category} // Show the full original string on hover
+                        >
+                          {cleanAuthor}
+                        </button>
+                      );
+                    })
+                    .filter(Boolean); // Remove nulls
+                })}
+              </div>
+            </div>
+
+            {/* Language filters */}
+            <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
+              <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 21.034 21.034 0 01-.554-.6 19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Języki
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1 custom-scrollbar">
+                {recommendations.byLanguage.map((item) => (
+                  <button
+                    key={item.category}
+                    onClick={() => selectFilter("language", item.category)}
+                    className={`text-xs px-3 py-1.5 rounded-full transition-all duration-200 ${
+                      selectedFilters.language === item.category
+                        ? "bg-[var(--primaryColor)] text-white shadow-sm"
+                        : "bg-[var(--gray-50)] text-[var(--gray-700)] hover:bg-[var(--gray-100)] border border-[var(--gray-100)]"
+                    }`}
+                  >
+                    {item.category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Active filter chips with improved styling */}
+          {(selectedFilters.genre ||
+            selectedFilters.author ||
+            selectedFilters.language) && (
+            <div className="flex flex-wrap gap-2 justify-center mt-3 bg-[var(--gray-50)] rounded-lg p-2 border border-[var(--gray-100)] shadow-inner">
+              <div className="text-xs text-[var(--gray-500)] self-center">
+                Aktywne filtry:
+              </div>
+              {selectedFilters.genre && (
+                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                  <svg
+                    className="h-3 w-3 mr-1 opacity-70"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                  <span>{selectedFilters.genre}</span>
+                  <button
+                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                    onClick={() => selectFilter("genre", null)}
+                    aria-label="Usuń filtr gatunku"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {selectedFilters.author && (
+                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                  <svg
+                    className="h-3 w-3 mr-1 opacity-70"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span>{selectedFilters.author}</span>
+                  <button
+                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                    onClick={() => selectFilter("author", null)}
+                    aria-label="Usuń filtr autora"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {selectedFilters.language && (
+                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                  <svg
+                    className="h-3 w-3 mr-1 opacity-70"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                    />
+                  </svg>
+                  <span>{selectedFilters.language}</span>
+                  <button
+                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                    onClick={() => selectFilter("language", null)}
+                    aria-label="Usuń filtr języka"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Clear all filters button */}
+              {(selectedFilters.genre ||
+                selectedFilters.author ||
+                selectedFilters.language) && (
+                <button
+                  onClick={() =>
+                    setSelectedFilters({
+                      genre: null,
+                      author: null,
+                      language: null,
+                    })
+                  }
+                  className="text-xs bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] px-2 py-1 rounded-md ml-1 transition-colors"
+                >
+                  Wyczyść wszystkie
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
   };
 
-  // Create a helper function to get the recommendations for the active filter
-  // Remove the title property as we don't need it anymore
+  // Replace the existing getActiveRecommendations function
   const getActiveRecommendations = () => {
-    switch (activeFilter) {
-      case "genre":
-        return {
-          recommendations: recommendations.byGenre,
-          type: "genre",
-        };
-      case "author":
-        return {
-          recommendations: recommendations.byAuthor,
-          type: "author",
-        };
-      case "language":
-        return {
-          recommendations: recommendations.byLanguage,
-          type: "language",
-        };
-    }
+    return [
+      {
+        type: "genre",
+        recommendations: recommendations.byGenre,
+        title: "Gatunki",
+      },
+      {
+        type: "author",
+        recommendations: recommendations.byAuthor,
+        title: "Autorzy",
+      },
+      {
+        type: "language",
+        recommendations: recommendations.byLanguage,
+        title: "Języki",
+      },
+    ];
   };
 
   if (authLoading || isLoading || !user) {
@@ -438,7 +708,7 @@ export default function Home() {
     recommendations.byLanguage.length > 0;
 
   // Get the current active recommendations
-  const activeRecommendationsData = getActiveRecommendations();
+  const activeRecommendations = getActiveRecommendations();
 
   return (
     <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
@@ -454,95 +724,131 @@ export default function Home() {
 
         {hasAnyRecommendations && (
           <>
-            {/* Add the category filters */}
             {renderCategoryFilters()}
 
             <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
-              <div className="space-y-8">
-                {activeRecommendationsData.recommendations.length > 0 ? (
-                  activeRecommendationsData.recommendations.map((group) => {
-                    const key = `${activeRecommendationsData.type}-${group.category}`;
-                    const isExpanded = expandedSections[key] ?? false;
-                    const isLoading = loadingCategories[key] ?? false;
+              {/* When filters are applied, show filtered results */}
+              {selectedFilters.genre ||
+              selectedFilters.author ||
+              selectedFilters.language ? (
+                <div>
+                  <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">
+                    Rekomendacje dopasowane do filtrów
+                  </h2>
+                  {isLoading ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {[1, 2, 3, 4].map((i) => (
+                        <BookSkeleton key={i} />
+                      ))}
+                    </div>
+                  ) : filteredBooks.length > 0 ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {filteredBooks.map((book) => renderBookCard(book))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-[var(--gray-500)]">
+                      Nie znaleziono książek spełniających wszystkie kryteria.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Original categorized recommendations when no filters are applied
+                <div className="space-y-8">
+                  {getActiveRecommendations().map(
+                    ({ type, recommendations, title }) => (
+                      <div key={type} className="pb-6">
+                        <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">
+                          {title}
+                        </h2>
 
-                    return (
-                      <div
-                        key={group.category}
-                        className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
-                      >
-                        <button
-                          onClick={() =>
-                            toggleSection(
-                              activeRecommendationsData.type,
-                              group.category
-                            )
-                          }
-                          className="w-full flex items-center justify-between text-left"
-                        >
-                          <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
-                            {group.category}
-                          </h3>
-                          <svg
-                            className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
-                              isExpanded ? "rotate-180" : "rotate-0"
-                            }`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-                        <div
-                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            isExpanded
-                              ? "max-h-[2000px] opacity-100"
-                              : "max-h-0 opacity-0"
-                          }`}
-                        >
-                          {isLoading ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                              {/* Replace LoadingSpinner with book skeletons */}
-                              {[1, 2, 3, 4].map((i) => (
-                                <BookSkeleton key={i} />
-                              ))}
-                            </div>
-                          ) : group.books.length > 0 ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                              {group.books.map((book) => renderBookCard(book))}
-                            </div>
+                        <div className="space-y-8">
+                          {recommendations.length > 0 ? (
+                            recommendations.map((group) => {
+                              const key = `${type}-${group.category}`;
+                              const isExpanded = expandedSections[key] ?? false;
+                              const isLoading = loadingCategories[key] ?? false;
+
+                              return (
+                                <div
+                                  key={key}
+                                  className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
+                                >
+                                  <button
+                                    onClick={() =>
+                                      toggleSection(type, group.category)
+                                    }
+                                    className="w-full flex items-center justify-between text-left"
+                                  >
+                                    <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
+                                      {group.category}
+                                    </h3>
+                                    <svg
+                                      className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
+                                        isExpanded ? "rotate-180" : "rotate-0"
+                                      }`}
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <div
+                                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                      isExpanded
+                                        ? "max-h-[2000px] opacity-100"
+                                        : "max-h-0 opacity-0"
+                                    }`}
+                                  >
+                                    {isLoading ? (
+                                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                                        {[1, 2, 3, 4].map((i) => (
+                                          <BookSkeleton key={i} />
+                                        ))}
+                                      </div>
+                                    ) : group.books.length > 0 ? (
+                                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                                        {group.books.map((book) =>
+                                          renderBookCard(book)
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="py-8 text-center text-[var(--gray-500)]">
+                                        Nie znaleziono książek{" "}
+                                        {type === "genre"
+                                          ? "w tej kategorii"
+                                          : type === "author"
+                                          ? "tego autora"
+                                          : "w tym języku"}
+                                        .
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })
                           ) : (
                             <div className="py-8 text-center text-[var(--gray-500)]">
-                              Nie znaleziono książek{" "}
-                              {activeFilter === "genre"
-                                ? "w tej kategorii"
-                                : activeFilter === "author"
-                                ? "tego autora"
-                                : "w tym języku"}
+                              Nie znaleziono rekomendacji dla{" "}
+                              {type === "genre"
+                                ? "gatunków"
+                                : type === "author"
+                                ? "autorów"
+                                : "języków"}
                               .
                             </div>
                           )}
                         </div>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="py-8 text-center text-[var(--gray-500)]">
-                    Nie znaleziono rekomendacji dla{" "}
-                    {activeFilter === "genre"
-                      ? "gatunków"
-                      : activeFilter === "author"
-                      ? "autorów"
-                      : "języków"}
-                    .
-                  </div>
-                )}
-              </div>
+                    )
+                  )}
+                </div>
+              )}
             </section>
           </>
         )}
