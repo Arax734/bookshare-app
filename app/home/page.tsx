@@ -422,21 +422,21 @@ export default function Home() {
     </div>
   );
 
-  // Update renderCategoryFilters function with improved styling
-  const renderCategoryFilters = () => {
-    // Filter selection functionality (unchanged)
-    const selectFilter = (
-      type: "genre" | "author" | "language",
-      value: string | null
-    ) => {
-      setSelectedFilters((prev) => ({
-        ...prev,
-        [type]: prev[type] === value ? null : value,
-      }));
-    };
+  // Move the selectFilter function outside of renderCategoryFilters to the component level
+  const selectFilter = (
+    type: "genre" | "author" | "language",
+    value: string | null
+  ) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [type]: prev[type] === value ? null : value,
+    }));
+  };
 
+  // Update renderCategoryFilters to remove the internal function definition
+  const renderCategoryFilters = () => {
     return (
-      <div className="sticky top-14 z-10 pt-4 pb-3 bg-[var(--background)] mb-6">
+      <div className="pt-4 pb-3 bg-[var(--background)] mb-6">
         <div className="max-w-5xl mx-auto px-3">
           <h3 className="text-center text-sm font-medium mb-3 text-[var(--gray-700)]">
             Filtruj rekomendacje
@@ -563,110 +563,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-
           {/* Active filter chips with improved styling */}
-          {(selectedFilters.genre ||
-            selectedFilters.author ||
-            selectedFilters.language) && (
-            <div className="flex flex-wrap gap-2 justify-center mt-3 bg-[var(--gray-50)] rounded-lg p-2 border border-[var(--gray-100)] shadow-inner">
-              <div className="text-xs text-[var(--gray-500)] self-center">
-                Aktywne filtry:
-              </div>
-              {selectedFilters.genre && (
-                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
-                  <svg
-                    className="h-3 w-3 mr-1 opacity-70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                    />
-                  </svg>
-                  <span>{selectedFilters.genre}</span>
-                  <button
-                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
-                    onClick={() => selectFilter("genre", null)}
-                    aria-label="Usuń filtr gatunku"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {selectedFilters.author && (
-                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
-                  <svg
-                    className="h-3 w-3 mr-1 opacity-70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <span>{selectedFilters.author}</span>
-                  <button
-                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
-                    onClick={() => selectFilter("author", null)}
-                    aria-label="Usuń filtr autora"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {selectedFilters.language && (
-                <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
-                  <svg
-                    className="h-3 w-3 mr-1 opacity-70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                    />
-                  </svg>
-                  <span>{selectedFilters.language}</span>
-                  <button
-                    className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
-                    onClick={() => selectFilter("language", null)}
-                    aria-label="Usuń filtr języka"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-
-              {/* Clear all filters button */}
-              {(selectedFilters.genre ||
-                selectedFilters.author ||
-                selectedFilters.language) && (
-                <button
-                  onClick={() =>
-                    setSelectedFilters({
-                      genre: null,
-                      author: null,
-                      language: null,
-                    })
-                  }
-                  className="text-xs bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] px-2 py-1 rounded-md ml-1 transition-colors"
-                >
-                  Wyczyść wszystkie
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
     );
@@ -725,14 +622,128 @@ export default function Home() {
         {hasAnyRecommendations && (
           <>
             {renderCategoryFilters()}
+            {(selectedFilters.genre ||
+              selectedFilters.author ||
+              selectedFilters.language) && (
+              <div className="sticky top-14 z-10 flex flex-wrap gap-2 justify-center mt-2 bg-[var(--gray-50)] rounded-lg p-2 border border-[var(--gray-100)] shadow-inner">
+                <div className="text-xs text-[var(--gray-500)] self-center">
+                  Aktywne filtry:
+                </div>
+                {selectedFilters.genre && (
+                  <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                    <svg
+                      className="h-3 w-3 mr-1 opacity-70"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
+                    </svg>
+                    <span>{selectedFilters.genre}</span>
+                    <button
+                      className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                      onClick={() => selectFilter("genre", null)}
+                      aria-label="Usuń filtr gatunku"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                {selectedFilters.author && (
+                  <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                    <svg
+                      className="h-3 w-3 mr-1 opacity-70"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span>{selectedFilters.author}</span>
+                    <button
+                      className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                      onClick={() => selectFilter("author", null)}
+                      aria-label="Usuń filtr autora"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                {selectedFilters.language && (
+                  <div className="flex items-center bg-[var(--primaryColor)] text-white text-xs px-3 py-1.5 rounded-full shadow-sm">
+                    <svg
+                      className="h-3 w-3 mr-1 opacity-70"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                      />
+                    </svg>
+                    <span>{selectedFilters.language}</span>
+                    <button
+                      className="ml-1.5 hover:text-gray-200 bg-white/20 rounded-full h-4 w-4 flex items-center justify-center"
+                      onClick={() => selectFilter("language", null)}
+                      aria-label="Usuń filtr języka"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
 
-            <section className="bg-[var(--card-background)] rounded-xl p-4 shadow-md">
+                {/* Clear all filters button */}
+                {(selectedFilters.genre ||
+                  selectedFilters.author ||
+                  selectedFilters.language) && (
+                  <button
+                    onClick={() =>
+                      setSelectedFilters({
+                        genre: null,
+                        author: null,
+                        language: null,
+                      })
+                    }
+                    className="text-xs bg-[var(--gray-200)] hover:bg-[var(--gray-300)] text-[var(--gray-700)] px-2 py-1 rounded-md ml-1 transition-colors"
+                  >
+                    Wyczyść wszystkie
+                  </button>
+                )}
+              </div>
+            )}
+            <section className="bg-[var(--card-background)] rounded-xl p-4 sm:p-6 shadow-md">
               {/* When filters are applied, show filtered results */}
               {selectedFilters.genre ||
               selectedFilters.author ||
               selectedFilters.language ? (
                 <div>
-                  <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">
+                  <h2 className="text-lg font-semibold mb-6 text-[var(--foreground)] flex items-center border-b pb-3 border-[var(--gray-100)]">
+                    <svg
+                      className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
                     Rekomendacje dopasowane do filtrów
                   </h2>
                   {isLoading ? (
@@ -746,8 +757,28 @@ export default function Home() {
                       {filteredBooks.map((book) => renderBookCard(book))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center text-[var(--gray-500)]">
-                      Nie znaleziono książek spełniających wszystkie kryteria.
+                    <div className="py-12 text-center text-[var(--gray-500)]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-12 w-12 mx-auto mb-3 text-[var(--gray-300)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-base font-medium mb-1">
+                        Nie znaleziono książek spełniających wszystkie kryteria
+                      </p>
+                      <p className="text-sm">
+                        Spróbuj użyć mniejszej liczby filtrów lub wybierz inne
+                        kategorie
+                      </p>
                     </div>
                   )}
                 </div>
@@ -757,11 +788,54 @@ export default function Home() {
                   {getActiveRecommendations().map(
                     ({ type, recommendations, title }) => (
                       <div key={type} className="pb-6">
-                        <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">
+                        <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)] flex items-center border-b pb-3 border-[var(--gray-100)]">
+                          {type === "genre" ? (
+                            <svg
+                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                              />
+                            </svg>
+                          ) : type === "author" ? (
+                            <svg
+                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                              />
+                            </svg>
+                          )}
                           {title}
                         </h2>
 
-                        <div className="space-y-8">
+                        <div className="space-y-4">
                           {recommendations.length > 0 ? (
                             recommendations.map((group) => {
                               const key = `${type}-${group.category}`;
@@ -771,76 +845,117 @@ export default function Home() {
                               return (
                                 <div
                                   key={key}
-                                  className="bg-[var(--background)] rounded-lg p-3 shadow-sm"
+                                  className={`bg-[var(--background)] rounded-lg overflow-hidden shadow-sm border border-[var(--gray-100)] transition-all duration-300 ${
+                                    isExpanded ? "shadow-md" : ""
+                                  }`}
                                 >
                                   <button
                                     onClick={() =>
                                       toggleSection(type, group.category)
                                     }
-                                    className="w-full flex items-center justify-between text-left"
+                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-[var(--gray-50)] transition-colors"
                                   >
-                                    <h3 className="text-base font-semibold text-[var(--foreground)] pb-1">
+                                    <h3 className="text-base font-medium text-[var(--foreground)] flex items-center">
                                       {group.category}
                                     </h3>
-                                    <svg
-                                      className={`w-5 h-5 transform transition-transform duration-300 ease-in-out ${
-                                        isExpanded ? "rotate-180" : "rotate-0"
-                                      }`}
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 9l-7 7-7-7"
-                                      />
-                                    </svg>
+                                    <div className="flex items-center">
+                                      {isExpanded && isLoading && (
+                                        <div className="w-4 h-4 mr-2 border-2 border-[var(--gray-300)] border-t-[var(--primaryColor)] rounded-full animate-spin"></div>
+                                      )}
+                                      <svg
+                                        className={`w-5 h-5 text-[var(--gray-400)] transform transition-transform duration-300 ease-in-out ${
+                                          isExpanded ? "rotate-180" : "rotate-0"
+                                        }`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M19 9l-7 7-7-7"
+                                        />
+                                      </svg>
+                                    </div>
                                   </button>
                                   <div
                                     className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                      isExpanded
-                                        ? "max-h-[2000px] opacity-100"
-                                        : "max-h-0 opacity-0"
+                                      isExpanded ? "block" : "hidden"
                                     }`}
                                   >
-                                    {isLoading ? (
-                                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                                        {[1, 2, 3, 4].map((i) => (
-                                          <BookSkeleton key={i} />
-                                        ))}
-                                      </div>
-                                    ) : group.books.length > 0 ? (
-                                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                                        {group.books.map((book) =>
-                                          renderBookCard(book)
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="py-8 text-center text-[var(--gray-500)]">
-                                        Nie znaleziono książek{" "}
-                                        {type === "genre"
-                                          ? "w tej kategorii"
-                                          : type === "author"
-                                          ? "tego autora"
-                                          : "w tym języku"}
-                                        .
-                                      </div>
-                                    )}
+                                    <div className="px-4 pb-4">
+                                      {isLoading ? (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                                          {[1, 2, 3, 4].map((i) => (
+                                            <BookSkeleton key={i} />
+                                          ))}
+                                        </div>
+                                      ) : group.books.length > 0 ? (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                                          {group.books.map((book) =>
+                                            renderBookCard(book)
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div className="py-8 text-center text-[var(--gray-500)]">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-10 w-10 mx-auto mb-2 text-[var(--gray-300)]"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={1.5}
+                                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                            />
+                                          </svg>
+                                          <p>
+                                            Nie znaleziono książek{" "}
+                                            {type === "genre"
+                                              ? "w tej kategorii"
+                                              : type === "author"
+                                              ? "tego autora"
+                                              : "w tym języku"}
+                                            .
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               );
                             })
                           ) : (
-                            <div className="py-8 text-center text-[var(--gray-500)]">
-                              Nie znaleziono rekomendacji dla{" "}
-                              {type === "genre"
-                                ? "gatunków"
-                                : type === "author"
-                                ? "autorów"
-                                : "języków"}
-                              .
+                            <div className="py-10 text-center text-[var(--gray-500)] bg-[var(--background)] rounded-lg border border-dashed border-[var(--gray-200)]">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-10 w-10 mx-auto mb-3 text-[var(--gray-300)]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={1.5}
+                                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                />
+                              </svg>
+                              <p className="font-medium mb-1">
+                                Nie znaleziono rekomendacji
+                              </p>
+                              <p className="text-sm">
+                                Brak rekomendacji dla{" "}
+                                {type === "genre"
+                                  ? "gatunków"
+                                  : type === "author"
+                                  ? "autorów"
+                                  : "języków"}
+                              </p>
                             </div>
                           )}
                         </div>
