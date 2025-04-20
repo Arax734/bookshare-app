@@ -119,8 +119,8 @@ export default function Friends() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-4">
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="max-w-4xl space-y-4 sm:space-y-6">
         <div className="relative">
           <h2 className="text-lg sm:text-xl font-semibold text-[var(--gray-800)] mb-2 sm:mb-3">
             Zaproszenia do kontaktów ({invites.length})
