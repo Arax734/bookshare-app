@@ -429,7 +429,7 @@ export default function Bookshelf() {
         });
       }
 
-      // Update the local state to reflect the change
+      // Handle moving the book between lists, regardless of search state
       if (newStatus === "forExchange") {
         // Moving from "Moje książki" to "Książki do wymiany"
         const bookToMove = ownedBooks.find(
@@ -439,10 +439,55 @@ export default function Bookshelf() {
           setOwnedBooks(
             ownedBooks.filter((book) => book.id !== bookOwnershipId)
           );
-          setExchangeBooks([
-            ...exchangeBooks,
-            { ...bookToMove, status: "forExchange" },
-          ]);
+
+          // Add to exchange books with updated status
+          const updatedBook = { ...bookToMove, status: "forExchange" };
+
+          // If search is active, check if the moved book still meets search criteria
+          if (isSearchActive && (searchParams.title || searchParams.author)) {
+            const normalizedTitle = searchParams.title.toLowerCase().trim();
+            const normalizedAuthor = searchParams.author.toLowerCase().trim();
+
+            const formattedTitle = formatBookTitle(
+              updatedBook.bookTitle
+            ).toLowerCase();
+            let meetsSearchCriteria = true;
+
+            // ...existing code...
+            if (normalizedTitle && normalizedAuthor) {
+              meetsSearchCriteria =
+                (formattedTitle.includes(normalizedTitle) ||
+                  (updatedBook.bookTitle
+                    ?.toLowerCase()
+                    .includes(normalizedTitle) ??
+                    false)) &&
+                (updatedBook.bookAuthor
+                  ?.toLowerCase()
+                  .includes(normalizedAuthor) ??
+                  false);
+            } else if (normalizedTitle) {
+              meetsSearchCriteria =
+                formattedTitle.includes(normalizedTitle) ||
+                (updatedBook.bookTitle
+                  ?.toLowerCase()
+                  .includes(normalizedTitle) ??
+                  false);
+            } else if (normalizedAuthor) {
+              meetsSearchCriteria =
+                updatedBook.bookAuthor
+                  ?.toLowerCase()
+                  .includes(normalizedAuthor) ?? false;
+            }
+            // ...existing code...
+
+            // Only add to exchange list if it meets search criteria
+            if (meetsSearchCriteria) {
+              setExchangeBooks([...exchangeBooks, updatedBook]);
+            }
+          } else {
+            // No search active, just add to exchange list
+            setExchangeBooks([...exchangeBooks, updatedBook]);
+          }
         }
       } else {
         // Moving from "Książki do wymiany" to "Moje książki"
@@ -453,7 +498,55 @@ export default function Bookshelf() {
           setExchangeBooks(
             exchangeBooks.filter((book) => book.id !== bookOwnershipId)
           );
-          setOwnedBooks([...ownedBooks, { ...bookToMove, status: undefined }]);
+
+          // Add to owned books without status
+          const updatedBook = { ...bookToMove, status: undefined };
+
+          // If search is active, check if the moved book still meets search criteria
+          if (isSearchActive && (searchParams.title || searchParams.author)) {
+            const normalizedTitle = searchParams.title.toLowerCase().trim();
+            const normalizedAuthor = searchParams.author.toLowerCase().trim();
+
+            const formattedTitle = formatBookTitle(
+              updatedBook.bookTitle
+            ).toLowerCase();
+            let meetsSearchCriteria = true;
+
+            // ...existing code...
+            if (normalizedTitle && normalizedAuthor) {
+              meetsSearchCriteria =
+                (formattedTitle.includes(normalizedTitle) ||
+                  (updatedBook.bookTitle
+                    ?.toLowerCase()
+                    .includes(normalizedTitle) ??
+                    false)) &&
+                (updatedBook.bookAuthor
+                  ?.toLowerCase()
+                  .includes(normalizedAuthor) ??
+                  false);
+            } else if (normalizedTitle) {
+              meetsSearchCriteria =
+                formattedTitle.includes(normalizedTitle) ||
+                (updatedBook.bookTitle
+                  ?.toLowerCase()
+                  .includes(normalizedTitle) ??
+                  false);
+            } else if (normalizedAuthor) {
+              meetsSearchCriteria =
+                updatedBook.bookAuthor
+                  ?.toLowerCase()
+                  .includes(normalizedAuthor) ?? false;
+            }
+            // ...existing code...
+
+            // Only add to owned list if it meets search criteria
+            if (meetsSearchCriteria) {
+              setOwnedBooks([...ownedBooks, updatedBook]);
+            }
+          } else {
+            // No search active, just add to owned list
+            setOwnedBooks([...ownedBooks, updatedBook]);
+          }
         }
       }
     } catch (error) {
@@ -780,7 +873,7 @@ export default function Bookshelf() {
           )}
 
           {/* Add Load More button */}
-          {hasMoreBooks[listType] && (
+          {hasMoreBooks[listType] && books.length >= booksPerPage && (
             <div className="flex justify-center mt-4">
               <button
                 onClick={() => loadMoreBooks(listType)}
