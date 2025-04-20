@@ -49,6 +49,7 @@ export default function Search() {
     try {
       const queryLower = searchText.toLowerCase();
 
+      // Get pending invites and contacts setup
       const sentInvitesQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid),
@@ -72,46 +73,35 @@ export default function Search() {
         ])
       );
 
-      const emailQuery = query(
-        collection(db, "users"),
-        where("email", ">=", queryLower),
-        where("email", "<=", queryLower + "\uf8ff")
-      );
-
-      const nameQuery = query(
-        collection(db, "users"),
-        where("displayName", ">=", queryLower),
-        where("displayName", "<=", queryLower + "\uf8ff")
-      );
-
-      const phoneQuery = query(
-        collection(db, "users"),
-        where("phoneNumber", ">=", queryLower),
-        where("phoneNumber", "<=", queryLower + "\uf8ff")
-      );
-
-      const [emailSnapshot, nameSnapshot, phoneSnapshot] = await Promise.all([
-        getDocs(emailQuery),
-        getDocs(nameQuery),
-        getDocs(phoneQuery),
-      ]);
-
+      // Fetch all users for full search capability
+      const usersSnapshot = await getDocs(collection(db, "users"));
       const results = new Map<
         string,
         UserSearchResult & { pendingInvite?: PendingInvite }
       >();
 
-      [
-        ...emailSnapshot.docs,
-        ...nameSnapshot.docs,
-        ...phoneSnapshot.docs,
-      ].forEach((doc) => {
-        if (!results.has(doc.id) && doc.id !== user?.uid) {
-          results.set(doc.id, {
-            id: doc.id,
-            ...doc.data(),
-            pendingInvite: pendingInvites.get(doc.id),
-            isPending: sentInvites.has(doc.id),
+      // Filter users manually to allow partial matching of names
+      usersSnapshot.docs.forEach((doc) => {
+        const userData = doc.data();
+        const docId = doc.id;
+
+        if (docId === user.uid) return; // Skip current user
+
+        const displayName = userData.displayName?.toLowerCase() || "";
+        const email = userData.email?.toLowerCase() || "";
+        const phoneNumber = userData.phoneNumber?.toLowerCase() || "";
+
+        // Check if any field contains the search query
+        if (
+          displayName.includes(queryLower) ||
+          email.includes(queryLower) ||
+          phoneNumber.includes(queryLower)
+        ) {
+          results.set(docId, {
+            id: docId,
+            ...userData,
+            pendingInvite: pendingInvites.get(docId),
+            isPending: sentInvites.has(docId),
           } as UserSearchResult & { pendingInvite?: PendingInvite });
         }
       });
@@ -185,8 +175,8 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] p-4 sm:p-6">
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="max-w-4xl space-y-4 sm:space-y-6">
         <div className="relative">
           <div className="relative">
             <input
@@ -199,18 +189,6 @@ export default function Search() {
               placeholder="Szukaj użytkowników po emailu, imieniu lub numerze telefonu..."
               className="pl-10 w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200"
             />
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--gray-400)] absolute left-3 top-1/2 -translate-y-1/2"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
           </div>
         </div>
 

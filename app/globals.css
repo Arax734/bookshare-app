@@ -172,6 +172,25 @@ button {
   display: none;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--gray-50);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--gray-200);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-300);
+}
+
 .animate-fade-in-out {
   animation: fadeInOut 3s ease-in-out;
 }
