@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
 } from "firebase/firestore";
 import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
@@ -18,6 +19,16 @@ import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
+
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
+  isForExchange?: boolean;
+  description?: string;
+  addedAt: Date;
+}
 
 interface UserProfile {
   id: string;
@@ -45,6 +56,19 @@ const getHighResProfileImage = (photoURL: string | undefined) => {
   return photoURL;
 };
 
+const fetchBookDetails = async (bookId: string) => {
+  try {
+    const paddedId = bookId.padStart(14, "0");
+    const response = await fetch(`/api/books/${paddedId}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching book details:", error);
+    return null;
+  }
+};
+
 export default function Exchange({ params }: PageProps) {
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +76,15 @@ export default function Exchange({ params }: PageProps) {
   const router = useRouter();
 
   const { user: currentUser, loading: authLoading } = useAuth();
-
   const [currentUserData, setCurrentUserData] = useState<UserProfile | null>(
     null
   );
+
+  // Book lists
+  const [myBooks, setMyBooks] = useState<Book[]>([]);
+  const [userExchangeBooks, setUserExchangeBooks] = useState<Book[]>([]);
+  const [userWishlist, setUserWishlist] = useState<Book[]>([]);
+  const [isLoadingBooks, setIsLoadingBooks] = useState(false);
 
   const formatPhoneNumber = (phone: string | undefined) => {
     if (!phone) return "Nie podano";
@@ -138,6 +167,9 @@ export default function Exchange({ params }: PageProps) {
               averageRating: currentData.averageRating || 0,
               booksCount: currentUserBooksCount,
             });
+
+            // Now fetch books
+            await fetchBooks(currentUser.uid, unwrappedParams.id);
           }
         }
       } catch (error) {
@@ -161,6 +193,137 @@ export default function Exchange({ params }: PageProps) {
     }
   }, [params, currentUser, authLoading, router]);
 
+  const fetchBooks = async (currentUserId: string, profileUserId: string) => {
+    try {
+      setIsLoadingBooks(true);
+      console.log("Fetching books for users:", currentUserId, profileUserId);
+
+      // Fetch my books - ONLY books with status "forExchange"
+      const myBooksQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", currentUserId),
+        where("status", "==", "forExchange"), // Added filter for forExchange only
+        orderBy("createdAt", "desc")
+      );
+
+      const myBooksSnapshot = await getDocs(myBooksQuery);
+      console.log("My books query results:", myBooksSnapshot.size);
+
+      // Map the documents to book objects
+      const myBooksData = await Promise.all(
+        myBooksSnapshot.docs.map(async (doc) => {
+          try {
+            const bookData = doc.data();
+            console.log("Processing my book doc:", doc.id, bookData);
+
+            // Fetch additional details for the book
+            const bookDetails = await fetchBookDetails(bookData.bookId);
+            console.log("Book details retrieved:", bookDetails?.title);
+
+            return {
+              id: doc.id,
+              title: bookDetails?.title || "Brak tytułu",
+              author: bookDetails?.author || "Nieznany autor",
+              coverUrl: bookDetails?.coverUrl || null,
+              isForExchange: bookData.status === "forExchange" || false,
+              addedAt: bookData.createdAt?.toDate() || new Date(), // Changed from addedAt to createdAt
+              bookId: bookData.bookId,
+            };
+          } catch (err) {
+            console.error("Error processing book:", err);
+            return null;
+          }
+        })
+      );
+
+      console.log("Final my books list:", myBooksData);
+      setMyBooks(myBooksData.filter((book) => book !== null) as Book[]);
+
+      // Fetch user's exchange books - only books with status "forExchange"
+      // Use the same approach as in bookshelf page
+      const userExchangeBooksQuery = query(
+        collection(db, "bookOwnership"),
+        where("userId", "==", profileUserId),
+        where("status", "==", "forExchange"),
+        orderBy("createdAt", "desc")
+      );
+
+      console.log("Running exchange books query...");
+      const userExchangeBooksSnapshot = await getDocs(userExchangeBooksQuery);
+      console.log(
+        "Exchange books query results:",
+        userExchangeBooksSnapshot.size
+      );
+
+      // Map the documents to book objects
+      const userExchangeBooksData = await Promise.all(
+        userExchangeBooksSnapshot.docs.map(async (doc) => {
+          try {
+            const bookData = doc.data();
+            console.log("Processing book ownership doc:", doc.id, bookData);
+
+            // Fetch additional details for the book
+            const bookDetails = await fetchBookDetails(bookData.bookId);
+            console.log("Book details retrieved:", bookDetails?.title);
+
+            return {
+              id: doc.id,
+              title: bookDetails?.title || "Brak tytułu",
+              author: bookDetails?.author || "Nieznany autor",
+              coverUrl: bookDetails?.coverUrl || null,
+              addedAt: bookData.createdAt?.toDate() || new Date(),
+              bookId: bookData.bookId,
+            };
+          } catch (err) {
+            console.error("Error processing exchange book:", err);
+            return null;
+          }
+        })
+      );
+
+      // Filter out null values and set state
+      const filteredExchangeBooks = userExchangeBooksData.filter(
+        (book) => book !== null
+      ) as Book[];
+
+      console.log("Final exchange books list:", filteredExchangeBooks);
+      setUserExchangeBooks(filteredExchangeBooks);
+
+      // The wishlist query is working correctly, so keeping it as is
+      const wishlistQuery = query(
+        collection(db, "bookDesire"),
+        where("userId", "==", profileUserId),
+        orderBy("createdAt", "desc")
+      );
+      const wishlistSnapshot = await getDocs(wishlistQuery);
+      const wishlistData = await Promise.all(
+        wishlistSnapshot.docs.map(async (doc) => {
+          try {
+            const wishData = doc.data();
+            const bookDetails = await fetchBookDetails(wishData.bookId);
+
+            return {
+              id: doc.id,
+              title: bookDetails?.title || "Brak tytułu",
+              author: bookDetails?.author || "Nieznany autor",
+              coverUrl: bookDetails?.coverUrl || null,
+              addedAt: wishData.createdAt?.toDate() || new Date(),
+              bookId: wishData.bookId,
+            };
+          } catch (err) {
+            console.error("Error processing wishlist book:", err);
+            return null;
+          }
+        })
+      );
+      setUserWishlist(wishlistData.filter((book) => book !== null) as Book[]);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    } finally {
+      setIsLoadingBooks(false);
+    }
+  };
+
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-500 p-4">{error}</div>;
   if (!profileUser || !currentUserData)
@@ -169,9 +332,11 @@ export default function Exchange({ params }: PageProps) {
   return (
     <main className="mx-auto px-2 sm:px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
+        {/* User profiles section */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6">
           {/* Current user card */}
           <div className="w-full lg:w-1/2 bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
+            {/* Current user header */}
             <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center">
                 <svg
@@ -439,6 +604,243 @@ export default function Exchange({ params }: PageProps) {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Books section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* My Books */}
+          <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
+            <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 text-white">
+              <h2 className="text-sm sm:text-base font-bold flex items-center">
+                <svg
+                  className="w-3.5 h-3.5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+                Twoje książki
+              </h2>
+            </div>
+            <div className="p-2 sm:p-3 max-h-96 overflow-y-auto">
+              {isLoadingBooks ? (
+                <div className="flex justify-center p-4">
+                  <LoadingSpinner />
+                </div>
+              ) : myBooks.length === 0 ? (
+                <p className="text-center text-sm text-[var(--gray-500)] py-6">
+                  Nie masz jeszcze żadnych książek
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {myBooks.map((book) => (
+                    <li
+                      key={book.id}
+                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                    >
+                      {book.coverUrl ? (
+                        <div className="relative w-10 h-14 mr-2 flex-shrink-0">
+                          <Image
+                            src={book.coverUrl}
+                            alt={book.title}
+                            fill
+                            className="object-cover rounded"
+                            sizes="40px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-[10px] text-[var(--gray-500)] truncate">
+                          {book.author}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* User Exchange Books */}
+          <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-2 text-white">
+              <h2 className="text-sm sm:text-base font-bold flex items-center">
+                <svg
+                  className="w-3.5 h-3.5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+                Książki użytkownika do wymiany
+              </h2>
+            </div>
+            <div className="p-2 sm:p-3 max-h-96 overflow-y-auto">
+              {isLoadingBooks ? (
+                <div className="flex justify-center p-4">
+                  <LoadingSpinner />
+                </div>
+              ) : userExchangeBooks.length === 0 ? (
+                <p className="text-center text-sm text-[var(--gray-500)] py-6">
+                  Ten użytkownik nie ma książek do wymiany
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {userExchangeBooks.map((book) => (
+                    <li
+                      key={book.id}
+                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                    >
+                      {book.coverUrl ? (
+                        <div className="relative w-10 h-14 mr-2 flex-shrink-0">
+                          <Image
+                            src={book.coverUrl}
+                            alt={book.title}
+                            fill
+                            className="object-cover rounded"
+                            sizes="40px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-[10px] text-[var(--gray-500)] truncate">
+                          {book.author}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* User Wishlist */}
+          <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
+            <div className="bg-gradient-to-r from-amber-500 to-amber-400 p-2 text-white">
+              <h2 className="text-sm sm:text-base font-bold flex items-center">
+                <svg
+                  className="w-3.5 h-3.5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  />
+                </svg>
+                Książki, które użytkownik chce przeczytać
+              </h2>
+            </div>
+            <div className="p-2 sm:p-3 max-h-96 overflow-y-auto">
+              {isLoadingBooks ? (
+                <div className="flex justify-center p-4">
+                  <LoadingSpinner />
+                </div>
+              ) : userWishlist.length === 0 ? (
+                <p className="text-center text-sm text-[var(--gray-500)] py-6">
+                  Ten użytkownik nie ma książek na liście życzeń
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {userWishlist.map((book) => (
+                    <li
+                      key={book.id}
+                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                    >
+                      {book.coverUrl ? (
+                        <div className="relative w-10 h-14 mr-2 flex-shrink-0">
+                          <Image
+                            src={book.coverUrl}
+                            alt={book.title}
+                            fill
+                            className="object-cover rounded"
+                            sizes="40px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-[10px] text-[var(--gray-500)] truncate">
+                          {book.author}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
