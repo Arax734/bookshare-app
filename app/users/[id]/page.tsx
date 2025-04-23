@@ -527,7 +527,7 @@ export default function UserProfile({ params }: PageProps) {
                       {isContact ? (
                         <div className="flex flex-col gap-2 w-full">
                           <Link
-                            href={`/exchange?userId=${user.id}`}
+                            href={`/users/${user.id}/exchange`}
                             className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center text-xs sm:text-sm"
                           >
                             <svg
