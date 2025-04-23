@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { db } from "@/firebase/config";
 import {
@@ -19,15 +20,18 @@ import { PhoneIcon } from "@/app/components/svg-icons/PhoneIcon";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import BookCover from "@/app/components/BookCover";
 
 interface Book {
   id: string;
   title: string;
   author: string;
   coverUrl?: string;
+  isbn?: string;
   isForExchange?: boolean;
   description?: string;
   addedAt: Date;
+  bookId: string;
 }
 
 interface UserProfile {
@@ -69,6 +73,10 @@ const fetchBookDetails = async (bookId: string) => {
   }
 };
 
+const hasValidCover = (isbn: string | undefined): boolean => {
+  return !!isbn && isbn.trim().length > 0;
+};
+
 export default function Exchange({ params }: PageProps) {
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,6 +93,9 @@ export default function Exchange({ params }: PageProps) {
   const [userExchangeBooks, setUserExchangeBooks] = useState<Book[]>([]);
   const [userWishlist, setUserWishlist] = useState<Book[]>([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(false);
+
+  // Add this new state to track failed image URLs
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   const formatPhoneNumber = (phone: string | undefined) => {
     if (!phone) return "Nie podano";
@@ -225,8 +236,8 @@ export default function Exchange({ params }: PageProps) {
               title: bookDetails?.title || "Brak tytułu",
               author: bookDetails?.author || "Nieznany autor",
               coverUrl: bookDetails?.coverUrl || null,
-              isForExchange: bookData.status === "forExchange" || false,
-              addedAt: bookData.createdAt?.toDate() || new Date(), // Changed from addedAt to createdAt
+              isbn: bookDetails?.isbnIssn,
+              addedAt: bookData.createdAt?.toDate() || new Date(),
               bookId: bookData.bookId,
             };
           } catch (err) {
@@ -271,6 +282,7 @@ export default function Exchange({ params }: PageProps) {
               title: bookDetails?.title || "Brak tytułu",
               author: bookDetails?.author || "Nieznany autor",
               coverUrl: bookDetails?.coverUrl || null,
+              isbn: bookDetails?.isbnIssn,
               addedAt: bookData.createdAt?.toDate() || new Date(),
               bookId: bookData.bookId,
             };
@@ -307,6 +319,7 @@ export default function Exchange({ params }: PageProps) {
               title: bookDetails?.title || "Brak tytułu",
               author: bookDetails?.author || "Nieznany autor",
               coverUrl: bookDetails?.coverUrl || null,
+              isbn: bookDetails?.isbnIssn,
               addedAt: wishData.createdAt?.toDate() || new Date(),
               bookId: wishData.bookId,
             };
@@ -322,6 +335,15 @@ export default function Exchange({ params }: PageProps) {
     } finally {
       setIsLoadingBooks(false);
     }
+  };
+
+  // Add this handler function
+  const handleImageError = (url: string) => {
+    setFailedImages((prev) => {
+      const updated = new Set(prev);
+      updated.add(url);
+      return updated;
+    });
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -448,7 +470,7 @@ export default function Exchange({ params }: PageProps) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            d="M9 12l2 2 4-4m6 0a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
                       ),
@@ -583,7 +605,7 @@ export default function Exchange({ params }: PageProps) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            d="M9 12l2 2 4-4m6 0a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
                       ),
@@ -646,14 +668,23 @@ export default function Exchange({ params }: PageProps) {
                       key={book.id}
                       className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
                     >
-                      {book.coverUrl ? (
+                      {hasValidCover(book.isbn) ? (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
+                          <BookCover
+                            isbn={book.isbn}
+                            title={book.title}
+                            size={"S"}
+                          />
+                        </div>
+                      ) : book.coverUrl && !failedImages.has(book.coverUrl) ? (
                         <div className="relative w-10 h-14 mr-2 flex-shrink-0">
                           <Image
-                            src={book.coverUrl}
+                            src={book.coverUrl!}
                             alt={book.title}
                             fill
                             className="object-cover rounded"
                             sizes="40px"
+                            onError={() => handleImageError(book.coverUrl!)}
                           />
                         </div>
                       ) : (
@@ -681,6 +712,26 @@ export default function Exchange({ params }: PageProps) {
                           {book.author}
                         </p>
                       </div>
+                      {/* Add details button here */}
+                      <Link
+                        href={`/books/${book.bookId}`}
+                        className="ml-2 p-1 bg-green-100 hover:bg-green-200 text-green-600 text-[10px] rounded border border-green-300 transition-colors flex items-center"
+                      >
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Szczegóły
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -724,14 +775,23 @@ export default function Exchange({ params }: PageProps) {
                       key={book.id}
                       className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
                     >
-                      {book.coverUrl ? (
+                      {hasValidCover(book.isbn) ? (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
+                          <BookCover
+                            isbn={book.isbn}
+                            title={book.title}
+                            size={"S"}
+                          />
+                        </div>
+                      ) : book.coverUrl && !failedImages.has(book.coverUrl) ? (
                         <div className="relative w-10 h-14 mr-2 flex-shrink-0">
                           <Image
-                            src={book.coverUrl}
+                            src={book.coverUrl!}
                             alt={book.title}
                             fill
                             className="object-cover rounded"
                             sizes="40px"
+                            onError={() => handleImageError(book.coverUrl!)}
                           />
                         </div>
                       ) : (
@@ -759,6 +819,26 @@ export default function Exchange({ params }: PageProps) {
                           {book.author}
                         </p>
                       </div>
+                      {/* Add details button here */}
+                      <Link
+                        href={`/books/${book.bookId}`}
+                        className="ml-2 p-1 bg-blue-100 hover:bg-blue-200 text-blue-600 text-[10px] rounded border border-blue-300 transition-colors flex items-center"
+                      >
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Szczegóły
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -802,14 +882,23 @@ export default function Exchange({ params }: PageProps) {
                       key={book.id}
                       className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
                     >
-                      {book.coverUrl ? (
+                      {hasValidCover(book.isbn) ? (
+                        <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
+                          <BookCover
+                            isbn={book.isbn}
+                            title={book.title}
+                            size={"S"}
+                          />
+                        </div>
+                      ) : book.coverUrl && !failedImages.has(book.coverUrl) ? (
                         <div className="relative w-10 h-14 mr-2 flex-shrink-0">
                           <Image
-                            src={book.coverUrl}
+                            src={book.coverUrl!}
                             alt={book.title}
                             fill
                             className="object-cover rounded"
                             sizes="40px"
+                            onError={() => handleImageError(book.coverUrl!)}
                           />
                         </div>
                       ) : (
@@ -837,6 +926,26 @@ export default function Exchange({ params }: PageProps) {
                           {book.author}
                         </p>
                       </div>
+                      {/* Add details button here */}
+                      <Link
+                        href={`/books/${book.bookId}`}
+                        className="ml-2 p-1 bg-amber-100 hover:bg-amber-200 text-amber-600 text-[10px] rounded border border-amber-300 transition-colors flex items-center"
+                      >
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Szczegóły
+                      </Link>
                     </li>
                   ))}
                 </ul>
