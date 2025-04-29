@@ -905,6 +905,7 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="ml-2 p-1 bg-green-100 hover:bg-green-200 text-green-600 text-[10px] rounded border border-green-300 transition-colors flex items-center"
                       >
                         <svg
@@ -1054,7 +1055,8 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
-                        className="ml-2 p-1 bg-blue-100 hover:bg-blue-200 text-blue-600 text-[10px] rounded border border-blue-300 transition-colors flex items-center"
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-2 p-1 bg-green-100 hover:bg-green-200 text-green-600 text-[10px] rounded border border-green-300 transition-colors flex items-center"
                       >
                         <svg
                           className="w-3 h-3 mr-1"
@@ -1112,7 +1114,7 @@ export default function Exchange({ params }: PageProps) {
                   {userWishlist.map((book) => (
                     <li
                       key={book.id}
-                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] transition-all"
                     >
                       {hasValidCover(book.isbn) ? (
                         <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
@@ -1161,6 +1163,7 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="ml-2 p-1 bg-amber-100 hover:bg-amber-200 text-amber-600 text-[10px] rounded border border-amber-300 transition-colors flex items-center"
                       >
                         <svg
@@ -1242,7 +1245,7 @@ export default function Exchange({ params }: PageProps) {
                             <BookCover
                               isbn={book.isbn}
                               title={book.title}
-                              size={"XS"}
+                              size={"S"}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -1333,7 +1336,7 @@ export default function Exchange({ params }: PageProps) {
                               <BookCover
                                 isbn={book.isbn}
                                 title={book.title}
-                                size={"XS"}
+                                size={"S"}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
@@ -1507,7 +1510,7 @@ export default function Exchange({ params }: PageProps) {
                             <BookCover
                               isbn={book.isbn}
                               title={book.title}
-                              size={"XS"}
+                              size={"S"}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -1582,7 +1585,7 @@ export default function Exchange({ params }: PageProps) {
                               <BookCover
                                 isbn={book.isbn}
                                 title={book.title}
-                                size={"XS"}
+                                size={"S"}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
