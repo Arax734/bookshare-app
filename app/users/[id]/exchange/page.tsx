@@ -11,6 +11,7 @@ import {
   where,
   getDocs,
   orderBy,
+  addDoc,
 } from "firebase/firestore";
 import Image from "next/image";
 import defaultAvatar from "@/public/images/default-avatar.png";
@@ -77,6 +78,26 @@ const hasValidCover = (isbn: string | undefined): boolean => {
   return !!isbn && isbn.trim().length > 0;
 };
 
+const formatBookTitle = (title: string | undefined): string => {
+  if (!title) return "Tytuł niedostępny";
+
+  if (title.includes("/")) {
+    const firstPart = title.split("/")[0].trim();
+
+    if (firstPart.length > 60) {
+      return firstPart.substring(0, 57) + "...";
+    }
+
+    return firstPart;
+  }
+
+  if (title.length > 60) {
+    return title.substring(0, 57) + "...";
+  }
+
+  return title;
+};
+
 export default function Exchange({ params }: PageProps) {
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +108,14 @@ export default function Exchange({ params }: PageProps) {
   const [currentUserData, setCurrentUserData] = useState<UserProfile | null>(
     null
   );
+
+  // Dodaj te stany na początku komponenetu, zaraz po istniejących stanach
+  const [selectedMyBooks, setSelectedMyBooks] = useState<string[]>([]);
+  const [selectedUserBooks, setSelectedUserBooks] = useState<string[]>([]);
+  const [exchangeModalOpen, setExchangeModalOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [exchangeError, setExchangeError] = useState<string | null>(null);
+  const [exchangeSuccess, setExchangeSuccess] = useState<boolean>(false);
 
   // Book lists
   const [myBooks, setMyBooks] = useState<Book[]>([]);
@@ -344,6 +373,139 @@ export default function Exchange({ params }: PageProps) {
       updated.add(url);
       return updated;
     });
+  };
+
+  // Update the toggleBookSelection function to check for the limit
+  const toggleBookSelection = (bookId: string, listType: "my" | "user") => {
+    if (listType === "my") {
+      setSelectedMyBooks((prevSelected) => {
+        // Always allow deselection
+        if (prevSelected.includes(bookId)) {
+          return prevSelected.filter((id) => id !== bookId);
+        }
+        // Only allow selection if under the limit
+        if (prevSelected.length >= 5) {
+          // Optional: Show toast or alert message here that limit is reached
+          return prevSelected;
+        }
+        return [...prevSelected, bookId];
+      });
+    } else {
+      setSelectedUserBooks((prevSelected) => {
+        // Always allow deselection
+        if (prevSelected.includes(bookId)) {
+          return prevSelected.filter((id) => id !== bookId);
+        }
+        // Only allow selection if under the limit
+        if (prevSelected.length >= 5) {
+          // Optional: Show toast or alert message here that limit is reached
+          return prevSelected;
+        }
+        return [...prevSelected, bookId];
+      });
+    }
+  };
+
+  const getSelectedBooks = (ids: string[], sourceList: Book[]): Book[] => {
+    return sourceList.filter((book) => ids.includes(book.id));
+  };
+
+  const canProposeExchange = (): boolean => {
+    return selectedMyBooks.length > 0 && selectedUserBooks.length > 0;
+  };
+
+  const resetExchange = () => {
+    setSelectedMyBooks([]);
+    setSelectedUserBooks([]);
+    setExchangeModalOpen(false);
+    setExchangeError(null);
+    setExchangeSuccess(false);
+  };
+
+  // Dodaj funkcję proposeExchange
+  const proposeExchange = async () => {
+    if (!currentUser || !profileUser) return;
+
+    setIsSubmitting(true);
+    setExchangeError(null);
+
+    try {
+      // Pobierz wybrane książki
+      const mySelectedBooks = getSelectedBooks(selectedMyBooks, myBooks);
+      const userSelectedBooks = getSelectedBooks(
+        selectedUserBooks,
+        userExchangeBooks
+      );
+
+      // Utwórz dokument wymiany w Firestore
+      const exchangeRef = collection(db, "exchanges");
+      const newExchange = {
+        proposerId: currentUser.uid,
+        receiverId: profileUser.id,
+        proposerBooks: selectedMyBooks,
+        receiverBooks: selectedUserBooks,
+        status: "pending", // pending, accepted, rejected, completed
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        // Dodatkowe informacje o książkach dla łatwiejszego wyświetlania
+        proposerBooksDetails: mySelectedBooks.map((book) => ({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          coverUrl: book.coverUrl,
+          isbn: book.isbn,
+          bookId: book.bookId,
+        })),
+        receiverBooksDetails: userSelectedBooks.map((book) => ({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          coverUrl: book.coverUrl,
+          isbn: book.isbn,
+          bookId: book.bookId,
+        })),
+      };
+
+      await addDoc(exchangeRef, newExchange);
+
+      // Wyślij powiadomienie do użytkownika - to byłaby osobna implementacja
+      // Można by dodać dokument do kolekcji notifications
+
+      setExchangeSuccess(true);
+      setTimeout(() => resetExchange(), 3000);
+    } catch (error) {
+      console.error("Error proposing exchange:", error);
+      setExchangeError(
+        "Wystąpił błąd podczas proponowania wymiany. Spróbuj ponownie."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getExchangeStatusText = () => {
+    if (selectedMyBooks.length === 0 && selectedUserBooks.length === 0) {
+      return "Wybierz książki do wymiany";
+    }
+
+    if (selectedMyBooks.length === 0) {
+      return "Wybierz swoje książki do wymiany";
+    }
+
+    if (selectedUserBooks.length === 0) {
+      return "Wybierz książki, które chcesz otrzymać";
+    }
+
+    const myCount = selectedMyBooks.length;
+    const userCount = selectedUserBooks.length;
+
+    if (myCount === userCount) {
+      return `Wymiana równa: ${myCount} za ${userCount}`;
+    } else if (myCount > userCount) {
+      return `Dajesz więcej: ${myCount} za ${userCount}`;
+    } else {
+      return `Otrzymujesz więcej: ${userCount} za ${myCount}`;
+    }
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -635,21 +797,35 @@ export default function Exchange({ params }: PageProps) {
           {/* My Books */}
           <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 text-white">
-              <h2 className="text-sm sm:text-base font-bold flex items-center">
-                <svg
-                  className="w-3.5 h-3.5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                Twoje książki
+              <h2 className="text-sm sm:text-base font-bold flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg
+                    className="w-3.5 h-3.5 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                  Twoje książki
+                </div>
+                {selectedMyBooks.length > 0 && (
+                  <span
+                    className={`bg-white rounded-full px-2 py-0.5 text-xs font-bold ${
+                      selectedMyBooks.length === 5
+                        ? "text-red-600"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {selectedMyBooks.length}/5
+                    {selectedMyBooks.length === 5 && "🔒"}
+                  </span>
+                )}
               </h2>
             </div>
             <div className="p-2 sm:p-3 max-h-96 overflow-y-auto">
@@ -666,8 +842,43 @@ export default function Exchange({ params }: PageProps) {
                   {myBooks.map((book) => (
                     <li
                       key={book.id}
-                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                      onClick={() => toggleBookSelection(book.id, "my")}
+                      className={`flex items-center p-2 bg-[var(--background)] rounded-lg border 
+                        ${
+                          selectedMyBooks.includes(book.id)
+                            ? "border-blue-500 bg-blue-50 shadow-md"
+                            : "border-[var(--gray-200)]"
+                        } 
+                        hover:shadow-md transition-all cursor-pointer`}
                     >
+                      <div className="pr-2">
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center border 
+                          ${
+                            selectedMyBooks.includes(book.id)
+                              ? "bg-blue-500 border-blue-500 text-white"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {selectedMyBooks.includes(book.id) && (
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="3"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rest of the book item code remains the same */}
                       {hasValidCover(book.isbn) ? (
                         <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
                           <BookCover
@@ -706,7 +917,7 @@ export default function Exchange({ params }: PageProps) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold truncate">
-                          {book.title}
+                          {formatBookTitle(book.title)}
                         </p>
                         <p className="text-[10px] text-[var(--gray-500)] truncate">
                           {book.author}
@@ -715,6 +926,7 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="ml-2 p-1 bg-green-100 hover:bg-green-200 text-green-600 text-[10px] rounded border border-green-300 transition-colors flex items-center"
                       >
                         <svg
@@ -742,21 +954,35 @@ export default function Exchange({ params }: PageProps) {
           {/* User Exchange Books */}
           <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-2 text-white">
-              <h2 className="text-sm sm:text-base font-bold flex items-center">
-                <svg
-                  className="w-3.5 h-3.5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                  />
-                </svg>
-                Książki użytkownika do wymiany
+              <h2 className="text-sm sm:text-base font-bold flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg
+                    className="w-3.5 h-3.5 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                  Książki użytkownika do wymiany
+                </div>
+                {selectedUserBooks.length > 0 && (
+                  <span
+                    className={`bg-white rounded-full px-2 py-0.5 text-xs font-bold ${
+                      selectedUserBooks.length === 5
+                        ? "text-red-600"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {selectedUserBooks.length}/5
+                    {selectedUserBooks.length === 5 && "🔒"}
+                  </span>
+                )}
               </h2>
             </div>
             <div className="p-2 sm:p-3 max-h-96 overflow-y-auto">
@@ -773,8 +999,43 @@ export default function Exchange({ params }: PageProps) {
                   {userExchangeBooks.map((book) => (
                     <li
                       key={book.id}
-                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                      onClick={() => toggleBookSelection(book.id, "user")}
+                      className={`flex items-center p-2 bg-[var(--background)] rounded-lg border 
+                        ${
+                          selectedUserBooks.includes(book.id)
+                            ? "border-blue-500 bg-blue-50 shadow-md"
+                            : "border-[var(--gray-200)]"
+                        } 
+                        hover:shadow-md transition-all cursor-pointer`}
                     >
+                      <div className="pr-2">
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center border 
+                          ${
+                            selectedUserBooks.includes(book.id)
+                              ? "bg-blue-500 border-blue-500 text-white"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {selectedUserBooks.includes(book.id) && (
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="3"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rest of the code remains the same */}
                       {hasValidCover(book.isbn) ? (
                         <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
                           <BookCover
@@ -813,7 +1074,7 @@ export default function Exchange({ params }: PageProps) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold truncate">
-                          {book.title}
+                          {formatBookTitle(book.title)}
                         </p>
                         <p className="text-[10px] text-[var(--gray-500)] truncate">
                           {book.author}
@@ -822,7 +1083,8 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
-                        className="ml-2 p-1 bg-blue-100 hover:bg-blue-200 text-blue-600 text-[10px] rounded border border-blue-300 transition-colors flex items-center"
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-2 p-1 bg-green-100 hover:bg-green-200 text-green-600 text-[10px] rounded border border-green-300 transition-colors flex items-center"
                       >
                         <svg
                           className="w-3 h-3 mr-1"
@@ -880,7 +1142,7 @@ export default function Exchange({ params }: PageProps) {
                   {userWishlist.map((book) => (
                     <li
                       key={book.id}
-                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] hover:shadow-md transition-all"
+                      className="flex items-center p-2 bg-[var(--background)] rounded-lg border border-[var(--gray-200)] transition-all"
                     >
                       {hasValidCover(book.isbn) ? (
                         <div className="w-10 h-14 mr-2 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
@@ -920,7 +1182,7 @@ export default function Exchange({ params }: PageProps) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold truncate">
-                          {book.title}
+                          {formatBookTitle(book.title)}
                         </p>
                         <p className="text-[10px] text-[var(--gray-500)] truncate">
                           {book.author}
@@ -929,6 +1191,7 @@ export default function Exchange({ params }: PageProps) {
                       {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="ml-2 p-1 bg-amber-100 hover:bg-amber-200 text-amber-600 text-[10px] rounded border border-amber-300 transition-colors flex items-center"
                       >
                         <svg
@@ -953,6 +1216,509 @@ export default function Exchange({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Exchange Summary Section */}
+        {(selectedMyBooks.length > 0 || selectedUserBooks.length > 0) && (
+          <div className="mt-6 p-4 bg-white rounded-xl shadow-md border border-blue-100">
+            <h3 className="text-lg font-bold text-center mb-4 text-blue-700 flex items-center justify-center">
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                />
+              </svg>
+              Podsumowanie wymiany
+            </h3>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Your books selection */}
+              <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-white shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-bold text-sm text-gray-700 flex items-center">
+                    <span className="bg-blue-500 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-xs mr-2">
+                      {selectedMyBooks.length}
+                    </span>
+                    Twoje książki
+                  </h4>
+                  {selectedMyBooks.length > 0 && (
+                    <button
+                      onClick={() => setSelectedMyBooks([])}
+                      className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-red-500 rounded-full transition-colors"
+                    >
+                      Wyczyść
+                    </button>
+                  )}
+                </div>
+
+                {selectedMyBooks.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400 text-sm italic">
+                    Wybierz książki, które chcesz wymienić
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getSelectedBooks(selectedMyBooks, myBooks).map((book) => (
+                      <div
+                        key={book.id}
+                        className="flex items-center bg-white p-2 rounded border border-gray-100 shadow-sm"
+                      >
+                        <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
+                          {hasValidCover(book.isbn) ? (
+                            <BookCover
+                              isbn={book.isbn}
+                              title={book.title}
+                              size={"S"}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">
+                            {formatBookTitle(book.title)}
+                          </p>
+                          <p className="text-[10px] text-gray-500 truncate">
+                            {book.author}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleBookSelection(book.id, "my");
+                          }}
+                          className="ml-1 text-gray-400 hover:text-red-500"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* User books selection */}
+              <div className="border rounded-lg p-3 bg-gradient-to-r from-blue-50 to-white">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-bold text-sm text-gray-700 flex items-center">
+                    <span className="bg-blue-500 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-xs mr-2">
+                      {selectedUserBooks.length}
+                    </span>
+                    Książki {profileUser?.displayName}
+                  </h4>
+                  {selectedUserBooks.length > 0 && (
+                    <button
+                      onClick={() => setSelectedUserBooks([])}
+                      className="text-xs text-gray-500 hover:text-red-500"
+                    >
+                      Wyczyść
+                    </button>
+                  )}
+                </div>
+
+                {selectedUserBooks.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400 text-sm italic">
+                    Wybierz książki, które chcesz otrzymać
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {getSelectedBooks(selectedUserBooks, userExchangeBooks).map(
+                      (book) => (
+                        <div
+                          key={book.id}
+                          className="flex items-center bg-white p-2 rounded border border-gray-100 shadow-sm"
+                        >
+                          <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
+                            {hasValidCover(book.isbn) ? (
+                              <BookCover
+                                isbn={book.isbn}
+                                title={book.title}
+                                size={"S"}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold truncate">
+                              {formatBookTitle(book.title)}
+                            </p>
+                            <p className="text-[10px] text-gray-500 truncate">
+                              {book.author}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleBookSelection(book.id, "user");
+                            }}
+                            className="ml-1 text-gray-400 hover:text-red-500"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Exchange visualization - arrows */}
+            {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 && (
+              <div className="flex justify-center my-5 py-2">
+                <div className="relative flex items-center bg-blue-50 px-6 py-3 rounded-lg shadow-sm">
+                  <div className="bg-blue-100 px-4 py-2 rounded-lg text-blue-700 text-sm font-bold">
+                    TY
+                  </div>
+                  <div className="w-20 h-1 bg-blue-400 mx-3"></div>
+                  <div className="px-3 py-2 bg-blue-500 text-white rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
+                    </svg>
+                  </div>
+                  <div className="w-20 h-1 bg-blue-400 mx-3"></div>
+                  <div className="bg-blue-100 px-4 py-2 rounded-lg text-blue-700 text-sm font-bold">
+                    {profileUser?.displayName?.split(" ")[0] || "Użytkownik"}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Exchange info and action button */}
+            <div className="mt-5 flex flex-col items-center">
+              {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 ? (
+                <div className="text-center mb-4 text-sm">
+                  <span
+                    className={`font-bold px-3 py-2 rounded-lg ${
+                      selectedMyBooks.length === selectedUserBooks.length
+                        ? "bg-green-100 text-green-700"
+                        : selectedMyBooks.length > selectedUserBooks.length
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {getExchangeStatusText()}
+                  </span>
+                </div>
+              ) : (
+                <div className="text-center mb-4 p-3 bg-blue-50 rounded-lg text-sm text-gray-600 max-w-md">
+                  Aby zaproponować wymianę, wybierz przynajmniej jedną książkę z
+                  każdej listy
+                </div>
+              )}
+
+              <button
+                onClick={() => setExchangeModalOpen(true)}
+                disabled={!canProposeExchange()}
+                className={`px-6 py-2.5 mt-3 rounded-lg flex items-center font-semibold text-base shadow-lg transform transition-all duration-200
+        ${
+          canProposeExchange()
+            ? "bg-blue-600 hover:bg-blue-700 hover:scale-105 text-white"
+            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+        }`}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+                Zaproponuj wymianę
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Exchange Modal */}
+        {exchangeModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-3 text-white">
+                <h3 className="font-bold text-lg">Potwierdź wymianę książek</h3>
+              </div>
+
+              <div className="p-4">
+                <div className="mb-4">
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center">
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Twoje książki do wymiany:
+                  </h4>
+                  <ul className="border rounded-lg divide-y">
+                    {getSelectedBooks(selectedMyBooks, myBooks).map((book) => (
+                      <li key={book.id} className="p-2 flex items-center">
+                        <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
+                          {hasValidCover(book.isbn) ? (
+                            <BookCover
+                              isbn={book.isbn}
+                              title={book.title}
+                              size={"S"}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">
+                            {formatBookTitle(book.title)}
+                          </p>
+                          <p className="text-[10px] text-gray-500 truncate">
+                            {book.author}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="flex justify-center my-4">
+                  <svg
+                    className="w-6 h-6 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-bold text-sm text-gray-700 mb-2 flex items-center">
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Książki {profileUser?.displayName} do wymiany:
+                  </h4>
+                  <ul className="border rounded-lg divide-y">
+                    {getSelectedBooks(selectedUserBooks, userExchangeBooks).map(
+                      (book) => (
+                        <li key={book.id} className="p-2 flex items-center">
+                          <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
+                            {hasValidCover(book.isbn) ? (
+                              <BookCover
+                                isbn={book.isbn}
+                                title={book.title}
+                                size={"S"}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold truncate">
+                              {formatBookTitle(book.title)}
+                            </p>
+                            <p className="text-[10px] text-gray-500 truncate">
+                              {book.author}
+                            </p>
+                          </div>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+
+                {exchangeError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                    {exchangeError}
+                  </div>
+                )}
+
+                {exchangeSuccess && (
+                  <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
+                    Propozycja wymiany została wysłana pomyślnie!
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-3 mt-4">
+                  <button
+                    className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+                    onClick={() => setExchangeModalOpen(false)}
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center"
+                    onClick={proposeExchange}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Wysyłanie...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Wyślij propozycję
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
