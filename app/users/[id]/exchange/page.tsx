@@ -1258,11 +1258,11 @@ export default function Exchange({ params }: PageProps) {
                 </div>
 
                 {selectedMyBooks.length === 0 ? (
-                  <div className="text-center py-4 text-gray-400 text-sm italic">
+                  <div className="text-center py-10 text-gray-400 text-sm italic">
                     Wybierz książki, które chcesz wymienić
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2">
                     {getSelectedBooks(selectedMyBooks, myBooks).map((book) => (
                       <div
                         key={book.id}
@@ -1348,11 +1348,11 @@ export default function Exchange({ params }: PageProps) {
                 </div>
 
                 {selectedUserBooks.length === 0 ? (
-                  <div className="text-center py-4 text-gray-400 text-sm italic">
+                  <div className="text-center py-10 text-gray-400 text-sm italic">
                     Wybierz książki, które chcesz otrzymać
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2">
                     {getSelectedBooks(selectedUserBooks, userExchangeBooks).map(
                       (book) => (
                         <div
