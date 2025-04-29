@@ -375,20 +375,34 @@ export default function Exchange({ params }: PageProps) {
     });
   };
 
-  // Dodaj te funkcje w komponencie
+  // Update the toggleBookSelection function to check for the limit
   const toggleBookSelection = (bookId: string, listType: "my" | "user") => {
     if (listType === "my") {
-      setSelectedMyBooks((prevSelected) =>
-        prevSelected.includes(bookId)
-          ? prevSelected.filter((id) => id !== bookId)
-          : [...prevSelected, bookId]
-      );
+      setSelectedMyBooks((prevSelected) => {
+        // Always allow deselection
+        if (prevSelected.includes(bookId)) {
+          return prevSelected.filter((id) => id !== bookId);
+        }
+        // Only allow selection if under the limit
+        if (prevSelected.length >= 5) {
+          // Optional: Show toast or alert message here that limit is reached
+          return prevSelected;
+        }
+        return [...prevSelected, bookId];
+      });
     } else {
-      setSelectedUserBooks((prevSelected) =>
-        prevSelected.includes(bookId)
-          ? prevSelected.filter((id) => id !== bookId)
-          : [...prevSelected, bookId]
-      );
+      setSelectedUserBooks((prevSelected) => {
+        // Always allow deselection
+        if (prevSelected.includes(bookId)) {
+          return prevSelected.filter((id) => id !== bookId);
+        }
+        // Only allow selection if under the limit
+        if (prevSelected.length >= 5) {
+          // Optional: Show toast or alert message here that limit is reached
+          return prevSelected;
+        }
+        return [...prevSelected, bookId];
+      });
     }
   };
 
@@ -801,8 +815,15 @@ export default function Exchange({ params }: PageProps) {
                   Twoje książki
                 </div>
                 {selectedMyBooks.length > 0 && (
-                  <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-bold">
-                    {selectedMyBooks.length} zaznaczono
+                  <span
+                    className={`bg-white rounded-full px-2 py-0.5 text-xs font-bold ${
+                      selectedMyBooks.length === 5
+                        ? "text-red-600"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {selectedMyBooks.length}/5
+                    {selectedMyBooks.length === 5 && "🔒"}
                   </span>
                 )}
               </h2>
@@ -951,8 +972,15 @@ export default function Exchange({ params }: PageProps) {
                   Książki użytkownika do wymiany
                 </div>
                 {selectedUserBooks.length > 0 && (
-                  <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-bold">
-                    {selectedUserBooks.length} zaznaczono
+                  <span
+                    className={`bg-white rounded-full px-2 py-0.5 text-xs font-bold ${
+                      selectedUserBooks.length === 5
+                        ? "text-red-600"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {selectedUserBooks.length}/5
+                    {selectedUserBooks.length === 5 && "🔒"}
                   </span>
                 )}
               </h2>
@@ -1192,7 +1220,7 @@ export default function Exchange({ params }: PageProps) {
         {/* Exchange Summary Section */}
         {(selectedMyBooks.length > 0 || selectedUserBooks.length > 0) && (
           <div className="mt-6 p-4 bg-white rounded-xl shadow-md border border-blue-100">
-            <h3 className="text-lg font-bold text-center mb-3 text-blue-700 flex items-center justify-center">
+            <h3 className="text-lg font-bold text-center mb-4 text-blue-700 flex items-center justify-center">
               <svg
                 className="w-5 h-5 mr-2"
                 fill="none"
@@ -1209,10 +1237,10 @@ export default function Exchange({ params }: PageProps) {
               Podsumowanie wymiany
             </h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Your books selection */}
-              <div className="border rounded-lg p-3 bg-gradient-to-r from-blue-50 to-white">
-                <div className="flex justify-between items-center mb-2">
+              <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-white shadow-sm">
+                <div className="flex justify-between items-center mb-3">
                   <h4 className="font-bold text-sm text-gray-700 flex items-center">
                     <span className="bg-blue-500 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-xs mr-2">
                       {selectedMyBooks.length}
@@ -1222,7 +1250,7 @@ export default function Exchange({ params }: PageProps) {
                   {selectedMyBooks.length > 0 && (
                     <button
                       onClick={() => setSelectedMyBooks([])}
-                      className="text-xs text-gray-500 hover:text-red-500"
+                      className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-red-500 rounded-full transition-colors"
                     >
                       Wyczyść
                     </button>
@@ -1395,15 +1423,15 @@ export default function Exchange({ params }: PageProps) {
 
             {/* Exchange visualization - arrows */}
             {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 && (
-              <div className="flex justify-center my-4">
-                <div className="relative flex items-center">
-                  <div className="bg-blue-100 px-3 py-1 rounded text-blue-700 text-xs font-bold">
+              <div className="flex justify-center my-5 py-2">
+                <div className="relative flex items-center bg-blue-50 px-6 py-3 rounded-lg shadow-sm">
+                  <div className="bg-blue-100 px-4 py-2 rounded-lg text-blue-700 text-sm font-bold">
                     TY
                   </div>
-                  <div className="w-16 h-0.5 bg-blue-400 mx-1"></div>
-                  <div className="px-2 py-1 bg-blue-500 text-white rounded-full flex items-center justify-center">
+                  <div className="w-20 h-1 bg-blue-400 mx-3"></div>
+                  <div className="px-3 py-2 bg-blue-500 text-white rounded-full flex items-center justify-center">
                     <svg
-                      className="w-4 h-4"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1416,8 +1444,8 @@ export default function Exchange({ params }: PageProps) {
                       />
                     </svg>
                   </div>
-                  <div className="w-16 h-0.5 bg-blue-400 mx-1"></div>
-                  <div className="bg-blue-100 px-3 py-1 rounded text-blue-700 text-xs font-bold">
+                  <div className="w-20 h-1 bg-blue-400 mx-3"></div>
+                  <div className="bg-blue-100 px-4 py-2 rounded-lg text-blue-700 text-sm font-bold">
                     {profileUser?.displayName?.split(" ")[0] || "Użytkownik"}
                   </div>
                 </div>
@@ -1425,11 +1453,11 @@ export default function Exchange({ params }: PageProps) {
             )}
 
             {/* Exchange info and action button */}
-            <div className="mt-4 flex flex-col items-center">
+            <div className="mt-5 flex flex-col items-center">
               {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 ? (
-                <div className="text-center mb-3 text-sm">
+                <div className="text-center mb-4 text-sm">
                   <span
-                    className={`font-bold px-2 py-1 rounded ${
+                    className={`font-bold px-3 py-2 rounded-lg ${
                       selectedMyBooks.length === selectedUserBooks.length
                         ? "bg-green-100 text-green-700"
                         : selectedMyBooks.length > selectedUserBooks.length
@@ -1441,7 +1469,7 @@ export default function Exchange({ params }: PageProps) {
                   </span>
                 </div>
               ) : (
-                <div className="text-center mb-3 text-sm text-gray-600">
+                <div className="text-center mb-4 p-3 bg-blue-50 rounded-lg text-sm text-gray-600 max-w-md">
                   Aby zaproponować wymianę, wybierz przynajmniej jedną książkę z
                   każdej listy
                 </div>
@@ -1450,7 +1478,7 @@ export default function Exchange({ params }: PageProps) {
               <button
                 onClick={() => setExchangeModalOpen(true)}
                 disabled={!canProposeExchange()}
-                className={`px-6 py-2.5 rounded-lg flex items-center font-semibold text-base shadow-lg transform transition-all duration-200
+                className={`px-6 py-2.5 mt-3 rounded-lg flex items-center font-semibold text-base shadow-lg transform transition-all duration-200
         ${
           canProposeExchange()
             ? "bg-blue-600 hover:bg-blue-700 hover:scale-105 text-white"
