@@ -40,7 +40,8 @@ export default function Navbar() {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [delayedTooltip, setDelayedTooltip] = useState<string | null>(null);
   const defaultAvatar = "/images/default-avatar.png";
-  const { pendingInvites, setPendingInvites } = useNotifications();
+  const { pendingInvites, setPendingInvites, pendingExchanges } =
+    useNotifications();
   // Add mobile menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -281,6 +282,37 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          <div className="relative h-5/6">
+            <a
+              href="/exchanges"
+              className="rounded-xl flex items-center justify-center h-full px-6 text-foreground hover:text-[var(--primaryColorHover)] hover:bg-[var(--secondaryColorLight)] transition-all duration-200 relative"
+              onMouseEnter={() => setActiveTooltip("exchanges")}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-7 w-7"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+              </svg>
+              {pendingExchanges > 0 && (
+                <div className="absolute top-6 right-5 bg-red-500 text-white text-xs font-medium w-4 h-4 rounded-full flex items-center justify-center">
+                  {pendingExchanges}
+                </div>
+              )}
+            </a>
+            {delayedTooltip === "exchanges" && (
+              <div
+                className="absolute -bottom-10 left-1/2 bg-[var(--foreground)] text-[var(--background)] 
+                px-4 py-1.5 rounded-full text-sm whitespace-nowrap shadow-lg opacity-0
+                animate-[tooltipAppear_0.2s_ease-out_forwards]"
+              >
+                Wymiany
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -508,6 +540,28 @@ export default function Navbar() {
               {pendingInvites > 0 && (
                 <div className="ml-2 bg-red-500 text-white text-xs font-medium px-1.5 min-w-[20px] h-5 rounded-full flex items-center justify-center">
                   {pendingInvites}
+                </div>
+              )}
+            </div>
+          </Link>
+          <Link
+            href="/exchanges"
+            className="flex items-center space-x-3 text-[var(--foreground)] p-3 rounded-xl hover:bg-[var(--gray-100)] transition-colors relative"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              viewBox="0 0 20 20"
+              fill="var(--foreground)"
+            >
+              <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+            </svg>
+            <div className="flex items-center">
+              <span className="font-medium">Wymiany</span>
+              {pendingExchanges > 0 && (
+                <div className="ml-2 bg-red-500 text-white text-xs font-medium px-1.5 min-w-[20px] h-5 rounded-full flex items-center justify-center">
+                  {pendingExchanges}
                 </div>
               )}
             </div>
