@@ -16,8 +16,10 @@ import { db } from "@/firebase/config";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import BookCover from "../components/BookCover";
+import Link from "next/link";
 
 type Book = {
+  bookId: string | undefined;
   id: string;
   title: string;
   author: string;
@@ -246,13 +248,36 @@ export default function ExchangesPage() {
           createdAt: data.createdAt?.toDate() || new Date(),
         } as Exchange;
 
-        // Get book details
-        exchangeData.userBooksDetails = await fetchBooksDetails(
-          exchangeData.userBooks
-        );
-        exchangeData.contactBooksDetails = await fetchBooksDetails(
-          exchangeData.contactBooks
-        );
+        // Get book details - add same logic as for incoming exchanges
+        if (Array.isArray(data.userBooks) && data.userBooks.length > 0) {
+          // Check if userBooks contains fully detailed book objects
+          if (
+            typeof data.userBooks[0] === "object" &&
+            data.userBooks[0].title
+          ) {
+            exchangeData.userBooksDetails = data.userBooks;
+          } else {
+            // If they're just IDs, fetch the details
+            exchangeData.userBooksDetails = await fetchBooksDetails(
+              data.userBooks
+            );
+          }
+        }
+
+        if (Array.isArray(data.contactBooks) && data.contactBooks.length > 0) {
+          // Check if contactBooks contains fully detailed book objects
+          if (
+            typeof data.contactBooks[0] === "object" &&
+            data.contactBooks[0].title
+          ) {
+            exchangeData.contactBooksDetails = data.contactBooks;
+          } else {
+            // If they're just IDs, fetch the details
+            exchangeData.contactBooksDetails = await fetchBooksDetails(
+              data.contactBooks
+            );
+          }
+        }
 
         outgoingData.push(exchangeData);
       }
@@ -683,13 +708,40 @@ function ExchangeCard({
               exchange.userBooksDetails.map((book) => (
                 <div
                   key={book.id}
-                  className="relative w-16 h-24 md:w-20 md:h-28 group"
+                  className="relative flex items-center bg-[var(--background)] p-2 rounded border border-[var(--gray-200)] w-full max-w-[200px] group"
                 >
-                  <BookCover isbn={book.isbn} title={book.title} size="M" />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-                    <div className="text-white text-xs text-center p-1">
-                      {book.title}
-                    </div>
+                  <div className="w-10 h-14 mr-2 flex-shrink-0">
+                    <BookCover isbn={book.isbn} title={book.title} size="M" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{book.title}</p>
+                    <p className="text-[10px] text-[var(--gray-500)] truncate">
+                      {book.author}
+                    </p>
+                    <Link
+                      href={`/books/${book.bookId || book.id.split("_").pop()}`}
+                      className="inline-flex items-center text-[10px] text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <svg
+                        className="w-3 h-3 mr-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Szczegóły
+                    </Link>
+                    {book.isbn && (
+                      <span className="text-[8px] text-[var(--gray-400)]">
+                        ISBN: {book.isbn.substring(0, 8)}...
+                      </span>
+                    )}
                   </div>
                 </div>
               ))
@@ -729,12 +781,43 @@ function ExchangeCard({
               exchange.contactBooksDetails.map((book) => (
                 <div
                   key={book.id}
-                  className="relative w-16 h-24 md:w-20 md:h-28 group"
+                  className="relative flex items-center bg-[var(--background)] p-2 rounded border border-[var(--gray-200)] w-full max-w-[200px] group"
                 >
-                  <BookCover isbn={book.isbn} title={book.title} size="M" />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-                    <div className="text-white text-xs text-center p-1">
-                      {book.title}
+                  <div className="w-10 h-14 mr-2 flex-shrink-0">
+                    <BookCover isbn={book.isbn} title={book.title} size="M" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{book.title}</p>
+                    <p className="text-[10px] text-[var(--gray-500)] truncate">
+                      {book.author}
+                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <Link
+                        href={`/books/${
+                          book.bookId || book.id.split("_").pop()
+                        }`}
+                        className="inline-flex items-center text-[10px] text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <svg
+                          className="w-3 h-3 mr-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Szczegóły
+                      </Link>
+                      {book.isbn && (
+                        <span className="text-[8px] text-[var(--gray-400)]">
+                          ISBN: {book.isbn.substring(0, 8)}...
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
