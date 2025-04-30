@@ -15,6 +15,7 @@ import {
 import { db } from "@/firebase/config";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import BookCover from "../components/BookCover";
 
 type Book = {
   id: string;
@@ -22,6 +23,7 @@ type Book = {
   author: string;
   coverUrl: string;
   ownerId?: string;
+  isbn?: string; // Add this property
 };
 
 type Exchange = {
@@ -182,7 +184,7 @@ export default function ExchangesPage() {
           userId: data.userId,
           contactId: data.contactId,
           status: data.status,
-          statusDate: data.statusDate?.toDate(),
+          statusDate: data.statusDate?.toDate(), // Properly converting Firestore timestamp to Date
           userBooks: data.userBooks || [],
           contactBooks: data.contactBooks || [],
           createdAt: data.createdAt?.toDate() || new Date(),
@@ -195,13 +197,36 @@ export default function ExchangesPage() {
           exchangeData.userPhotoURL = userDoc.data().photoURL;
         }
 
-        // Get book details
-        exchangeData.userBooksDetails = await fetchBooksDetails(
-          exchangeData.userBooks
-        );
-        exchangeData.contactBooksDetails = await fetchBooksDetails(
-          exchangeData.contactBooks
-        );
+        // Direct assignment of book details if they exist in the data
+        if (Array.isArray(data.userBooks) && data.userBooks.length > 0) {
+          // Check if userBooks contains fully detailed book objects
+          if (
+            typeof data.userBooks[0] === "object" &&
+            data.userBooks[0].title
+          ) {
+            exchangeData.userBooksDetails = data.userBooks;
+          } else {
+            // If they're just IDs, fetch the details
+            exchangeData.userBooksDetails = await fetchBooksDetails(
+              data.userBooks
+            );
+          }
+        }
+
+        if (Array.isArray(data.contactBooks) && data.contactBooks.length > 0) {
+          // Check if contactBooks contains fully detailed book objects
+          if (
+            typeof data.contactBooks[0] === "object" &&
+            data.contactBooks[0].title
+          ) {
+            exchangeData.contactBooksDetails = data.contactBooks;
+          } else {
+            // If they're just IDs, fetch the details
+            exchangeData.contactBooksDetails = await fetchBooksDetails(
+              data.contactBooks
+            );
+          }
+        }
 
         incomingData.push(exchangeData);
       }
@@ -303,13 +328,14 @@ export default function ExchangesPage() {
     return bookDetails;
   };
 
-  // Update the handleAcceptExchange function
   const handleAcceptExchange = async (exchange: Exchange) => {
     try {
+      const statusDate = new Date();
+
       // First update the exchange status
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "completed",
-        statusDate: new Date(),
+        statusDate: statusDate,
       });
 
       // Update local state first to provide immediate feedback
@@ -317,7 +343,11 @@ export default function ExchangesPage() {
         prev.filter((ex) => ex.id !== exchange.id)
       );
       setCompletedExchanges((prev) => [
-        { ...exchange, status: "completed", statusDate: new Date() },
+        {
+          ...exchange,
+          status: "completed",
+          statusDate: statusDate, // Use the same date object
+        },
         ...prev,
       ]);
 
@@ -354,12 +384,15 @@ export default function ExchangesPage() {
     }
   };
 
+  // Similar fix for the handleDeclineExchange function
   const handleDeclineExchange = async (exchange: Exchange) => {
     try {
+      const statusDate = new Date();
+
       // Update with statusDate field
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "declined",
-        statusDate: new Date(), // Add current timestamp
+        statusDate: statusDate, // Use the same date object
       });
 
       // Update local state
@@ -367,7 +400,11 @@ export default function ExchangesPage() {
         prev.filter((ex) => ex.id !== exchange.id)
       );
       setCompletedExchanges((prev) => [
-        { ...exchange, status: "declined", statusDate: new Date() },
+        {
+          ...exchange,
+          status: "declined",
+          statusDate: statusDate, // Use the same date object
+        },
         ...prev,
       ]);
 
@@ -580,7 +617,10 @@ function ExchangeCard({
                   : "Wymiana odrzucona")}
             </h3>
             <div className="text-sm text-[var(--gray-500)] flex flex-col">
-              <span>Utworzono: {formatDate(exchange.createdAt)}</span>
+              {/* Wyświetl datę utworzenia z exchange.createdAt */}
+              <span>Utworzono: {formatDate(exchange.statusDate)}</span>
+
+              {/* Wyświetl statusDate jeśli dostępne, ale tylko dla historii */}
               {exchange.statusDate && type === "history" && (
                 <span>
                   {exchange.status === "completed"
@@ -645,13 +685,7 @@ function ExchangeCard({
                   key={book.id}
                   className="relative w-16 h-24 md:w-20 md:h-28 group"
                 >
-                  <Image
-                    src={book.coverUrl || "/book-placeholder.png"}
-                    alt={book.title}
-                    fill
-                    className="object-cover rounded shadow"
-                    sizes="80px"
-                  />
+                  <BookCover isbn={book.isbn} title={book.title} size="M" />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
                     <div className="text-white text-xs text-center p-1">
                       {book.title}
@@ -697,13 +731,7 @@ function ExchangeCard({
                   key={book.id}
                   className="relative w-16 h-24 md:w-20 md:h-28 group"
                 >
-                  <Image
-                    src={book.coverUrl || "/book-placeholder.png"}
-                    alt={book.title}
-                    fill
-                    className="object-cover rounded shadow"
-                    sizes="80px"
-                  />
+                  <BookCover isbn={book.isbn} title={book.title} size="M" />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
                     <div className="text-white text-xs text-center p-1">
                       {book.title}
