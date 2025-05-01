@@ -9,6 +9,9 @@ interface NotificationsContextType {
   acceptedContactsCount: number;
   setAcceptedContactsCount: (count: number) => void;
   refreshAcceptedContactsCount: () => void;
+  pendingExchanges: number;
+  setPendingExchanges: (count: number) => void;
+  refreshPendingExchanges: () => void;
 }
 
 const NotificationsContext = createContext<
@@ -22,6 +25,7 @@ export function NotificationsProvider({
 }) {
   const [pendingInvites, setPendingInvites] = useState(0);
   const [acceptedContactsCount, setAcceptedContactsCount] = useState(0);
+  const [pendingExchanges, setPendingExchanges] = useState(0);
 
   const refreshPendingInvites = useCallback(() => {
     setPendingInvites((prev) => Math.max(0, prev - 1));
@@ -29,6 +33,10 @@ export function NotificationsProvider({
 
   const refreshAcceptedContactsCount = useCallback(() => {
     setAcceptedContactsCount((prev) => prev + 1);
+  }, []);
+
+  const refreshPendingExchanges = useCallback(() => {
+    setPendingExchanges((prev) => Math.max(0, prev - 1));
   }, []);
 
   return (
@@ -40,6 +48,9 @@ export function NotificationsProvider({
         acceptedContactsCount,
         setAcceptedContactsCount,
         refreshAcceptedContactsCount,
+        pendingExchanges,
+        setPendingExchanges,
+        refreshPendingExchanges,
       }}
     >
       {children}
