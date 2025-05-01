@@ -263,37 +263,92 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
 
   const handleAcceptExchange = async (exchange: Exchange) => {
     try {
+      // First, update the exchange status to completed
       const statusDate = new Date();
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "completed",
         statusDate: statusDate,
       });
 
+      // Remove from current view
       setExchanges((prev) => prev.filter((ex) => ex.id !== exchange.id));
-      toast.success("Wymiana zaakceptowana");
 
-      // Transfer book ownership
-      try {
-        if (exchange.userBooksDetails) {
-          for (const book of exchange.userBooksDetails) {
-            await updateDoc(doc(db, "books", book.id), {
-              ownerId: user?.uid,
-            });
+      // Transfer book ownership - with better error handling
+      let transferErrors = 0;
+
+      // 1. Transfer books from the exchange initiator to the recipient (current user)
+      if (exchange.userBooksDetails && exchange.userBooksDetails.length > 0) {
+        for (const book of exchange.userBooksDetails) {
+          try {
+            const ownershipQuery = query(
+              collection(db, "bookOwnership"),
+              where("bookId", "==", book.bookId || book.id),
+              where("userId", "==", exchange.userId)
+            );
+
+            const ownershipSnapshot = await getDocs(ownershipQuery);
+
+            if (!ownershipSnapshot.empty) {
+              await updateDoc(
+                doc(db, "bookOwnership", ownershipSnapshot.docs[0].id),
+                {
+                  userId: user?.uid,
+                  status: null, // Reset forExchange status
+                  exchangeId: exchange.id, // Add reference to the exchange for security rules
+                }
+              );
+            } else {
+              console.warn(`Book ownership record not found for ${book.title}`);
+              transferErrors++;
+            }
+          } catch (err) {
+            console.error(`Error transferring book ${book.title}:`, err);
+            transferErrors++;
           }
         }
+      }
 
-        if (exchange.contactBooksDetails) {
-          for (const book of exchange.contactBooksDetails) {
-            await updateDoc(doc(db, "books", book.id), {
-              ownerId: exchange.userId,
-            });
+      // 2. Transfer books from the recipient (current user) to the exchange initiator
+      if (
+        exchange.contactBooksDetails &&
+        exchange.contactBooksDetails.length > 0
+      ) {
+        for (const book of exchange.contactBooksDetails) {
+          try {
+            const ownershipQuery = query(
+              collection(db, "bookOwnership"),
+              where("bookId", "==", book.bookId || book.id),
+              where("userId", "==", user?.uid)
+            );
+
+            const ownershipSnapshot = await getDocs(ownershipQuery);
+
+            if (!ownershipSnapshot.empty) {
+              await updateDoc(
+                doc(db, "bookOwnership", ownershipSnapshot.docs[0].id),
+                {
+                  userId: exchange.userId,
+                  status: null, // Reset forExchange status
+                  exchangeId: exchange.id, // Add reference to the exchange for security rules
+                }
+              );
+            } else {
+              console.warn(`Book ownership record not found for ${book.title}`);
+              transferErrors++;
+            }
+          } catch (err) {
+            console.error(`Error transferring book ${book.title}:`, err);
+            transferErrors++;
           }
         }
-      } catch (transferError) {
-        console.error("Error transferring book ownership:", transferError);
-        toast.error(
-          "Wymiana została zaakceptowana, ale wystąpił problem z przeniesieniem własności książek"
+      }
+
+      if (transferErrors > 0) {
+        toast.success(
+          "Wymiana zaakceptowana, ale wystąpiły problemy z transferem niektórych książek"
         );
+      } else {
+        toast.success("Wymiana zaakceptowana");
       }
     } catch (error) {
       console.error("Error accepting exchange:", error);
