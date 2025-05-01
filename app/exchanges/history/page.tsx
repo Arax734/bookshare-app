@@ -1,14 +1,13 @@
 "use client";
 
-import { useExchanges } from "../hooks/useExchanges";
-import ExchangeCard from "../components/ExchangeCard";
-import ExchangeCardSkeleton from "../components/ExchangeCardSkeleton";
-import { useAuth } from "../hooks/useAuth";
+import { useExchanges } from "../../hooks/useExchanges";
+import ExchangeCard from "../../components/ExchangeCard";
+import ExchangeCardSkeleton from "../../components/ExchangeCardSkeleton";
+import { useAuth } from "../../hooks/useAuth";
 
-export default function IncomingExchangesPage() {
+export default function ExchangeHistoryPage() {
   const { user } = useAuth();
-  const { exchanges, loading, handleAcceptExchange, handleDeclineExchange } =
-    useExchanges("incoming");
+  const { exchanges, loading } = useExchanges("history");
 
   if (!user) {
     return (
@@ -28,7 +27,7 @@ export default function IncomingExchangesPage() {
   return (
     <div className="min-h-screen">
       <h2 className="text-lg sm:text-xl font-semibold text-[var(--gray-800)] mb-2 sm:mb-3">
-        Przychodzące propozycje wymiany
+        Historia wymian
       </h2>
 
       {loading ? (
@@ -41,7 +40,7 @@ export default function IncomingExchangesPage() {
         <>
           {exchanges.length === 0 ? (
             <div className="text-center py-12 text-[var(--gray-500)] bg-[var(--card-background)] rounded-lg shadow-sm">
-              <p>Nie masz żadnych propozycji wymiany</p>
+              <p>Historia wymian jest pusta</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -49,9 +48,9 @@ export default function IncomingExchangesPage() {
                 <ExchangeCard
                   key={exchange.id}
                   exchange={exchange}
-                  type="incoming"
-                  onAccept={() => handleAcceptExchange(exchange)}
-                  onDecline={() => handleDeclineExchange(exchange)}
+                  type="history"
+                  onAccept={() => {}}
+                  onDecline={() => {}}
                   onCancel={() => {}}
                 />
               ))}
