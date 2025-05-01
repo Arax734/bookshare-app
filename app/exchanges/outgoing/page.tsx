@@ -40,7 +40,7 @@ export default function OutgoingExchangesPage() {
       ) : (
         <>
           {exchanges.length === 0 ? (
-            <div className="text-center py-12 text-[var(--gray-500)] bg-[var(--card-background)] rounded-lg shadow-sm">
+            <div className="text-center py-12 text-[var(--gray-500)] rounded-lg">
               <p>Nie masz żadnych wysłanych propozycji wymiany</p>
             </div>
           ) : (

@@ -24,6 +24,15 @@ export default function ExchangeHistoryPage() {
     );
   }
 
+  // Helper function to determine exchange type for display purposes
+  const getExchangeDisplayType = (exchange: any) => {
+    if (exchange.userId === user.uid) {
+      return "history-outgoing"; // I initiated this exchange
+    } else {
+      return "history-incoming"; // Someone else initiated this exchange
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <h2 className="text-lg sm:text-xl font-semibold text-[var(--gray-800)] mb-2 sm:mb-3">
@@ -39,7 +48,7 @@ export default function ExchangeHistoryPage() {
       ) : (
         <>
           {exchanges.length === 0 ? (
-            <div className="text-center py-12 text-[var(--gray-500)] bg-[var(--card-background)] rounded-lg shadow-sm">
+            <div className="text-center py-12 text-[var(--gray-500)] rounded-lg">
               <p>Historia wymian jest pusta</p>
             </div>
           ) : (
@@ -48,7 +57,8 @@ export default function ExchangeHistoryPage() {
                 <ExchangeCard
                   key={exchange.id}
                   exchange={exchange}
-                  type="history"
+                  // Use a more specific type to control display better
+                  type={getExchangeDisplayType(exchange)}
                   onAccept={() => {}}
                   onDecline={() => {}}
                   onCancel={() => {}}
