@@ -39,6 +39,8 @@ type Exchange = {
   createdAt: Date;
   userName?: string;
   userPhotoURL?: string;
+  contactName?: string; // Add this property
+  contactPhotoURL?: string; // Add this property
   userBooksDetails?: Book[];
   contactBooksDetails?: Book[];
 };
@@ -247,6 +249,15 @@ export default function ExchangesPage() {
           contactBooks: data.contactBooks || [],
           createdAt: data.createdAt?.toDate() || new Date(),
         } as Exchange;
+
+        // Get contact user info (recipient)
+        const contactDoc = await getDoc(
+          doc(db, "users", exchangeData.contactId)
+        );
+        if (contactDoc.exists()) {
+          exchangeData.contactName = contactDoc.data().displayName;
+          exchangeData.contactPhotoURL = contactDoc.data().photoURL;
+        }
 
         // Get book details - add same logic as for incoming exchanges
         if (Array.isArray(data.userBooks) && data.userBooks.length > 0) {
@@ -622,20 +633,37 @@ function ExchangeCard({
       <div className="flex flex-col sm:flex-row justify-between mb-4">
         <div className="flex items-center mb-4 sm:mb-0">
           {type === "incoming" && exchange.userPhotoURL && (
-            <div className="mr-3 relative w-10 h-10 rounded-full overflow-hidden">
+            <Link
+              href={`/users/${exchange.userId}`}
+              className="mr-3 relative w-10 h-10 rounded-full overflow-hidden"
+            >
               <Image
                 src={exchange.userPhotoURL}
                 alt="User avatar"
                 fill
                 className="object-cover"
               />
-            </div>
+            </Link>
+          )}
+          {type === "outgoing" && exchange.contactPhotoURL && (
+            <Link
+              href={`/users/${exchange.contactId}`}
+              className="mr-3 relative w-10 h-10 rounded-full overflow-hidden"
+            >
+              <Image
+                src={exchange.contactPhotoURL}
+                alt="Recipient avatar"
+                fill
+                className="object-cover"
+              />
+            </Link>
           )}
           <div>
             <h3 className="font-medium">
               {type === "incoming" &&
                 `Propozycja od ${exchange.userName || "użytkownika"}`}
-              {type === "outgoing" && "Wysłana propozycja wymiany"}
+              {type === "outgoing" &&
+                `Propozycja do ${exchange.contactName || "użytkownika"}`}
               {type === "history" &&
                 (exchange.status === "completed"
                   ? "Wymiana zakończona"
