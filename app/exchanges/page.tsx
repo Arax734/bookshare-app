@@ -453,12 +453,24 @@ export default function ExchangesPage() {
 
   const handleCancelExchange = async (exchange: Exchange) => {
     try {
-      await deleteDoc(doc(db, "bookExchanges", exchange.id));
+      const statusDate = new Date();
+
+      // Update exchange status to declined instead of deleting
+      await updateDoc(doc(db, "bookExchanges", exchange.id), {
+        status: "declined",
+      });
 
       // Update local state
       setOutgoingExchanges((prev) =>
         prev.filter((ex) => ex.id !== exchange.id)
       );
+      setCompletedExchanges((prev) => [
+        {
+          ...exchange,
+          status: "declined",
+        },
+        ...prev,
+      ]);
 
       toast.success("Wymiana anulowana");
     } catch (error) {
@@ -466,7 +478,6 @@ export default function ExchangesPage() {
       toast.error("Nie udało się anulować wymiany");
     }
   };
-
   if (!user) {
     return (
       <div className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
@@ -483,8 +494,8 @@ export default function ExchangesPage() {
   }
 
   return (
-    <div className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
-      <h1 className="text-2xl md:text-3xl font-semibold mb-6">
+    <div className="min-h-screen px-4 md:px-8 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 text-center text-[var(--gray-800)]">
         Wymiany książek
       </h1>
 
@@ -672,16 +683,6 @@ function ExchangeCard({
             <div className="text-sm text-[var(--gray-500)] flex flex-col">
               {/* Wyświetl datę utworzenia z exchange.createdAt */}
               <span>Utworzono: {formatDate(exchange.statusDate)}</span>
-
-              {/* Wyświetl statusDate jeśli dostępne, ale tylko dla historii */}
-              {exchange.statusDate && type === "history" && (
-                <span>
-                  {exchange.status === "completed"
-                    ? "Zaakceptowano: "
-                    : "Odrzucono: "}
-                  {formatDate(exchange.statusDate)}
-                </span>
-              )}
             </div>
           </div>
         </div>
