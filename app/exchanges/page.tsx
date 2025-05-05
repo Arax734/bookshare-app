@@ -10,21 +10,6 @@ export default function IncomingExchangesPage() {
   const { exchanges, loading, handleAcceptExchange, handleDeclineExchange } =
     useExchanges("incoming");
 
-  if (!user) {
-    return (
-      <div className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="text-center mt-16">
-          <h1 className="text-2xl md:text-3xl font-semibold mb-4">
-            Musisz być zalogowany, aby przeglądać wymiany
-          </h1>
-          <p className="text-[var(--gray-600)]">
-            Zaloguj się, aby zobaczyć swoje wymiany książek
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen">
       <h2 className="text-lg sm:text-xl font-semibold text-[var(--gray-800)] mb-2 sm:mb-3">
