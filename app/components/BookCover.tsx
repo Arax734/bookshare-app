@@ -32,17 +32,29 @@ export default function BookCover({
   }, [error, size, onError]);
 
   // Return early if no ISBN provided
-  if (!isbn) {
+  if (!isbn || isbn === "") {
     return (
-      <div className="relative aspect-[2/3] bg-[var(--gray-100)] flex items-center justify-center">
-        <BookOpenIcon className="w-16 h-16 text-[var(--gray-300)]" />
+      <div className="relative aspect-[2/3] bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
+        <BookOpenIcon
+          className={`${
+            size === "S"
+              ? "w-10 h-10"
+              : size === "M"
+              ? "w-14 h-14"
+              : "w-20 h-20"
+          } text-[var(--gray-300)]`}
+        />
       </div>
     );
   }
 
-  // Return empty component if there's an error and size is L
+  // Modified: Show fallback UI instead of returning null
   if (error && size === "L") {
-    return null;
+    return (
+      <div className="relative aspect-[2/3] bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
+        <BookOpenIcon className="w-20 h-20 text-[var(--gray-300)]" />
+      </div>
+    );
   }
 
   // Function to verify the image dimensions
@@ -64,9 +76,13 @@ export default function BookCover({
         </div>
       )}
 
-      {error && size === "M" && (
+      {error && (size === "M" || size === "S") && (
         <div className="absolute inset-0 flex items-center justify-center bg-[var(--gray-100)]">
-          <BookOpenIcon className="w-12 h-12 text-[var(--gray-300)]" />
+          <BookOpenIcon
+            className={`${
+              size === "S" ? "w-8 h-8" : "w-12 h-12"
+            } text-[var(--gray-300)]`}
+          />
         </div>
       )}
 

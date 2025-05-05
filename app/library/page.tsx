@@ -63,6 +63,23 @@ export default function Library() {
     return id.toString().padStart(14, "0");
   };
 
+  const renderBookCover = (book: BookItem, size: "S" | "M" | "L") => {
+    // Sprawdź czy ISBN istnieje i nie jest pusty
+    const hasIsbn = !!book.isbnIssn && book.isbnIssn.trim().length > 0;
+
+    return (
+      <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
+        {hasIsbn ? (
+          <BookCover isbn={book.isbnIssn} title={book.title} size={size} />
+        ) : (
+          <div className="relative aspect-[2/3] h-full bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
+            <BookOpenIcon className="w-10 h-10 text-[var(--gray-300)]" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const fetchBooks = async (url: string, append: boolean = false) => {
     try {
       if (append) {
@@ -245,12 +262,6 @@ export default function Library() {
     return title;
   };
 
-  // Function to check if book has a valid cover
-  const hasValidCover = (isbn: string | undefined): boolean => {
-    // Books need a valid ISBN to fetch a cover
-    return !!isbn && isbn.trim().length > 0;
-  };
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -378,15 +389,7 @@ export default function Library() {
                 </div>
 
                 <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
-                  {hasValidCover(book.isbnIssn) && (
-                    <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
-                      <BookCover
-                        isbn={book.isbnIssn}
-                        title={book.title}
-                        size={"M"}
-                      />
-                    </div>
-                  )}
+                  {renderBookCover(book, "M")}
 
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="mb-1 sm:mb-2">
