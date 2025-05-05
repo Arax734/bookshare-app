@@ -5,10 +5,31 @@ import ExchangeCard from "../../components/ExchangeCard";
 import ExchangeCardSkeleton from "../../components/ExchangeCardSkeleton";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
+import { useNotifications } from "../../contexts/NotificationsContext";
+import { useEffect } from "react";
 
 export default function OutgoingExchangesPage() {
   const { user } = useAuth();
   const { exchanges, loading, handleCancelExchange } = useExchanges("outgoing");
+  const {
+    refreshHistoryExchangesCount,
+    refreshOutgoingExchangesCount,
+    decrementOutgoingCount,
+  } = useNotifications();
+
+  // Refresh counts when component mounts
+  useEffect(() => {
+    if (user) {
+      refreshHistoryExchangesCount();
+      refreshOutgoingExchangesCount();
+    }
+  }, [user, refreshHistoryExchangesCount, refreshOutgoingExchangesCount]);
+
+  // Create a wrapper function to handle both exchange cancellation and count updates
+  const handleExchangeCancel = (exchange: any) => {
+    handleCancelExchange(exchange);
+    decrementOutgoingCount(); // Decrease the outgoing count directly
+  };
 
   return (
     <div className="min-h-screen">
@@ -37,7 +58,7 @@ export default function OutgoingExchangesPage() {
                   type="outgoing"
                   onAccept={() => {}}
                   onDecline={() => {}}
-                  onCancel={() => handleCancelExchange(exchange)}
+                  onCancel={() => handleExchangeCancel(exchange)}
                 />
               ))}
             </div>

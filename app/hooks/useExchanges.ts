@@ -10,6 +10,7 @@ import {
   doc,
   updateDoc,
   getDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "react-hot-toast";
@@ -46,7 +47,11 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
   const { user } = useAuth();
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshPendingExchanges, incrementHistoryCount } = useNotifications();
+  const {
+    refreshPendingExchanges,
+    incrementHistoryCount,
+    refreshHistoryExchangesCount,
+  } = useNotifications();
 
   useEffect(() => {
     if (!user) return;
@@ -384,10 +389,13 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "declined",
         statusDate: statusDate,
+        updatedAt: serverTimestamp(),
       });
 
       setExchanges((prev) => prev.filter((ex) => ex.id !== exchange.id));
       toast.success("Wymiana anulowana");
+      incrementHistoryCount(); // Increment the history count
+      refreshHistoryExchangesCount(); // Or refresh the whole count if needed
     } catch (error) {
       console.error("Error canceling exchange:", error);
       toast.error("Nie udało się anulować wymiany");

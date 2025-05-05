@@ -6,8 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/firebase/config";
 import { useNotifications } from "../contexts/NotificationsContext"; // Add this import
 
 export default function ExchangeLayout({
@@ -17,14 +15,15 @@ export default function ExchangeLayout({
 }>) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [outgoingCount, setOutgoingCount] = useState(0);
   const [mounted, setMounted] = useState(false);
-  // Use context for both pending exchanges and history
+  // Use context for all counts
   const {
     pendingExchanges: incomingCount,
     refreshPendingExchanges,
     historyExchangesCount: historyCount,
     refreshHistoryExchangesCount,
+    outgoingExchangesCount: outgoingCount,
+    refreshOutgoingExchangesCount,
   } = useNotifications();
 
   useEffect(() => {
@@ -36,26 +35,22 @@ export default function ExchangeLayout({
 
     const fetchExchangeCounts = async () => {
       try {
-        // Refresh both counts from the context
+        // Refresh all counts from the context
         refreshPendingExchanges();
         refreshHistoryExchangesCount();
-
-        // Only fetch outgoing exchanges locally
-        const outgoingQuery = query(
-          collection(db, "bookExchanges"),
-          where("userId", "==", user.uid),
-          where("status", "==", "pending")
-        );
-
-        const outgoingSnapshot = await getDocs(outgoingQuery);
-        setOutgoingCount(outgoingSnapshot.size);
+        refreshOutgoingExchangesCount();
       } catch (error) {
         console.error("Error fetching exchange counts:", error);
       }
     };
 
     fetchExchangeCounts();
-  }, [user, refreshPendingExchanges, refreshHistoryExchangesCount]);
+  }, [
+    user,
+    refreshPendingExchanges,
+    refreshHistoryExchangesCount,
+    refreshOutgoingExchangesCount,
+  ]);
 
   if (!mounted) {
     return null;
