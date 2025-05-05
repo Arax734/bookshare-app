@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { BookOpenIcon } from "../../../components/svg-icons/BookOpenIcon";
 import { UserIcon } from "../../../components/svg-icons/UserIcon";
@@ -90,13 +96,12 @@ export default function UserFavorites() {
 
       setLoading(true);
       try {
-        // Pobierz dane użytkownika
-        const userDoc = await getDocs(
-          query(collection(db, "users"), where("uid", "==", id))
-        );
+        // Pobierz dane użytkownika bezpośrednio po ID dokumentu
+        const userRef = doc(db, "users", id as string);
+        const userSnapshot = await getDoc(userRef);
 
-        if (!userDoc.empty) {
-          setUsername(userDoc.docs[0].data().displayName);
+        if (userSnapshot.exists()) {
+          setUsername(userSnapshot.data().displayName);
         }
 
         // Pobierz ulubione książki użytkownika
