@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "react-hot-toast";
+import { useNotifications } from "../contexts/NotificationsContext";
 
 export type Book = {
   bookId: string | undefined;
@@ -45,6 +46,7 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
   const { user } = useAuth();
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshPendingExchanges, incrementHistoryCount } = useNotifications();
 
   useEffect(() => {
     if (!user) return;
@@ -350,6 +352,8 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
       } else {
         toast.success("Wymiana zaakceptowana");
       }
+      refreshPendingExchanges();
+      incrementHistoryCount();
     } catch (error) {
       console.error("Error accepting exchange:", error);
       toast.error("Nie udało się zaakceptować wymiany");
@@ -366,6 +370,8 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
 
       setExchanges((prev) => prev.filter((ex) => ex.id !== exchange.id));
       toast.success("Wymiana odrzucona");
+      refreshPendingExchanges();
+      incrementHistoryCount();
     } catch (error) {
       console.error("Error declining exchange:", error);
       toast.error("Nie udało się odrzucić wymiany");

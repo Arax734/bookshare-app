@@ -9,24 +9,9 @@ export default function ExchangeHistoryPage() {
   const { user } = useAuth();
   const { exchanges, loading } = useExchanges("history");
 
-  if (!user) {
-    return (
-      <div className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="text-center mt-16">
-          <h1 className="text-2xl md:text-3xl font-semibold mb-4">
-            Musisz być zalogowany, aby przeglądać wymiany
-          </h1>
-          <p className="text-[var(--gray-600)]">
-            Zaloguj się, aby zobaczyć swoje wymiany książek
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Helper function to determine exchange type for display purposes
   const getExchangeDisplayType = (exchange: any) => {
-    if (exchange.userId === user.uid) {
+    if (exchange.userId === user?.uid) {
       return "history-outgoing"; // I initiated this exchange
     } else {
       return "history-incoming"; // Someone else initiated this exchange

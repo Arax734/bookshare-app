@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import { useNotifications } from "../contexts/NotificationsContext"; // Add this import
 
 export default function ExchangeLayout({
   children,
@@ -16,10 +17,15 @@ export default function ExchangeLayout({
 }>) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [incomingCount, setIncomingCount] = useState(0);
   const [outgoingCount, setOutgoingCount] = useState(0);
-  const [historyCount, setHistoryCount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  // Use context for both pending exchanges and history
+  const {
+    pendingExchanges: incomingCount,
+    refreshPendingExchanges,
+    historyExchangesCount: historyCount,
+    refreshHistoryExchangesCount,
+  } = useNotifications();
 
   useEffect(() => {
     setMounted(true);
@@ -30,55 +36,26 @@ export default function ExchangeLayout({
 
     const fetchExchangeCounts = async () => {
       try {
-        // Fetch incoming exchanges (where I'm the contactId and status is pending)
-        const incomingQuery = query(
-          collection(db, "bookExchanges"),
-          where("contactId", "==", user.uid),
-          where("status", "==", "pending")
-        );
+        // Refresh both counts from the context
+        refreshPendingExchanges();
+        refreshHistoryExchangesCount();
 
-        // Fetch outgoing exchanges (where I'm the userId and status is pending)
+        // Only fetch outgoing exchanges locally
         const outgoingQuery = query(
           collection(db, "bookExchanges"),
           where("userId", "==", user.uid),
           where("status", "==", "pending")
         );
 
-        // Fetch history exchanges (where I'm involved and status is completed or declined)
-        const historyQuery1 = query(
-          collection(db, "bookExchanges"),
-          where("contactId", "==", user.uid),
-          where("status", "in", ["completed", "declined"])
-        );
-
-        const historyQuery2 = query(
-          collection(db, "bookExchanges"),
-          where("userId", "==", user.uid),
-          where("status", "in", ["completed", "declined"])
-        );
-
-        const [
-          incomingSnapshot,
-          outgoingSnapshot,
-          historySnapshot1,
-          historySnapshot2,
-        ] = await Promise.all([
-          getDocs(incomingQuery),
-          getDocs(outgoingQuery),
-          getDocs(historyQuery1),
-          getDocs(historyQuery2),
-        ]);
-
-        setIncomingCount(incomingSnapshot.size);
+        const outgoingSnapshot = await getDocs(outgoingQuery);
         setOutgoingCount(outgoingSnapshot.size);
-        setHistoryCount(historySnapshot1.size + historySnapshot2.size);
       } catch (error) {
         console.error("Error fetching exchange counts:", error);
       }
     };
 
     fetchExchangeCounts();
-  }, [user]);
+  }, [user, refreshPendingExchanges, refreshHistoryExchangesCount]);
 
   if (!mounted) {
     return null;

@@ -4,26 +4,23 @@ import { useExchanges } from "../hooks/useExchanges";
 import ExchangeCard from "../components/ExchangeCard";
 import ExchangeCardSkeleton from "../components/ExchangeCardSkeleton";
 import { useAuth } from "../hooks/useAuth";
+import { useNotifications } from "../contexts/NotificationsContext";
+import { useEffect } from "react";
 
 export default function IncomingExchangesPage() {
   const { user } = useAuth();
   const { exchanges, loading, handleAcceptExchange, handleDeclineExchange } =
     useExchanges("incoming");
+  const { refreshPendingExchanges, refreshHistoryExchangesCount } =
+    useNotifications();
 
-  if (!user) {
-    return (
-      <div className="min-h-screen pt-20 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="text-center mt-16">
-          <h1 className="text-2xl md:text-3xl font-semibold mb-4">
-            Musisz być zalogowany, aby przeglądać wymiany
-          </h1>
-          <p className="text-[var(--gray-600)]">
-            Zaloguj się, aby zobaczyć swoje wymiany książek
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Refresh counts when component mounts
+  useEffect(() => {
+    if (user) {
+      refreshPendingExchanges();
+      refreshHistoryExchangesCount();
+    }
+  }, [user, refreshPendingExchanges, refreshHistoryExchangesCount]);
 
   return (
     <div className="min-h-screen">
