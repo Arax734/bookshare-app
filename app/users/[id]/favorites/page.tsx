@@ -1,278 +1,424 @@
 "use client";
 
-import { useState, useEffect, use, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  limit,
-  startAfter,
-} from "firebase/firestore";
+import { useParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
-import { format } from "date-fns";
-import { pl } from "date-fns/locale";
-import LoadingSpinner from "@/app/components/LoadingSpinner";
+import { BookOpenIcon } from "../../../components/svg-icons/BookOpenIcon";
+import { UserIcon } from "../../../components/svg-icons/UserIcon";
+import { CalendarIcon } from "../../../components/svg-icons/CalendarIcon";
+import { LanguageIcon } from "../../../components/svg-icons/LanguageIcon";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import { splitAuthors } from "../../../utils/stringUtils";
+import BookCover from "../../../components/BookCover";
+import { useAuth } from "../../../hooks/useAuth";
 
-interface Favorite {
+interface BookItem {
+  id: number;
+  zone: string;
+  language: string;
+  subject: string;
+  author: string;
+  title: string;
+  publisher: string;
+  kind: string;
+  publicationYear: string;
+  isbnIssn?: string;
+  averageRating?: number;
+  totalReviews?: number;
+}
+
+interface FavoriteBook {
   id: string;
   bookId: string;
-  createdAt: Date;
   userId: string;
+  createdAt: any;
+  bookData?: BookItem;
 }
 
-interface FavoriteWithBookDetails extends Favorite {
-  bookTitle: string;
-  bookAuthor: string;
-}
+export default function UserFavorites() {
+  const { id } = useParams();
+  const { user } = useAuth();
+  const [favoriteBooks, setFavoriteBooks] = useState<FavoriteBook[]>([]);
+  const [filteredBooks, setFilteredBooks] = useState<FavoriteBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchType, setSearchType] = useState<"title" | "author">("title");
 
-const formatBookTitle = (title: string | undefined): string => {
-  if (!title) return "Tytuł niedostępny";
-
-  if (title.includes("/")) {
-    const firstPart = title.split("/")[0].trim();
-
-    if (firstPart.length > 60) {
-      return firstPart.substring(0, 57) + "...";
-    }
-
-    return firstPart;
-  }
-
-  if (title.length > 60) {
-    return title.substring(0, 57) + "...";
-  }
-
-  return title;
-};
-
-export default function Favorites({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const [favorites, setFavorites] = useState<FavoriteWithBookDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [lastDoc, setLastDoc] = useState<any>(null);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [isFetchingBooks, setIsFetchingBooks] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const unwrappedParams = use(params);
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  const lastFavoriteElementRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (isLoading) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          fetchMoreFavorites();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, hasMore]
-  );
-
-  useEffect(() => {
-    const calculateItemsPerPage = () => {
-      if (containerRef.current) {
-        const containerHeight = window.innerHeight - 200;
-        const itemHeight = 200;
-        const itemsFit = Math.ceil(containerHeight / itemHeight);
-        setItemsPerPage(itemsFit);
-      }
-    };
-
-    calculateItemsPerPage();
-    window.addEventListener("resize", calculateItemsPerPage);
-
-    return () => {
-      window.removeEventListener("resize", calculateItemsPerPage);
-    };
-  }, []);
-
-  const fetchMoreFavorites = async () => {
-    if (isFetchingBooks) return;
-
+  const fetchBookDetails = async (bookId: string) => {
     try {
-      setIsLoading(true);
-      setIsFetchingBooks(true);
+      // Użyj dedykowanego endpointu dla pojedynczej książki
+      const apiUrl = `/api/books/${bookId}`;
 
-      let favoritesQuery = query(
-        collection(db, "bookFavorites"),
-        where("userId", "==", unwrappedParams.id),
-        orderBy("createdAt", "desc"),
-        limit(itemsPerPage)
-      );
-
-      if (lastDoc) {
-        favoritesQuery = query(
-          collection(db, "bookFavorites"),
-          where("userId", "==", unwrappedParams.id),
-          orderBy("createdAt", "desc"),
-          startAfter(lastDoc),
-          limit(itemsPerPage)
-        );
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`Błąd HTTP: ${response.status}`);
       }
 
-      const favoritesSnapshot = await getDocs(favoritesQuery);
-
-      if (
-        favoritesSnapshot.empty ||
-        favoritesSnapshot.docs.length < itemsPerPage
-      ) {
-        setHasMore(false);
-      }
-
-      if (!favoritesSnapshot.empty) {
-        setLastDoc(favoritesSnapshot.docs[favoritesSnapshot.docs.length - 1]);
-      }
-
-      const favoritesData = favoritesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-      })) as Favorite[];
-
-      const existingIds = new Set(favorites.map((favorite) => favorite.id));
-      const uniqueFavoritesData = favoritesData.filter(
-        (favorite) => !existingIds.has(favorite.id)
-      );
-
-      if (uniqueFavoritesData.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      const favoritesWithBooks = await Promise.all(
-        uniqueFavoritesData.map(async (favorite) => {
-          try {
-            const paddedId = favorite.bookId.padStart(14, "0");
-            const response = await fetch(`/api/books/${paddedId}`);
-            const bookData = await response.json();
-
-            if (!response.ok) {
-              throw new Error(bookData.error || "Failed to fetch book details");
-            }
-
-            return {
-              ...favorite,
-              bookTitle:
-                formatBookTitle(bookData.title) || "Książka niedostępna",
-              bookAuthor: bookData.author || "Autor nieznany",
-            };
-          } catch (error) {
-            return {
-              ...favorite,
-              bookTitle: "Książka niedostępna",
-              bookAuthor: "Autor nieznany",
-            };
-          }
-        })
-      );
-
-      setFavorites((prev) => {
-        const newFavorites = [...prev];
-        favoritesWithBooks.forEach((favorite) => {
-          if (!newFavorites.some((f) => f.id === favorite.id)) {
-            newFavorites.push(favorite);
-          }
-        });
-        return newFavorites;
-      });
+      const bookData = await response.json();
+      return bookData;
     } catch (error) {
-      console.error("Error fetching more favorites:", error);
-      setError("Wystąpił błąd podczas ładowania ulubionych książek");
-    } finally {
-      setIsLoading(false);
-      setIsFetchingBooks(false);
+      console.error(
+        `Błąd podczas pobierania szczegółów książki ${bookId}:`,
+        error
+      );
+      return null;
     }
   };
 
-  useEffect(() => {
-    setFavorites([]);
-    setHasMore(true);
-    setLastDoc(null);
-    setIsFetchingBooks(false);
-    fetchMoreFavorites();
+  // Funkcja do pobierania ocen książki
+  const fetchBookRatings = async (bookId: string) => {
+    const q = query(collection(db, "reviews"), where("bookId", "==", bookId));
+    const querySnapshot = await getDocs(q);
+    const reviews = querySnapshot.docs.map((doc) => doc.data());
 
-    return () => {
-      setFavorites([]);
-      setHasMore(true);
-      setLastDoc(null);
-      setIsFetchingBooks(false);
+    if (reviews.length === 0) return { average: 0, total: 0 };
+
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return {
+      average: Number((sum / reviews.length).toFixed(1)),
+      total: reviews.length,
     };
-  }, [unwrappedParams.id]);
+  };
 
-  if (isLoading && favorites.length === 0) return <LoadingSpinner />;
-  if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
+  useEffect(() => {
+    async function fetchUserFavorites() {
+      if (!id) return;
+
+      setLoading(true);
+      try {
+        // Pobierz dane użytkownika
+        const userDoc = await getDocs(
+          query(collection(db, "users"), where("uid", "==", id))
+        );
+
+        if (!userDoc.empty) {
+          setUsername(userDoc.docs[0].data().displayName);
+        }
+
+        // Pobierz ulubione książki użytkownika
+        const favoritesQuery = query(
+          collection(db, "bookFavorites"),
+          where("userId", "==", id)
+        );
+
+        const favoritesSnapshot = await getDocs(favoritesQuery);
+
+        if (favoritesSnapshot.empty) {
+          setFavoriteBooks([]);
+          setFilteredBooks([]);
+          setLoading(false);
+          return;
+        }
+
+        // Utwórz listę ulubionych książek z podstawowymi danymi
+        const favorites = favoritesSnapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+              bookId: doc.data().bookId,
+              userId: doc.data().userId,
+              createdAt: doc.data().createdAt,
+            } as FavoriteBook)
+        );
+
+        console.log(
+          "Pobrane ulubione ID:",
+          favorites.map((f) => f.bookId)
+        );
+
+        // Pobierz szczegóły każdej książki z API
+        const booksWithDetails = await Promise.all(
+          favorites.map(async (favorite) => {
+            try {
+              // Pobierz szczegóły książki z API
+              const bookData = await fetchBookDetails(favorite.bookId);
+
+              if (bookData) {
+                // Pobierz oceny jeśli mamy dane książki
+                const ratings = await fetchBookRatings(favorite.bookId);
+
+                return {
+                  ...favorite,
+                  bookData: {
+                    ...bookData,
+                    averageRating: ratings.average,
+                    totalReviews: ratings.total,
+                  },
+                };
+              }
+
+              return favorite;
+            } catch (error) {
+              console.error(
+                `Błąd podczas pobierania danych książki ${favorite.bookId}:`,
+                error
+              );
+              return favorite;
+            }
+          })
+        );
+
+        // Filtruj tylko książki z danymi
+        const validBooks = booksWithDetails.filter((book) => book.bookData);
+        console.log(
+          `Znaleziono ${validBooks.length} książek z danymi z ${booksWithDetails.length} ulubionych`
+        );
+
+        setFavoriteBooks(validBooks);
+        setFilteredBooks(validBooks);
+      } catch (error) {
+        console.error("Błąd podczas pobierania ulubionych książek:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserFavorites();
+  }, [id]);
+
+  useEffect(() => {
+    // Filtruj książki na podstawie wyszukiwania
+    if (searchQuery.trim() === "") {
+      setFilteredBooks(favoriteBooks);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = favoriteBooks.filter((book) => {
+      if (!book.bookData) return false;
+
+      if (searchType === "title") {
+        return book.bookData.title.toLowerCase().includes(query);
+      } else {
+        return book.bookData.author.toLowerCase().includes(query);
+      }
+    });
+
+    setFilteredBooks(filtered);
+  }, [searchQuery, searchType, favoriteBooks]);
+
+  const formatBookTitle = (title: string | undefined): string => {
+    if (!title) return "Tytuł niedostępny";
+
+    if (title.includes("/")) {
+      const firstPart = title.split("/")[0].trim();
+      if (firstPart.length > 60) {
+        return firstPart.substring(0, 57) + "...";
+      }
+      return firstPart;
+    }
+
+    if (title.length > 60) {
+      return title.substring(0, 57) + "...";
+    }
+
+    return title;
+  };
+
+  const renderBookCover = (book: BookItem) => {
+    const hasIsbn = !!book.isbnIssn && book.isbnIssn.trim().length > 0;
+
+    return (
+      <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-50)] flex-shrink-0 shadow-sm">
+        {hasIsbn ? (
+          <BookCover isbn={book.isbnIssn} title={book.title} size="M" />
+        ) : (
+          <div className="relative aspect-[2/3] h-full bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
+            <BookOpenIcon className="w-10 h-10 text-[var(--gray-300)]" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const isCurrentUser = user && user.uid === id;
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
-    <main className="mx-auto px-4 pb-8 bg-[var(--background)] min-h-screen">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-[var(--card-background)] rounded-2xl shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r bg-[var(--primaryColor)] p-4 text-white">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold">Ulubione książki</h1>
-              <Link
-                href={`/users/${unwrappedParams.id}`}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                Powrót do profilu
-              </Link>
-            </div>
-          </div>
+    <div className="max-w-6xl mx-auto pb-8 px-4 sm:px-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-[var(--gray-800)]">
+        {isCurrentUser
+          ? "Twoje ulubione książki"
+          : username
+          ? `Ulubione książki użytkownika ${username}`
+          : "Ulubione książki"}
+      </h1>
 
-          <div className="p-6">
-            <div className="space-y-4" ref={containerRef}>
-              {favorites.length > 0 ? (
-                <>
-                  {favorites.map((favorite, index) => (
-                    <div
-                      key={`${favorite.id}_${index}`}
-                      ref={
-                        index === favorites.length - 1
-                          ? lastFavoriteElementRef
-                          : undefined
-                      }
-                      className="bg-[var(--background)] p-4 rounded-xl border border-[var(--gray-200)] transition-all duration-200 shadow"
-                    >
-                      <div className="flex flex-col space-y-2">
-                        <Link
-                          href={`/books/${favorite.bookId}`}
-                          className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
-                          title={favorite.bookTitle}
-                        >
-                          {formatBookTitle(favorite.bookTitle)}
-                        </Link>
-                        <p className="text-sm text-[var(--gray-500)]">
-                          {favorite.bookAuthor}
-                        </p>
-                        <p className="text-xs text-[var(--gray-500)] mt-2">
-                          {format(favorite.createdAt, "d MMMM yyyy", {
-                            locale: pl,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <p className="text-center text-[var(--gray-500)]">
-                  Brak ulubionych książek
-                </p>
-              )}
-            </div>
-          </div>
+      <div className="flex flex-col gap-3 max-w-lg mx-auto mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={
+              searchType === "title"
+                ? "Wyszukaj po tytule..."
+                : "Wyszukaj po autorze..."
+            }
+            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
+          />
+        </div>
+
+        {/* Search type selection buttons */}
+        <div className="flex justify-center gap-2 text-xs sm:text-sm">
+          <button
+            type="button"
+            onClick={() => setSearchType("title")}
+            className={`px-2 py-1 rounded-lg transition-colors ${
+              searchType === "title"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+            }`}
+          >
+            Tytuł
+          </button>
+          <button
+            type="button"
+            onClick={() => setSearchType("author")}
+            className={`px-2 py-1 rounded-lg transition-colors ${
+              searchType === "author"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+            }`}
+          >
+            Autor
+          </button>
         </div>
       </div>
-    </main>
+
+      {filteredBooks.length === 0 ? (
+        <div className="text-center p-10 rounded-xl">
+          <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500 text-lg">
+            {searchQuery
+              ? "Nie znaleziono pasujących książek"
+              : isCurrentUser
+              ? "Nie masz jeszcze ulubionych książek"
+              : "Użytkownik nie ma jeszcze ulubionych książek"}
+          </p>
+          {searchQuery && (
+            <p className="text-gray-400 mt-2">
+              Spróbuj zmienić kryteria wyszukiwania
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredBooks.map(
+            (favorite) =>
+              favorite.bookData && (
+                <div
+                  key={favorite.id}
+                  className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
+                >
+                  <div className="bg-[var(--primaryColor)] px-2 sm:px-3 py-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <h2
+                        className="text-xs sm:text-sm font-semibold text-white flex-1"
+                        title={favorite.bookData.title}
+                      >
+                        {formatBookTitle(favorite.bookData.title) ||
+                          "Tytuł niedostępny"}
+                      </h2>
+                      <div className="flex items-center bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shrink-0">
+                        <svg
+                          className="w-3 h-3 text-yellow-300"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="ml-0.5 text-white text-xs font-medium">
+                          {favorite.bookData.averageRating
+                            ? favorite.bookData.averageRating
+                            : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
+                    {renderBookCover(favorite.bookData)}
+
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <div className="mb-1 sm:mb-2">
+                        <div className="flex items-center gap-1 text-xs">
+                          <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                          <span className="text-[var(--gray-700)] font-medium">
+                            Autor:
+                          </span>
+                        </div>
+                        <div className="text-xs text-[var(--gray-600)] line-clamp-3">
+                          {favorite.bookData.author ? (
+                            splitAuthors(favorite.bookData.author).length >
+                            2 ? (
+                              <div title={favorite.bookData.author}>
+                                <div>
+                                  {splitAuthors(favorite.bookData.author)[0]}
+                                </div>
+                                <div>
+                                  {splitAuthors(favorite.bookData.author)[1]}
+                                </div>
+                                <div className="text-[var(--gray-500)] italic">
+                                  {`i ${
+                                    splitAuthors(favorite.bookData.author)
+                                      .length - 2
+                                  } więcej`}
+                                </div>
+                              </div>
+                            ) : (
+                              splitAuthors(favorite.bookData.author).map(
+                                (author, i) => <div key={i}>{author}</div>
+                              )
+                            )
+                          ) : (
+                            "Nieznany autor"
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 text-xs mb-1 sm:mb-2">
+                        {favorite.bookData.publicationYear && (
+                          <div className="flex items-center gap-1">
+                            <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                            <span className="text-[var(--gray-600)]">
+                              {favorite.bookData.publicationYear || "—"}
+                            </span>
+                          </div>
+                        )}
+                        {favorite.bookData.language && (
+                          <div className="flex items-center gap-1">
+                            <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                            <span className="text-[var(--gray-600)] capitalize">
+                              {favorite.bookData.language}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-auto pt-1 text-right">
+                        <Link
+                          href={`/books/${favorite.bookId}`}
+                          className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
+                        >
+                          Zobacz szczegóły →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+          )}
+        </div>
+      )}
+    </div>
   );
 }
