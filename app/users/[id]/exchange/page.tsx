@@ -121,6 +121,24 @@ const renderBookCover = (book: Book, size: "S" | "M" | "L") => {
   );
 };
 
+// Zmodyfikuj funkcję renderującą okładki dla podsumowania
+const renderSmallBookCover = (book: Book, size: "M") => {
+  // Sprawdź czy ISBN istnieje i nie jest pusty
+  const hasIsbn = !!book.isbn && book.isbn.trim().length > 0;
+
+  return (
+    <div className="w-8 h-12 flex-shrink-0 bg-[var(--gray-50)] shadow-sm rounded">
+      {hasIsbn ? (
+        <BookCover isbn={book.isbn} title={book.title} size="M" />
+      ) : (
+        <div className="relative aspect-[2/3] h-full bg-[var(--gray-100)] flex items-center justify-center rounded">
+          <BookOpenIcon className="w-6 h-6 text-[var(--gray-300)]" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Exchange({ params }: PageProps) {
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -1190,10 +1208,8 @@ export default function Exchange({ params }: PageProps) {
                         key={book.id}
                         className="flex items-center bg-white p-2 rounded border border-gray-100 shadow-sm"
                       >
-                        <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
-                          {renderBookCover(book, "M")}
-                        </div>
-                        <div className="flex-1 min-w-0">
+                        {renderSmallBookCover(book, "M")}
+                        <div className="flex-1 min-w-0 ml-2">
                           <p className="text-xs font-bold truncate">
                             {formatBookTitle(book.title)}
                           </p>
@@ -1259,10 +1275,8 @@ export default function Exchange({ params }: PageProps) {
                           key={book.id}
                           className="flex items-center bg-white p-2 rounded border border-gray-100 shadow-sm"
                         >
-                          <div className="w-8 h-12 mr-2 flex-shrink-0 bg-gray-100 rounded">
-                            {renderBookCover(book, "M")}
-                          </div>
-                          <div className="flex-1 min-w-0">
+                          {renderSmallBookCover(book, "M")}
+                          <div className="flex-1 min-w-0 ml-2">
                             <p className="text-xs font-bold truncate">
                               {formatBookTitle(book.title)}
                             </p>
