@@ -4,11 +4,23 @@ import { useExchanges } from "../hooks/useExchanges";
 import ExchangeCard from "../components/ExchangeCard";
 import ExchangeCardSkeleton from "../components/ExchangeCardSkeleton";
 import { useAuth } from "../hooks/useAuth";
+import { useNotifications } from "../contexts/NotificationsContext";
+import { useEffect } from "react";
 
 export default function IncomingExchangesPage() {
   const { user } = useAuth();
   const { exchanges, loading, handleAcceptExchange, handleDeclineExchange } =
     useExchanges("incoming");
+  const { refreshPendingExchanges, refreshHistoryExchangesCount } =
+    useNotifications();
+
+  // Refresh counts when component mounts
+  useEffect(() => {
+    if (user) {
+      refreshPendingExchanges();
+      refreshHistoryExchangesCount();
+    }
+  }, [user, refreshPendingExchanges, refreshHistoryExchangesCount]);
 
   return (
     <div className="min-h-screen">
