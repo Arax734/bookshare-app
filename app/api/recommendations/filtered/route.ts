@@ -25,10 +25,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get books user has already reviewed to filter them out
     const reviewedBookIds = await getUserReviewedBookIds(userId);
 
-    // Build filter parameters for API call
     const params: any = { limit: 12 };
     if (genre) params.genre = genre;
     if (author) params.author = author;
@@ -47,7 +45,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Function to get IDs of books the user has already reviewed
 async function getUserReviewedBookIds(userId: string): Promise<Set<string>> {
   const userReviewsQuery = query(
     collection(db, "reviews"),
@@ -57,13 +54,11 @@ async function getUserReviewedBookIds(userId: string): Promise<Set<string>> {
   return new Set(userReviews.docs.map((doc) => doc.data().bookId));
 }
 
-// Function to pad book ID to standard format
 function padBookId(id: string | number): string {
   const idString = String(id);
   return idString.padStart(14, "0");
 }
 
-// Function to fetch book ratings from Firebase
 async function getBookRatings(
   bookId: string
 ): Promise<{ average: number; total: number } | null> {
@@ -90,7 +85,6 @@ async function getBookRatings(
   }
 }
 
-// Main function to fetch books based on filter parameters
 async function fetchSimilarBooks(params: {
   author?: string;
   genre?: string;
@@ -100,20 +94,17 @@ async function fetchSimilarBooks(params: {
   const baseUrl = "https://data.bn.org.pl/api/networks/bibs.json";
   let url = `${baseUrl}?formOfWork=Książki`;
 
-  // For genre and language, use the normal exact matching
   if (params.genre) url += `&genre=${encodeURIComponent(params.genre)}`;
   if (params.language)
     url += `&language=${encodeURIComponent(params.language)}`;
 
-  // Increase limit when filtering by author to ensure we have enough results after filtering
   const fetchLimit = params.author
     ? Math.max(50, params.limit || 20)
     : params.limit || 20;
   url += `&limit=${fetchLimit}`;
 
-  // We include the author in the URL to help the API narrow results
   if (params.author)
-    url += `&author=${encodeURIComponent(params.author.split(" ")[0])}`; // Use first word of author name
+    url += `&author=${encodeURIComponent(params.author.split(" ")[0])}`;
 
   const response = await fetch(url);
   if (!response.ok) return [];
@@ -121,7 +112,6 @@ async function fetchSimilarBooks(params: {
   let data = await response.json();
   let books = data.bibs || [];
 
-  // If author is specified, do more detailed filtering on our side
   if (params.author && params.author.trim()) {
     const authorNameNormalized = normalizeAuthorName(params.author.trim());
 
@@ -130,18 +120,13 @@ async function fetchSimilarBooks(params: {
 
       const bookAuthorNormalized = normalizeAuthorName(book.author);
 
-      // Try different matching strategies
-
-      // 1. Direct match with normalized names
       if (bookAuthorNormalized.includes(authorNameNormalized)) {
         return true;
       }
 
-      // 2. Check each component of the author string
       const authorParts = bookAuthorNormalized.split(/\s+/);
       const searchTermParts = authorNameNormalized.split(/\s+/);
 
-      // If all parts of search term appear in the author string
       return searchTermParts.every(
         (part) =>
           part.length > 2 &&
@@ -152,7 +137,6 @@ async function fetchSimilarBooks(params: {
       );
     });
 
-    // Limit the results after filtering
     if (params.limit) {
       books = books.slice(0, params.limit);
     }
@@ -175,12 +159,11 @@ async function fetchSimilarBooks(params: {
   return booksWithRatings;
 }
 
-// Helper function to normalize author names for better matching
 function normalizeAuthorName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\([^)]*\)/g, "") // Remove anything in parentheses (dates, etc.)
-    .replace(/[.,;:]/g, "") // Remove punctuation
-    .replace(/\s+/g, " ") // Normalize whitespace
+    .replace(/\([^)]*\)/g, "")
+    .replace(/[.,;:]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }

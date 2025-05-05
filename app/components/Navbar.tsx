@@ -42,10 +42,8 @@ export default function Navbar() {
   const defaultAvatar = "/images/default-avatar.png";
   const { pendingInvites, setPendingInvites, pendingExchanges } =
     useNotifications();
-  // Add mobile menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Add useEffect to handle body scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.classList.add("overflow-hidden");
@@ -152,7 +150,6 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 shadow bg-secondary"
       id="mainNav"
     >
-      {/* Logo - adjust position for mobile */}
       <div className="absolute left-3 sm:left-6 md:left-10 top-1/2 -translate-y-1/2">
         <a href="/home" className="flex items-center space-x-3">
           <Image
@@ -165,7 +162,6 @@ export default function Navbar() {
         </a>
       </div>
 
-      {/* Desktop Navigation - hidden on mobile */}
       <div className="flex justify-center items-center h-full">
         <div className="hidden md:flex items-center h-full space-x-4">
           <div className="relative h-5/6">
@@ -316,9 +312,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Right side elements - adjust for mobile */}
       <div className="absolute right-3 sm:right-6 md:right-10 top-1/2 -translate-y-1/2 flex items-center">
-        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           className="hidden md:flex text-foreground hover:text-[var(--primaryColorHover)] transition-colors duration-200 p-1.5 md:p-2 mr-2 md:mr-5 rounded-full hover:bg-[var(--secondaryColorLight)]"
@@ -331,7 +325,6 @@ export default function Navbar() {
           )}
         </button>
 
-        {/* Mobile menu toggle - only visible on mobile */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden text-[var(--foreground)] p-1.5 rounded-full hover:bg-[var(--secondaryColorLight)] transition-colors mr-2"
@@ -340,7 +333,6 @@ export default function Navbar() {
           <MenuIcon className="h-6 w-6" />
         </button>
 
-        {/* User profile - adjusted for mobile */}
         <div className="relative hidden md:flex">
           {showSkeleton ? (
             <div className="flex items-center space-x-2 sm:space-x-3 bg-[var(--primaryColor)] h-9 md:h-11 rounded-full px-2 sm:px-3 md:px-4 py-2 animate-pulse">
@@ -379,7 +371,6 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* User dropdown menu - same as before */}
           <div
             ref={menuRef}
             className={`absolute right-0 top-10 mt-2 w-48 rounded-2xl shadow-lg bg-[var(--menuColor)] ring-1 ring-black/5 overflow-hidden transition-all duration-200 ease-in-out origin-top ${
@@ -415,7 +406,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay - darkens the background when menu is open */}
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden transition-opacity duration-300 z-40 ${
           mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -423,13 +413,11 @@ export default function Navbar() {
         onClick={() => setMobileMenuOpen(false)}
       />
 
-      {/* Mobile Menu Panel - slides in from right */}
       <div
         className={`fixed top-0 right-0 bottom-0 w-72 bg-[var(--card-background)] shadow-xl md:hidden z-50 transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         } overflow-y-auto`}
       >
-        {/* Mobile Menu Header */}
         <div className="p-4 border-b border-[var(--gray-100)] flex justify-between items-center">
           <h2 className="text-lg font-medium text-[var(--foreground)]">Menu</h2>
           <button
@@ -440,7 +428,6 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* User Profile Section in Mobile Menu */}
         {user && (
           <div className="p-4 border-b border-[var(--gray-100)]">
             <Link
@@ -468,7 +455,6 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Mobile Navigation Links */}
         <div className="p-4 space-y-3">
           <a
             href="/home"
@@ -568,10 +554,8 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Divider */}
         <div className="border-t border-[var(--gray-100)] my-2"></div>
 
-        {/* Account Actions */}
         <div className="p-4 space-y-3">
           {user && (
             <>
@@ -604,7 +588,6 @@ export default function Navbar() {
             </>
           )}
 
-          {/* Theme toggle in mobile menu */}
           <button
             className="flex w-full items-center justify-between p-3 rounded-xl transition-colors"
             onClick={toggleTheme}

@@ -95,9 +95,7 @@ const formatBookTitle = (title: string | undefined): string => {
   return title;
 };
 
-// Zmodyfikuj funkcję sprawdzającą okładkę, żeby zawsze zwracała element UI
 const renderBookCover = (book: Book, size: "S" | "M" | "L") => {
-  // Sprawdź czy ISBN istnieje i nie jest pusty
   const hasIsbn = !!book.isbn && book.isbn.trim().length > 0;
 
   return (
@@ -121,9 +119,7 @@ const renderBookCover = (book: Book, size: "S" | "M" | "L") => {
   );
 };
 
-// Zmodyfikuj funkcję renderującą okładki dla podsumowania
 const renderSmallBookCover = (book: Book, size: "M") => {
-  // Sprawdź czy ISBN istnieje i nie jest pusty
   const hasIsbn = !!book.isbn && book.isbn.trim().length > 0;
 
   return (
@@ -150,7 +146,6 @@ export default function Exchange({ params }: PageProps) {
     null
   );
 
-  // Dodaj te stany na początku komponenetu, zaraz po istniejących stanach
   const [selectedMyBooks, setSelectedMyBooks] = useState<string[]>([]);
   const [selectedUserBooks, setSelectedUserBooks] = useState<string[]>([]);
   const [exchangeModalOpen, setExchangeModalOpen] = useState<boolean>(false);
@@ -158,13 +153,11 @@ export default function Exchange({ params }: PageProps) {
   const [exchangeError, setExchangeError] = useState<string | null>(null);
   const [exchangeSuccess, setExchangeSuccess] = useState<boolean>(false);
 
-  // Book lists
   const [myBooks, setMyBooks] = useState<Book[]>([]);
   const [userExchangeBooks, setUserExchangeBooks] = useState<Book[]>([]);
   const [userWishlist, setUserWishlist] = useState<Book[]>([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(false);
 
-  // Add this new state to track failed image URLs
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   const formatPhoneNumber = (phone: string | undefined) => {
@@ -188,7 +181,6 @@ export default function Exchange({ params }: PageProps) {
         setIsLoading(true);
         const unwrappedParams = await params;
 
-        // Fetch profile user data
         const userDocRef = doc(db, "users", unwrappedParams.id);
         const userDoc = await getDoc(userDocRef);
 
@@ -199,7 +191,6 @@ export default function Exchange({ params }: PageProps) {
 
         const userData = userDoc.data();
 
-        // Count profile user books
         const profileBooksQuery = query(
           collection(db, "bookOwnership"),
           where("userId", "==", unwrappedParams.id)
@@ -219,7 +210,6 @@ export default function Exchange({ params }: PageProps) {
           booksCount: profileBooksCount,
         });
 
-        // Fetch current user data
         if (currentUser) {
           const currentUserDocRef = doc(db, "users", currentUser.uid);
           const currentUserDoc = await getDoc(currentUserDocRef);
@@ -227,7 +217,6 @@ export default function Exchange({ params }: PageProps) {
           if (currentUserDoc.exists()) {
             const currentData = currentUserDoc.data();
 
-            // Count current user books
             const currentUserBooksQuery = query(
               collection(db, "bookOwnership"),
               where("userId", "==", currentUser.uid)
@@ -249,7 +238,6 @@ export default function Exchange({ params }: PageProps) {
               booksCount: currentUserBooksCount,
             });
 
-            // Now fetch books
             await fetchBooks(currentUser.uid, unwrappedParams.id);
           }
         }
@@ -279,25 +267,22 @@ export default function Exchange({ params }: PageProps) {
       setIsLoadingBooks(true);
       console.log("Fetching books for users:", currentUserId, profileUserId);
 
-      // Fetch my books - ONLY books with status "forExchange"
       const myBooksQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", currentUserId),
-        where("status", "==", "forExchange"), // Added filter for forExchange only
+        where("status", "==", "forExchange"),
         orderBy("createdAt", "desc")
       );
 
       const myBooksSnapshot = await getDocs(myBooksQuery);
       console.log("My books query results:", myBooksSnapshot.size);
 
-      // Map the documents to book objects
       const myBooksData = await Promise.all(
         myBooksSnapshot.docs.map(async (doc) => {
           try {
             const bookData = doc.data();
             console.log("Processing my book doc:", doc.id, bookData);
 
-            // Fetch additional details for the book
             const bookDetails = await fetchBookDetails(bookData.bookId);
             console.log("Book details retrieved:", bookDetails?.title);
 
@@ -320,8 +305,6 @@ export default function Exchange({ params }: PageProps) {
       console.log("Final my books list:", myBooksData);
       setMyBooks(myBooksData.filter((book) => book !== null) as Book[]);
 
-      // Fetch user's exchange books - only books with status "forExchange"
-      // Use the same approach as in bookshelf page
       const userExchangeBooksQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", profileUserId),
@@ -336,14 +319,12 @@ export default function Exchange({ params }: PageProps) {
         userExchangeBooksSnapshot.size
       );
 
-      // Map the documents to book objects
       const userExchangeBooksData = await Promise.all(
         userExchangeBooksSnapshot.docs.map(async (doc) => {
           try {
             const bookData = doc.data();
             console.log("Processing book ownership doc:", doc.id, bookData);
 
-            // Fetch additional details for the book
             const bookDetails = await fetchBookDetails(bookData.bookId);
             console.log("Book details retrieved:", bookDetails?.title);
 
@@ -363,7 +344,6 @@ export default function Exchange({ params }: PageProps) {
         })
       );
 
-      // Filter out null values and set state
       const filteredExchangeBooks = userExchangeBooksData.filter(
         (book) => book !== null
       ) as Book[];
@@ -371,7 +351,6 @@ export default function Exchange({ params }: PageProps) {
       console.log("Final exchange books list:", filteredExchangeBooks);
       setUserExchangeBooks(filteredExchangeBooks);
 
-      // The wishlist query is working correctly, so keeping it as is
       const wishlistQuery = query(
         collection(db, "bookDesire"),
         where("userId", "==", profileUserId),
@@ -407,39 +386,23 @@ export default function Exchange({ params }: PageProps) {
     }
   };
 
-  // Add this handler function
-  const handleImageError = (url: string) => {
-    setFailedImages((prev) => {
-      const updated = new Set(prev);
-      updated.add(url);
-      return updated;
-    });
-  };
-
-  // Update the toggleBookSelection function to check for the limit
   const toggleBookSelection = (bookId: string, listType: "my" | "user") => {
     if (listType === "my") {
       setSelectedMyBooks((prevSelected) => {
-        // Always allow deselection
         if (prevSelected.includes(bookId)) {
           return prevSelected.filter((id) => id !== bookId);
         }
-        // Only allow selection if under the limit
         if (prevSelected.length >= 5) {
-          // Optional: Show toast or alert message here that limit is reached
           return prevSelected;
         }
         return [...prevSelected, bookId];
       });
     } else {
       setSelectedUserBooks((prevSelected) => {
-        // Always allow deselection
         if (prevSelected.includes(bookId)) {
           return prevSelected.filter((id) => id !== bookId);
         }
-        // Only allow selection if under the limit
         if (prevSelected.length >= 5) {
-          // Optional: Show toast or alert message here that limit is reached
           return prevSelected;
         }
         return [...prevSelected, bookId];
@@ -455,16 +418,6 @@ export default function Exchange({ params }: PageProps) {
     return selectedMyBooks.length > 0 && selectedUserBooks.length > 0;
   };
 
-  const resetExchange = () => {
-    setSelectedMyBooks([]);
-    setSelectedUserBooks([]);
-    setExchangeModalOpen(false);
-    setExchangeError(null);
-    setExchangeSuccess(false);
-  };
-
-  // Update the proposeExchange function
-
   const proposeExchange = async () => {
     if (!currentUser || !profileUser) return;
 
@@ -472,14 +425,12 @@ export default function Exchange({ params }: PageProps) {
     setExchangeError(null);
 
     try {
-      // Get selected books data
       const mySelectedBooks = getSelectedBooks(selectedMyBooks, myBooks);
       const userSelectedBooks = getSelectedBooks(
         selectedUserBooks,
         userExchangeBooks
       );
 
-      // Format book objects to include only necessary data
       const userBooksData = mySelectedBooks.map((book) => ({
         id: book.id,
         title: book.title,
@@ -498,7 +449,6 @@ export default function Exchange({ params }: PageProps) {
         bookId: book.bookId,
       }));
 
-      // Create the exchange document in the bookExchanges collection
       const bookExchangesRef = collection(db, "bookExchanges");
       const newExchange = {
         userId: currentUser.uid,
@@ -509,17 +459,13 @@ export default function Exchange({ params }: PageProps) {
         status: "pending",
       };
 
-      // Add the document to Firestore
       await addDoc(bookExchangesRef, newExchange);
 
-      // Show success message briefly
       setExchangeSuccess(true);
 
-      // Close the modal and redirect to user profile page
       setTimeout(() => {
-        // Redirect to the user profile page by removing the '/exchange' path
         router.push(`/users/${profileUser.id}`);
-      }, 1500); // Short delay to show the success message
+      }, 1500);
     } catch (error) {
       console.error("Error proposing exchange:", error);
       setExchangeError(
@@ -563,11 +509,8 @@ export default function Exchange({ params }: PageProps) {
   return (
     <main className="mx-auto px-2 sm:px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
-        {/* User profiles section */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6">
-          {/* Current user card */}
           <div className="w-full lg:w-1/2 bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
-            {/* Current user header */}
             <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center">
                 <svg
@@ -587,9 +530,7 @@ export default function Exchange({ params }: PageProps) {
               </h2>
             </div>
             <div className="p-2 sm:p-3">
-              {/* Profile info layout */}
               <div className="flex items-start space-x-3">
-                {/* Left column - Photo */}
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
                     src={getHighResProfileImage(currentUserData.photoURL)}
@@ -600,14 +541,11 @@ export default function Exchange({ params }: PageProps) {
                   />
                 </div>
 
-                {/* Right column - User info */}
                 <div className="flex-1 min-w-0">
-                  {/* User name */}
                   <h2 className="text-base sm:text-lg font-bold text-[var(--gray-800)] truncate">
                     {currentUserData.displayName}
                   </h2>
 
-                  {/* Contact info */}
                   <div className="space-y-1 mt-1 text-xs sm:text-sm">
                     <div className="flex items-center text-[var(--gray-500)]">
                       <EnvelopeIcon className="w-3.5 h-3.5 mr-1" />
@@ -623,7 +561,6 @@ export default function Exchange({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Statistics section - improved icon placement */}
               <div className="mt-3 pt-2 border-t border-[var(--gray-200)]">
                 <div className="grid grid-cols-3 gap-1">
                   {[
@@ -703,7 +640,6 @@ export default function Exchange({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Profile user card */}
           <div className="w-full lg:w-1/2 bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center">
@@ -724,9 +660,7 @@ export default function Exchange({ params }: PageProps) {
               </h2>
             </div>
             <div className="p-2 sm:p-3">
-              {/* Profile info layout */}
               <div className="flex items-start space-x-3">
-                {/* Left column - Photo */}
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
                     src={getHighResProfileImage(profileUser.photoURL)}
@@ -737,14 +671,11 @@ export default function Exchange({ params }: PageProps) {
                   />
                 </div>
 
-                {/* Right column - User info */}
                 <div className="flex-1 min-w-0">
-                  {/* User name */}
                   <h2 className="text-base sm:text-lg font-bold text-[var(--gray-800)] truncate">
                     {profileUser.displayName}
                   </h2>
 
-                  {/* Contact info */}
                   <div className="space-y-1 mt-1 text-xs sm:text-sm">
                     <div className="flex items-center text-[var(--gray-500)]">
                       <EnvelopeIcon className="w-3.5 h-3.5 mr-1" />
@@ -758,7 +689,6 @@ export default function Exchange({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Statistics section for profile user */}
               <div className="mt-3 pt-2 border-t border-[var(--gray-200)]">
                 <div className="grid grid-cols-3 gap-1">
                   {[
@@ -839,9 +769,7 @@ export default function Exchange({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Books section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* My Books */}
           <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center justify-between">
@@ -934,7 +862,6 @@ export default function Exchange({ params }: PageProps) {
                           {book.author}
                         </p>
                       </div>
-                      {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
                         onClick={(e) => e.stopPropagation()}
@@ -962,7 +889,6 @@ export default function Exchange({ params }: PageProps) {
             </div>
           </div>
 
-          {/* User Exchange Books */}
           <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center justify-between">
@@ -1083,7 +1009,6 @@ export default function Exchange({ params }: PageProps) {
             </div>
           </div>
 
-          {/* User Wishlist */}
           <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
             <div className="bg-gradient-to-r from-amber-500 to-amber-400 p-2 text-white">
               <h2 className="text-sm sm:text-base font-bold flex items-center">
@@ -1128,7 +1053,6 @@ export default function Exchange({ params }: PageProps) {
                           {book.author}
                         </p>
                       </div>
-                      {/* Add details button here */}
                       <Link
                         href={`/books/${book.bookId}`}
                         onClick={(e) => e.stopPropagation()}
@@ -1157,7 +1081,6 @@ export default function Exchange({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Exchange Summary Section */}
         {(selectedMyBooks.length > 0 || selectedUserBooks.length > 0) && (
           <div className="mt-6 p-4 bg-white rounded-xl shadow-md border border-blue-100">
             <h3 className="text-lg font-bold text-center mb-4 text-blue-700 flex items-center justify-center">
@@ -1178,7 +1101,6 @@ export default function Exchange({ params }: PageProps) {
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Your books selection */}
               <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-white shadow-sm">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-bold text-sm text-gray-700 flex items-center">
@@ -1244,7 +1166,6 @@ export default function Exchange({ params }: PageProps) {
                 )}
               </div>
 
-              {/* User books selection */}
               <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-white shadow-sm">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-bold text-sm text-gray-700 flex items-center">
@@ -1313,7 +1234,6 @@ export default function Exchange({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Exchange visualization - arrows */}
             {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 && (
               <div className="flex justify-center my-3 py-1">
                 <div className="relative flex items-center bg-blue-50 px-4 py-2 rounded-lg shadow-sm">
@@ -1344,7 +1264,6 @@ export default function Exchange({ params }: PageProps) {
               </div>
             )}
 
-            {/* Exchange info and action button */}
             <div className="mt-3 flex flex-col items-center">
               {selectedMyBooks.length > 0 && selectedUserBooks.length > 0 ? (
                 <div className="text-center mb-2 text-xs">
@@ -1396,8 +1315,6 @@ export default function Exchange({ params }: PageProps) {
           </div>
         )}
 
-        {/* Exchange Modal */}
-        {/* Exchange Modal - Simplified version */}
         {exchangeModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">

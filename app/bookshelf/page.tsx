@@ -54,7 +54,6 @@ export default function Bookshelf() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Add pagination state
   const [booksPerPage] = useState(6);
   const [lastVisibleDoc, setLastVisibleDoc] = useState<{
     owned: any | null;
@@ -72,7 +71,6 @@ export default function Bookshelf() {
     desired: false,
   });
 
-  // Update search state
   const [searchParams, setSearchParams] = useState({
     title: "",
     author: "",
@@ -97,12 +95,11 @@ export default function Bookshelf() {
     try {
       setIsLoading(true);
 
-      // Add limit to queries
       const ownershipsQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
         orderBy("createdAt", "desc"),
-        limit(booksPerPage * 2) // Get more items to separate into owned and exchange books
+        limit(booksPerPage * 2)
       );
 
       const desiresQuery = query(
@@ -117,7 +114,6 @@ export default function Bookshelf() {
         getDocs(desiresQuery),
       ]);
 
-      // Store the last documents for pagination
       const lastVisible = {
         owned:
           ownershipsSnapshot.docs.length > 0
@@ -134,21 +130,20 @@ export default function Bookshelf() {
         desired: lastVisible.desired,
       });
 
-      // Check if there are more books
       setHasMoreBooks({
         owned: ownershipsSnapshot.docs.length >= booksPerPage,
         exchange: ownershipsSnapshot.docs.length >= booksPerPage,
         desired: desiresSnapshot.docs.length >= booksPerPage,
       });
 
-      const processBooks = async (docs: any[], isDesired = false) => {
+      const processBooks = async (docs: any[], _isDesired = false) => {
         return Promise.all(
           docs.map(async (doc) => {
             const bookDetails = await fetchBookDetails(doc.data().bookId);
             return {
               id: doc.id,
-              bookId: doc.data().bookId, // Explicitly include bookId
-              userId: doc.data().userId, // Explicitly include userId
+              bookId: doc.data().bookId,
+              userId: doc.data().userId,
               ...doc.data(),
               createdAt: doc.data().createdAt.toDate(),
               bookTitle: bookDetails?.title || "Książka niedostępna",
@@ -170,7 +165,6 @@ export default function Bookshelf() {
       setExchangeBooks(exchange.slice(0, booksPerPage));
       setDesiredBooks(desires);
 
-      // Update last docs for exchange books separately
       if (exchange.length > 0) {
         const lastExchangeDoc = ownershipsSnapshot.docs.find(
           (doc) => doc.data().status === "forExchange"
@@ -188,8 +182,6 @@ export default function Bookshelf() {
     }
   };
 
-  // Add this after the existing fetchBooks function
-
   const fetchBooksWithSearch = async () => {
     if (!user) return;
 
@@ -197,17 +189,13 @@ export default function Bookshelf() {
       setIsLoading(true);
       setError(null);
 
-      // Clear existing books first
       setOwnedBooks([]);
       setExchangeBooks([]);
       setDesiredBooks([]);
 
-      // Normalize search queries - lowercase for case-insensitive matching
       const normalizedTitle = searchParams.title.toLowerCase().trim();
       const normalizedAuthor = searchParams.author.toLowerCase().trim();
 
-      // Create separate queries for each book category
-      // Query for owned books
       const ownedQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
@@ -216,7 +204,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Query for exchange books
       const exchangeQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
@@ -225,7 +212,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Query for desired books
       const desiredQuery = query(
         collection(db, "bookDesire"),
         where("userId", "==", user.uid),
@@ -233,7 +219,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Execute all queries in parallel
       const [ownedSnapshot, exchangeSnapshot, desiredSnapshot] =
         await Promise.all([
           getDocs(ownedQuery),
@@ -241,7 +226,6 @@ export default function Bookshelf() {
           getDocs(desiredQuery),
         ]);
 
-      // Update pagination state
       setLastVisibleDoc({
         owned:
           ownedSnapshot.docs.length > 0
@@ -257,14 +241,12 @@ export default function Bookshelf() {
             : null,
       });
 
-      // Set hasMoreBooks flags
       setHasMoreBooks({
         owned: ownedSnapshot.docs.length >= booksPerPage,
         exchange: exchangeSnapshot.docs.length >= booksPerPage,
         desired: desiredSnapshot.docs.length >= booksPerPage,
       });
 
-      // Process books function
       const processBooks = async (docs: any[]) => {
         return Promise.all(
           docs.map(async (doc) => {
@@ -282,20 +264,17 @@ export default function Bookshelf() {
         );
       };
 
-      // Process all three categories of books
       const [ownedBooks, exchangeBooks, desiredBooks] = await Promise.all([
         processBooks(ownedSnapshot.docs),
         processBooks(exchangeSnapshot.docs),
         processBooks(desiredSnapshot.docs),
       ]);
 
-      // Apply search filters to each category separately
       let filteredOwnedBooks = ownedBooks;
       let filteredExchangeBooks = exchangeBooks;
       let filteredDesiredBooks = desiredBooks;
 
       if (normalizedTitle && normalizedAuthor) {
-        // Filter by both title and author
         filteredOwnedBooks = ownedBooks.filter((book) => {
           const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
           return (
@@ -323,7 +302,6 @@ export default function Bookshelf() {
           );
         });
       } else if (normalizedTitle) {
-        // Filter by title only
         filteredOwnedBooks = ownedBooks.filter((book) => {
           const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
           return (
@@ -348,7 +326,6 @@ export default function Bookshelf() {
           );
         });
       } else if (normalizedAuthor) {
-        // Filter by author only
         filteredOwnedBooks = ownedBooks.filter((book) =>
           book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
         );
@@ -362,7 +339,6 @@ export default function Bookshelf() {
         );
       }
 
-      // Update state with filtered results
       setOwnedBooks(filteredOwnedBooks.slice(0, booksPerPage));
       setExchangeBooks(filteredExchangeBooks.slice(0, booksPerPage));
       setDesiredBooks(filteredDesiredBooks.slice(0, booksPerPage));
@@ -374,25 +350,6 @@ export default function Bookshelf() {
     }
   };
 
-  // Function to handle search form submission
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearchActive(true);
-
-    // Reset pagination states
-    setLastVisibleDoc({ owned: null, exchange: null, desired: null });
-    setHasMoreBooks({ owned: false, exchange: false, desired: false });
-
-    // Clear current results before searching
-    setOwnedBooks([]);
-    setExchangeBooks([]);
-    setDesiredBooks([]);
-
-    // Fetch books with search parameters
-    fetchBooksWithSearch();
-  };
-
-  // Function to clear search and reset to normal view
   const clearSearch = () => {
     const resetParams = {
       title: "",
@@ -401,7 +358,7 @@ export default function Bookshelf() {
 
     setSearchParams(resetParams);
     setIsSearchActive(false);
-    fetchBooks(); // Fetch books without search parameters
+    fetchBooks();
   };
 
   useEffect(() => {
@@ -410,7 +367,6 @@ export default function Bookshelf() {
     }
   }, [user]);
 
-  // Add function to update book status
   const updateBookStatus = async (
     bookOwnershipId: string,
     newStatus: string | undefined
@@ -418,7 +374,6 @@ export default function Bookshelf() {
     if (!user) return;
 
     try {
-      // Update the book status in Firestore
       if (newStatus) {
         await updateDoc(doc(db, "bookOwnership", bookOwnershipId), {
           status: newStatus,
@@ -429,9 +384,7 @@ export default function Bookshelf() {
         });
       }
 
-      // Handle moving the book between lists, regardless of search state
       if (newStatus === "forExchange") {
-        // Moving from "Moje książki" to "Książki do wymiany"
         const bookToMove = ownedBooks.find(
           (book) => book.id === bookOwnershipId
         );
@@ -440,10 +393,8 @@ export default function Bookshelf() {
             ownedBooks.filter((book) => book.id !== bookOwnershipId)
           );
 
-          // Add to exchange books with updated status
           const updatedBook = { ...bookToMove, status: "forExchange" };
 
-          // If search is active, check if the moved book still meets search criteria
           if (isSearchActive && (searchParams.title || searchParams.author)) {
             const normalizedTitle = searchParams.title.toLowerCase().trim();
             const normalizedAuthor = searchParams.author.toLowerCase().trim();
@@ -453,7 +404,6 @@ export default function Bookshelf() {
             ).toLowerCase();
             let meetsSearchCriteria = true;
 
-            // ...existing code...
             if (normalizedTitle && normalizedAuthor) {
               meetsSearchCriteria =
                 (formattedTitle.includes(normalizedTitle) ||
@@ -478,19 +428,15 @@ export default function Bookshelf() {
                   ?.toLowerCase()
                   .includes(normalizedAuthor) ?? false;
             }
-            // ...existing code...
 
-            // Only add to exchange list if it meets search criteria
             if (meetsSearchCriteria) {
               setExchangeBooks([...exchangeBooks, updatedBook]);
             }
           } else {
-            // No search active, just add to exchange list
             setExchangeBooks([...exchangeBooks, updatedBook]);
           }
         }
       } else {
-        // Moving from "Książki do wymiany" to "Moje książki"
         const bookToMove = exchangeBooks.find(
           (book) => book.id === bookOwnershipId
         );
@@ -499,10 +445,8 @@ export default function Bookshelf() {
             exchangeBooks.filter((book) => book.id !== bookOwnershipId)
           );
 
-          // Add to owned books without status
           const updatedBook = { ...bookToMove, status: undefined };
 
-          // If search is active, check if the moved book still meets search criteria
           if (isSearchActive && (searchParams.title || searchParams.author)) {
             const normalizedTitle = searchParams.title.toLowerCase().trim();
             const normalizedAuthor = searchParams.author.toLowerCase().trim();
@@ -512,7 +456,6 @@ export default function Bookshelf() {
             ).toLowerCase();
             let meetsSearchCriteria = true;
 
-            // ...existing code...
             if (normalizedTitle && normalizedAuthor) {
               meetsSearchCriteria =
                 (formattedTitle.includes(normalizedTitle) ||
@@ -537,14 +480,11 @@ export default function Bookshelf() {
                   ?.toLowerCase()
                   .includes(normalizedAuthor) ?? false;
             }
-            // ...existing code...
 
-            // Only add to owned list if it meets search criteria
             if (meetsSearchCriteria) {
               setOwnedBooks([...ownedBooks, updatedBook]);
             }
           } else {
-            // No search active, just add to owned list
             setOwnedBooks([...ownedBooks, updatedBook]);
           }
         }
@@ -555,15 +495,12 @@ export default function Bookshelf() {
     }
   };
 
-  // Add the delete function after the updateBookStatus function
   const deleteDesiredBook = async (bookDesireId: string) => {
     if (!user) return;
 
     try {
-      // Delete from Firestore
       await deleteDoc(doc(db, "bookDesire", bookDesireId));
 
-      // Update local state
       setDesiredBooks(desiredBooks.filter((book) => book.id !== bookDesireId));
     } catch (error) {
       console.error("Error deleting desired book:", error);
@@ -571,7 +508,6 @@ export default function Bookshelf() {
     }
   };
 
-  // Add this function after the fetchBooks function
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
 
@@ -592,8 +528,6 @@ export default function Bookshelf() {
     return title;
   };
 
-  // Modify the existing loadMoreBooks function to support search
-
   const loadMoreBooks = async (listType: "owned" | "exchange" | "desired") => {
     if (!user || !lastVisibleDoc[listType]) return;
 
@@ -602,14 +536,13 @@ export default function Bookshelf() {
 
       let booksQuery;
 
-      // Create appropriate query based on list type
       if (listType === "desired") {
         booksQuery = query(
           collection(db, "bookDesire"),
           where("userId", "==", user.uid),
           orderBy("createdAt", "desc"),
           startAfter(lastVisibleDoc[listType]),
-          limit(booksPerPage * 2) // Get more for filtering
+          limit(booksPerPage * 2)
         );
       } else if (listType === "owned") {
         booksQuery = query(
@@ -633,11 +566,9 @@ export default function Bookshelf() {
 
       const booksSnapshot = await getDocs(booksQuery);
 
-      // Check if there are more books
       const hasMore = booksSnapshot.docs.length >= booksPerPage;
       setHasMoreBooks((prev) => ({ ...prev, [listType]: hasMore }));
 
-      // Save the last document for pagination
       if (booksSnapshot.docs.length > 0) {
         setLastVisibleDoc((prev) => ({
           ...prev,
@@ -651,8 +582,8 @@ export default function Bookshelf() {
             const bookDetails = await fetchBookDetails(doc.data().bookId);
             return {
               id: doc.id,
-              bookId: doc.data().bookId, // Make sure bookId is included
-              userId: doc.data().userId, // Make sure userId is included
+              bookId: doc.data().bookId,
+              userId: doc.data().userId,
               ...doc.data(),
               createdAt: doc.data().createdAt.toDate(),
               bookTitle: bookDetails?.title || "Książka niedostępna",
@@ -664,7 +595,6 @@ export default function Bookshelf() {
 
       let newBooks = await processBooks(booksSnapshot.docs);
 
-      // Apply search filtering if search is active
       if (isSearchActive && (searchParams.title || searchParams.author)) {
         const normalizedTitle = searchParams.title.toLowerCase().trim();
         const normalizedAuthor = searchParams.author.toLowerCase().trim();
@@ -697,7 +627,6 @@ export default function Bookshelf() {
         }
       }
 
-      // Update state with the new books (with deduplication)
       if (listType === "owned") {
         setOwnedBooks((prev) => {
           const existingIds = new Set(prev.map((book) => book.id));
@@ -745,7 +674,6 @@ export default function Bookshelf() {
     <div className="bg-[var(--card-background)] rounded-xl shadow-sm overflow-hidden border border-[var(--gray-100)] h-full">
       <div className={`${color} p-3`}>
         <h2 className="text-base font-bold text-white flex items-center">
-          {/* Icons based on list type */}
           {listType === "owned" && (
             <svg
               className="w-4 h-4 mr-1.5"
@@ -818,7 +746,7 @@ export default function Bookshelf() {
                         ? "text-green-600 hover:text-green-500"
                         : "text-purple-600 hover:text-purple-500"
                     }`}
-                    title={book.bookTitle} // Add full title as tooltip
+                    title={book.bookTitle}
                   >
                     {formatBookTitle(book.bookTitle)}
                   </Link>
@@ -831,7 +759,6 @@ export default function Bookshelf() {
                       {format(book.createdAt, "d MMM yyyy", { locale: pl })}
                     </p>
 
-                    {/* Move buttons - only show for owned and exchange lists */}
                     {listType === "owned" && (
                       <button
                         onClick={() => updateBookStatus(book.id, "forExchange")}
@@ -852,7 +779,6 @@ export default function Bookshelf() {
                       </button>
                     )}
 
-                    {/* Delete button for desired books */}
                     {listType === "desired" && (
                       <button
                         onClick={() => deleteDesiredBook(book.id)}
@@ -872,7 +798,6 @@ export default function Bookshelf() {
             </p>
           )}
 
-          {/* Add Load More button */}
           {hasMoreBooks[listType] && books.length >= booksPerPage && (
             <div className="flex justify-center mt-4">
               <button
@@ -922,23 +847,19 @@ export default function Bookshelf() {
   );
 
   const SearchForm = () => {
-    // Add local state for the form inputs
     const [localSearchParams, setLocalSearchParams] = useState({
       title: searchParams.title,
       author: searchParams.author,
     });
 
-    // Handle form submission with the local values
     const handleSubmitSearch = (e: React.FormEvent) => {
       e.preventDefault();
 
-      // Capture the current values to use directly
       const currentSearchParams = {
         title: localSearchParams.title,
         author: localSearchParams.author,
       };
 
-      // If both search fields are empty, treat it as a search clear
       if (
         !currentSearchParams.title.trim() &&
         !currentSearchParams.author.trim()
@@ -947,21 +868,16 @@ export default function Bookshelf() {
         return;
       }
 
-      // Update parent state
       setSearchParams(currentSearchParams);
       setIsSearchActive(true);
 
-      // Reset pagination states
       setLastVisibleDoc({ owned: null, exchange: null, desired: null });
       setHasMoreBooks({ owned: false, exchange: false, desired: false });
 
-      // Clear current results before searching
       setOwnedBooks([]);
       setExchangeBooks([]);
       setDesiredBooks([]);
 
-      // Call fetchBooksWithSearch with the current search params directly
-      // This avoids waiting for the state update
       fetchBooksWithSearchDirect(currentSearchParams);
     };
 
@@ -1055,7 +971,6 @@ export default function Bookshelf() {
     );
   };
 
-  // Add this new function
   const fetchBooksWithSearchDirect = async (searchParamsToUse: {
     title: string;
     author: string;
@@ -1065,16 +980,9 @@ export default function Bookshelf() {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Use the passed parameters instead of accessing state
       const normalizedTitle = searchParamsToUse.title.toLowerCase().trim();
       const normalizedAuthor = searchParamsToUse.author.toLowerCase().trim();
 
-      // Rest of the function is the same, but use normalizedTitle and normalizedAuthor
-      // from the parameters instead of from searchParams state
-
-      // Create separate queries for each book category
-      // Query for owned books
       const ownedQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
@@ -1083,7 +991,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Query for exchange books
       const exchangeQuery = query(
         collection(db, "bookOwnership"),
         where("userId", "==", user.uid),
@@ -1092,7 +999,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Query for desired books
       const desiredQuery = query(
         collection(db, "bookDesire"),
         where("userId", "==", user.uid),
@@ -1100,7 +1006,6 @@ export default function Bookshelf() {
         limit(booksPerPage * 2)
       );
 
-      // Execute all queries in parallel
       const [ownedSnapshot, exchangeSnapshot, desiredSnapshot] =
         await Promise.all([
           getDocs(ownedQuery),
@@ -1108,7 +1013,6 @@ export default function Bookshelf() {
           getDocs(desiredQuery),
         ]);
 
-      // Update pagination state
       setLastVisibleDoc({
         owned:
           ownedSnapshot.docs.length > 0
@@ -1124,14 +1028,12 @@ export default function Bookshelf() {
             : null,
       });
 
-      // Set hasMoreBooks flags
       setHasMoreBooks({
         owned: ownedSnapshot.docs.length >= booksPerPage,
         exchange: exchangeSnapshot.docs.length >= booksPerPage,
         desired: desiredSnapshot.docs.length >= booksPerPage,
       });
 
-      // Process books function
       const processBooks = async (docs: any[]) => {
         return Promise.all(
           docs.map(async (doc) => {
@@ -1149,20 +1051,17 @@ export default function Bookshelf() {
         );
       };
 
-      // Process all three categories of books
       const [ownedBooks, exchangeBooks, desiredBooks] = await Promise.all([
         processBooks(ownedSnapshot.docs),
         processBooks(exchangeSnapshot.docs),
         processBooks(desiredSnapshot.docs),
       ]);
 
-      // Apply search filters to each category separately
       let filteredOwnedBooks = ownedBooks;
       let filteredExchangeBooks = exchangeBooks;
       let filteredDesiredBooks = desiredBooks;
 
       if (normalizedTitle && normalizedAuthor) {
-        // Filter by both title and author
         filteredOwnedBooks = ownedBooks.filter((book) => {
           const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
           return (
@@ -1190,7 +1089,6 @@ export default function Bookshelf() {
           );
         });
       } else if (normalizedTitle) {
-        // Filter by title only
         filteredOwnedBooks = ownedBooks.filter((book) => {
           const formattedTitle = formatBookTitle(book.bookTitle).toLowerCase();
           return (
@@ -1215,7 +1113,6 @@ export default function Bookshelf() {
           );
         });
       } else if (normalizedAuthor) {
-        // Filter by author only
         filteredOwnedBooks = ownedBooks.filter((book) =>
           book.bookAuthor?.toLowerCase().includes(normalizedAuthor)
         );
@@ -1229,7 +1126,6 @@ export default function Bookshelf() {
         );
       }
 
-      // Update state with filtered results
       setOwnedBooks(filteredOwnedBooks.slice(0, booksPerPage));
       setExchangeBooks(filteredExchangeBooks.slice(0, booksPerPage));
       setDesiredBooks(filteredDesiredBooks.slice(0, booksPerPage));
@@ -1259,11 +1155,7 @@ export default function Bookshelf() {
         <h1 className="text-2xl font-bold mb-6 text-center text-[var(--gray-800)]">
           Moja półka
         </h1>
-
-        {/* Add the search form */}
         <SearchForm />
-
-        {/* Always show all book lists */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BookList
             books={ownedBooks}
@@ -1284,8 +1176,6 @@ export default function Bookshelf() {
             listType="desired"
           />
         </div>
-
-        {/* Show a message when no search results */}
         {isSearchActive &&
           (searchParams.title || searchParams.author) &&
           ownedBooks.length === 0 &&

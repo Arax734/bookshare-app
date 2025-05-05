@@ -28,7 +28,6 @@ interface FavoriteWithBookDetails extends Favorite {
   bookAuthor: string;
 }
 
-// Add this function before the main component
 const formatBookTitle = (title: string | undefined): string => {
   if (!title) return "Tytuł niedostępny";
 
@@ -249,7 +248,7 @@ export default function Favorites({
                         <Link
                           href={`/books/${favorite.bookId}`}
                           className="text-[var(--primaryColor)] hover:text-[var(--primaryColorLight)] font-medium transition-colors"
-                          title={favorite.bookTitle} // Add title attribute to show full title on hover
+                          title={favorite.bookTitle}
                         >
                           {formatBookTitle(favorite.bookTitle)}
                         </Link>

@@ -8,7 +8,7 @@ import {
   useEffect,
 } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { collection, query, where, getDocs } from "firebase/firestore"; // Assuming you are using Firestore
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 interface NotificationsContextType {

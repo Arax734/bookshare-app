@@ -3,7 +3,6 @@
 import { useExchanges } from "../../hooks/useExchanges";
 import ExchangeCard from "../../components/ExchangeCard";
 import ExchangeCardSkeleton from "../../components/ExchangeCardSkeleton";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../contexts/NotificationsContext";
 import { useEffect } from "react";
@@ -17,7 +16,6 @@ export default function OutgoingExchangesPage() {
     decrementOutgoingCount,
   } = useNotifications();
 
-  // Refresh counts when component mounts
   useEffect(() => {
     if (user) {
       refreshHistoryExchangesCount();
@@ -25,10 +23,9 @@ export default function OutgoingExchangesPage() {
     }
   }, [user, refreshHistoryExchangesCount, refreshOutgoingExchangesCount]);
 
-  // Create a wrapper function to handle both exchange cancellation and count updates
   const handleExchangeCancel = (exchange: any) => {
     handleCancelExchange(exchange);
-    decrementOutgoingCount(); // Decrease the outgoing count directly
+    decrementOutgoingCount();
   };
 
   return (
