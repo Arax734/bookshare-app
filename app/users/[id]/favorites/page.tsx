@@ -56,7 +56,6 @@ export default function UserFavorites() {
 
   const fetchBookDetails = async (bookId: string) => {
     try {
-      // Użyj dedykowanego endpointu dla pojedynczej książki
       const apiUrl = `/api/books/${bookId}`;
 
       const response = await fetch(apiUrl);
@@ -75,7 +74,6 @@ export default function UserFavorites() {
     }
   };
 
-  // Funkcja do pobierania ocen książki
   const fetchBookRatings = async (bookId: string) => {
     const q = query(collection(db, "reviews"), where("bookId", "==", bookId));
     const querySnapshot = await getDocs(q);
@@ -96,7 +94,6 @@ export default function UserFavorites() {
 
       setLoading(true);
       try {
-        // Pobierz dane użytkownika bezpośrednio po ID dokumentu
         const userRef = doc(db, "users", id as string);
         const userSnapshot = await getDoc(userRef);
 
@@ -104,7 +101,6 @@ export default function UserFavorites() {
           setUsername(userSnapshot.data().displayName);
         }
 
-        // Pobierz ulubione książki użytkownika
         const favoritesQuery = query(
           collection(db, "bookFavorites"),
           where("userId", "==", id)
@@ -119,7 +115,6 @@ export default function UserFavorites() {
           return;
         }
 
-        // Utwórz listę ulubionych książek z podstawowymi danymi
         const favorites = favoritesSnapshot.docs.map(
           (doc) =>
             ({
@@ -136,15 +131,12 @@ export default function UserFavorites() {
           favorites.map((f) => f.bookId)
         );
 
-        // Pobierz szczegóły każdej książki z API
         const booksWithDetails = await Promise.all(
           favorites.map(async (favorite) => {
             try {
-              // Pobierz szczegóły książki z API
               const bookData = await fetchBookDetails(favorite.bookId);
 
               if (bookData) {
-                // Pobierz oceny jeśli mamy dane książki
                 const ratings = await fetchBookRatings(favorite.bookId);
 
                 return {
@@ -168,7 +160,6 @@ export default function UserFavorites() {
           })
         );
 
-        // Filtruj tylko książki z danymi
         const validBooks = booksWithDetails.filter((book) => book.bookData);
         console.log(
           `Znaleziono ${validBooks.length} książek z danymi z ${booksWithDetails.length} ulubionych`
@@ -187,7 +178,6 @@ export default function UserFavorites() {
   }, [id]);
 
   useEffect(() => {
-    // Filtruj książki na podstawie wyszukiwania
     if (searchQuery.trim() === "") {
       setFilteredBooks(favoriteBooks);
       return;
@@ -272,7 +262,6 @@ export default function UserFavorites() {
           />
         </div>
 
-        {/* Search type selection buttons */}
         <div className="flex justify-center gap-2 text-xs sm:text-sm">
           <button
             type="button"
