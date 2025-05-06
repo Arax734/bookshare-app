@@ -295,7 +295,7 @@ export default function Reviews({
                 ? "Wyszukaj po tytule..."
                 : "Wyszukaj po autorze..."
             }
-            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
+            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-[border] duration-200 text-sm"
           />
         </div>
 
@@ -305,7 +305,7 @@ export default function Reviews({
             onClick={() => setSearchType("title")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "title"
-                ? "bg-[var(--primaryColor)] text-white"
+                ? "bg-indigo-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -316,7 +316,7 @@ export default function Reviews({
             onClick={() => setSearchType("author")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "author"
-                ? "bg-[var(--primaryColor)] text-white"
+                ? "bg-indigo-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -339,7 +339,7 @@ export default function Reviews({
                 }
                 className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
               >
-                <div className="bg-[var(--primaryColor)] px-2 sm:px-3 py-2">
+                <div className="bg-indigo-600 px-2 sm:px-3 py-2">
                   <div className="flex justify-between items-start gap-2">
                     <Link
                       href={`/books/${review.bookId}`}
@@ -371,7 +371,7 @@ export default function Reviews({
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="mb-1">
                       <div className="flex items-center gap-1 text-xs">
-                        <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                        <UserIcon className="w-3 h-3 text-indigo-600" />
                         <span className="text-[var(--gray-700)] font-medium">
                           Autor:
                         </span>
@@ -396,7 +396,7 @@ export default function Reviews({
 
                     {review.bookYear && (
                       <div className="flex items-center gap-1 text-xs mb-1">
-                        <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                        <CalendarIcon className="w-3 h-3 text-indigo-600" />
                         <span className="text-[var(--gray-600)]">
                           {review.bookYear}
                         </span>
@@ -411,7 +411,7 @@ export default function Reviews({
 
                     <div className="mt-auto pt-2">
                       {review.content ? (
-                        <div className="text-sm text-[var(--gray-800)] font-medium bg-[var(--gray-50)] p-2 rounded-md mb-2 line-clamp-3">
+                        <div className="text-sm text-[var(--gray-800)] font-medium bg-indigo-50 p-2 rounded-md mb-2 line-clamp-3">
                           {review.content.length > 100
                             ? review.content.substring(0, 100) + "..."
                             : review.content}
@@ -424,7 +424,7 @@ export default function Reviews({
                       <div className="text-right">
                         <Link
                           href={`/books/${review.bookId}`}
-                          className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
+                          className="inline-block text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition-colors"
                         >
                           Zobacz książkę →
                         </Link>

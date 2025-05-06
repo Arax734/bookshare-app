@@ -261,7 +261,7 @@ export default function UserBooksToExchange() {
                 ? "Wyszukaj po tytule..."
                 : "Wyszukaj po autorze..."
             }
-            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
+            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-green-400 focus:border-green-400 transition-[border] duration-200 text-sm"
           />
         </div>
 
@@ -271,7 +271,7 @@ export default function UserBooksToExchange() {
             onClick={() => setSearchType("title")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "title"
-                ? "bg-[var(--primaryColor)] text-white"
+                ? "bg-green-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -282,7 +282,7 @@ export default function UserBooksToExchange() {
             onClick={() => setSearchType("author")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "author"
-                ? "bg-[var(--primaryColor)] text-white"
+                ? "bg-green-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -316,7 +316,7 @@ export default function UserBooksToExchange() {
                   key={book.id}
                   className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
                 >
-                  <div className="bg-[var(--primaryColor)] px-2 sm:px-3 py-2">
+                  <div className="bg-green-600 px-2 sm:px-3 py-2">
                     <div className="flex justify-between items-start gap-2">
                       <h2
                         className="text-xs sm:text-sm font-semibold text-white flex-1"
@@ -348,7 +348,7 @@ export default function UserBooksToExchange() {
                     <div className="flex-1 min-w-0 flex flex-col">
                       <div className="mb-1 sm:mb-2">
                         <div className="flex items-center gap-1 text-xs">
-                          <UserIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                          <UserIcon className="w-3 h-3 text-green-600" />
                           <span className="text-[var(--gray-700)] font-medium">
                             Autor:
                           </span>
@@ -384,7 +384,7 @@ export default function UserBooksToExchange() {
                       <div className="flex flex-wrap gap-2 text-xs mb-1 sm:mb-2">
                         {book.bookData.publicationYear && (
                           <div className="flex items-center gap-1">
-                            <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                            <CalendarIcon className="w-3 h-3 text-green-600" />
                             <span className="text-[var(--gray-600)]">
                               {book.bookData.publicationYear || "—"}
                             </span>
@@ -392,7 +392,7 @@ export default function UserBooksToExchange() {
                         )}
                         {book.bookData.language && (
                           <div className="flex items-center gap-1">
-                            <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                            <LanguageIcon className="w-3 h-3 text-green-600" />
                             <span className="text-[var(--gray-600)] capitalize">
                               {book.bookData.language}
                             </span>
@@ -403,7 +403,7 @@ export default function UserBooksToExchange() {
                       <div className="mt-auto pt-1 text-right">
                         <Link
                           href={`/books/${book.bookId}`}
-                          className="inline-block text-xs font-medium bg-[var(--primaryColor)] text-white px-2 py-1 rounded hover:bg-[var(--primaryColorLight)] transition-colors"
+                          className="inline-block text-xs font-medium bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition-colors"
                         >
                           Zobacz szczegóły →
                         </Link>
