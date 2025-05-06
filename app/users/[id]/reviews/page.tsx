@@ -47,6 +47,9 @@ export default function Reviews({
   params: Promise<{ id: string }>;
 }) {
   const [reviews, setReviews] = useState<ReviewWithBookDetails[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<
+    ReviewWithBookDetails[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -54,6 +57,8 @@ export default function Reviews({
   const [itemsPerPage, setItemsPerPage] = useState(6); // Increased for grid layout
   const [isFetchingBooks, setIsFetchingBooks] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchType, setSearchType] = useState<"title" | "author">("title");
   const containerRef = useRef<HTMLDivElement>(null);
   const unwrappedParams = use(params);
   const observer = useRef<IntersectionObserver | null>(null);
@@ -195,15 +200,14 @@ export default function Reviews({
         })
       );
 
-      setReviews((prev) => {
-        const newReviews = [...prev];
-        reviewsWithBooks.forEach((review) => {
-          if (!newReviews.some((r) => r.id === review.id)) {
-            newReviews.push(review);
-          }
-        });
-        return newReviews;
+      const newReviews = [...reviews];
+      reviewsWithBooks.forEach((review) => {
+        if (!newReviews.some((r) => r.id === review.id)) {
+          newReviews.push(review);
+        }
       });
+
+      setReviews(newReviews);
     } catch (error) {
       console.error("Error fetching more reviews:", error);
       setError("Wystąpił błąd podczas ładowania recenzji");
@@ -215,6 +219,7 @@ export default function Reviews({
 
   useEffect(() => {
     setReviews([]);
+    setFilteredReviews([]);
     setHasMore(true);
     setLastDoc(null);
     setIsFetchingBooks(false);
@@ -222,11 +227,31 @@ export default function Reviews({
 
     return () => {
       setReviews([]);
+      setFilteredReviews([]);
       setHasMore(true);
       setLastDoc(null);
       setIsFetchingBooks(false);
     };
   }, [unwrappedParams.id]);
+
+  // Filter reviews based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredReviews(reviews);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = reviews.filter((review) => {
+      if (searchType === "title") {
+        return review.bookTitle?.toLowerCase().includes(query);
+      } else {
+        return review.bookAuthor?.toLowerCase().includes(query);
+      }
+    });
+
+    setFilteredReviews(filtered);
+  }, [searchQuery, searchType, reviews]);
 
   const isCurrentUser = user && user.uid === unwrappedParams.id;
 
@@ -259,14 +284,56 @@ export default function Reviews({
           : "Recenzje"}
       </h1>
 
+      <div className="flex flex-col gap-3 max-w-lg mx-auto mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={
+              searchType === "title"
+                ? "Wyszukaj po tytule..."
+                : "Wyszukaj po autorze..."
+            }
+            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primaryColorLight)] focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
+          />
+        </div>
+
+        <div className="flex justify-center gap-2 text-xs sm:text-sm">
+          <button
+            type="button"
+            onClick={() => setSearchType("title")}
+            className={`px-2 py-1 rounded-lg transition-colors ${
+              searchType === "title"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+            }`}
+          >
+            Tytuł
+          </button>
+          <button
+            type="button"
+            onClick={() => setSearchType("author")}
+            className={`px-2 py-1 rounded-lg transition-colors ${
+              searchType === "author"
+                ? "bg-[var(--primaryColor)] text-white"
+                : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
+            }`}
+          >
+            Autor
+          </button>
+        </div>
+      </div>
+
       <div ref={containerRef}>
-        {reviews.length > 0 ? (
+        {filteredReviews.length > 0 ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2">
-            {reviews.map((review, index) => (
+            {filteredReviews.map((review, index) => (
               <div
                 key={`${review.id}_${index}`}
                 ref={
-                  index === reviews.length - 1
+                  index === filteredReviews.length - 1 &&
+                  reviews.length === filteredReviews.length
                     ? lastReviewElementRef
                     : undefined
                 }
@@ -350,7 +417,7 @@ export default function Reviews({
                             : review.content}
                         </div>
                       ) : (
-                        <div className="text-sm text-[var(--gray-800)] font-small italic bg-[var(--gray-50)] p-2 rounded-md mb-2 line-clamp-3">
+                        <div className="text-xs text-[var(--gray-400)] italic mb-2 p-2">
                           Brak treści recenzji
                         </div>
                       )}
@@ -372,16 +439,17 @@ export default function Reviews({
           <div className="text-center p-10 rounded-xl">
             <BookOpenIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500 text-lg">
-              {isCurrentUser
+              {searchQuery
+                ? "Nie znaleziono pasujących recenzji"
+                : isCurrentUser
                 ? "Nie masz jeszcze recenzji"
                 : "Użytkownik nie dodał jeszcze recenzji"}
             </p>
-          </div>
-        )}
-
-        {isLoading && reviews.length > 0 && (
-          <div className="flex justify-center py-4">
-            <LoadingSpinner />
+            {searchQuery && (
+              <p className="text-gray-400 mt-2">
+                Spróbuj zmienić kryteria wyszukiwania
+              </p>
+            )}
           </div>
         )}
       </div>

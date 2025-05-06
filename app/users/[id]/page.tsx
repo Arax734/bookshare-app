@@ -784,12 +784,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalOwnedBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                                onClick={() => {}}
+                              <Link
+                                href={`/users/${user.id}/desires`}
+                                className="inline-block px-3 py-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalOwnedBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -846,12 +846,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalFavoriteBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
-                                onClick={() => {}}
+                              <Link
+                                href={`/users/${user.id}/favorites`}
+                                className="inline-block px-3 py-1.5 text-xs text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalFavoriteBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -915,12 +915,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalExchangeBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-green-600 hover:text-green-700 font-medium transition-colors"
-                                onClick={() => {}}
+                              <Link
+                                href={`/users/${user.id}/toExchange`}
+                                className="inline-block px-3 py-1.5 text-xs text-green-600 hover:text-green-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalExchangeBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -1006,12 +1006,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {user.reviewsCount > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-                                onClick={() => {}}
+                              <Link
+                                href={`/users/${user.id}/reviews`}
+                                className="inline-block px-3 py-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({user.reviewsCount - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
