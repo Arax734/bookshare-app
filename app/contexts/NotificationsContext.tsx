@@ -8,7 +8,7 @@ import {
   useEffect,
 } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { collection, query, where, getDocs } from "firebase/firestore"; // Assuming you are using Firestore
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 interface NotificationsContextType {
@@ -25,6 +25,9 @@ interface NotificationsContextType {
   setHistoryExchangesCount: (count: number) => void;
   refreshHistoryExchangesCount: () => void;
   incrementHistoryCount: () => void;
+  outgoingExchangesCount: number;
+  refreshOutgoingExchangesCount: () => void;
+  decrementOutgoingCount: () => void;
 }
 
 const NotificationsContext = createContext<
@@ -40,6 +43,7 @@ export const NotificationsProvider = ({
   const [acceptedContactsCount, setAcceptedContactsCount] = useState(0);
   const [pendingExchanges, setPendingExchanges] = useState(0);
   const [historyExchangesCount, setHistoryExchangesCount] = useState(0);
+  const [outgoingExchangesCount, setOutgoingExchangesCount] = useState(0);
 
   const { user } = useAuth();
 
@@ -99,12 +103,34 @@ export const NotificationsProvider = ({
     setHistoryExchangesCount((prev) => prev + 1);
   }, []);
 
+  const refreshOutgoingExchangesCount = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const outgoingQuery = query(
+        collection(db, "bookExchanges"),
+        where("userId", "==", user.uid),
+        where("status", "==", "pending")
+      );
+
+      const outgoingSnapshot = await getDocs(outgoingQuery);
+      setOutgoingExchangesCount(outgoingSnapshot.size);
+    } catch (error) {
+      console.error("Error refreshing outgoing exchanges:", error);
+    }
+  }, [user]);
+
+  const decrementOutgoingCount = useCallback(() => {
+    setOutgoingExchangesCount((prev) => Math.max(0, prev - 1));
+  }, []);
+
   useEffect(() => {
     if (user) {
       refreshPendingInvites();
       refreshAcceptedContactsCount();
       refreshPendingExchanges();
       refreshHistoryExchangesCount();
+      refreshOutgoingExchangesCount();
     }
   }, [
     user,
@@ -112,6 +138,7 @@ export const NotificationsProvider = ({
     refreshAcceptedContactsCount,
     refreshPendingExchanges,
     refreshHistoryExchangesCount,
+    refreshOutgoingExchangesCount,
   ]);
 
   return (
@@ -130,6 +157,9 @@ export const NotificationsProvider = ({
         setHistoryExchangesCount,
         refreshHistoryExchangesCount,
         incrementHistoryCount,
+        outgoingExchangesCount,
+        refreshOutgoingExchangesCount,
+        decrementOutgoingCount,
       }}
     >
       {children}

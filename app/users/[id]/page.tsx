@@ -84,12 +84,10 @@ const getHighResProfileImage = (photoURL: string | undefined) => {
 
 export default function UserProfile({ params }: PageProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isContact, setIsContact] = useState(false);
   const [contactDocId, setContactDocId] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -97,7 +95,6 @@ export default function UserProfile({ params }: PageProps) {
   const [displayedFavoriteBooks, setDisplayedFavoriteBooks] = useState<
     UserProfile["favoriteBooks"]
   >([]);
-  const [isLoadingMoreFavorites, setIsLoadingMoreFavorites] = useState(false);
   const [totalFavoriteBooks, setTotalFavoriteBooks] = useState(0);
   const [invitationDirection, setInvitationDirection] = useState<
     "sent" | "received" | null
@@ -285,7 +282,6 @@ export default function UserProfile({ params }: PageProps) {
 
         const userData = userDoc.data();
 
-        // Count all books from bookOwnership regardless of status
         const allBooksQuery = query(
           collection(db, "bookOwnership"),
           where("userId", "==", unwrappedParams.id)
@@ -410,7 +406,7 @@ export default function UserProfile({ params }: PageProps) {
           phoneNumber: userData.phoneNumber,
           creationTime: userData.createdAt?.toDate()?.toISOString(),
           bio: userData.bio,
-          booksCount: totalBooksCount, // Use the new total books count
+          booksCount: totalBooksCount,
           favoriteBooks: favoriteBooks,
         };
 
@@ -469,9 +465,7 @@ export default function UserProfile({ params }: PageProps) {
     <main className="mx-auto px-2 sm:px-4 pb-8 bg-[var(--background)] w-full h-full transition-all duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
-          {/* Left column - user profile and statistics */}
           <div className="lg:w-1/3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto hide-scrollbar pb-6 sm:pb-10 px-1">
-            {/* User profile card with statistics inside */}
             <div className="bg-[var(--card-background)] rounded-xl sm:rounded-2xl shadow-md overflow-hidden transition-all duration-200 mb-4 sm:mb-8">
               <div className="bg-gradient-to-r from-[var(--primaryColor)] to-[var(--primaryColorLight)] p-2 sm:p-3 text-white relative">
                 <h2 className="text-base sm:text-lg font-bold flex items-center">
@@ -494,7 +488,6 @@ export default function UserProfile({ params }: PageProps) {
               <div className="p-3 sm:p-5">
                 <div className="flex flex-col space-y-4 sm:space-y-5">
                   <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-                    {/* Profile photo */}
                     <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-xl sm:rounded-2xl overflow-hidden">
                       <Image
                         src={getHighResProfileImage(user.photoURL)}
@@ -505,7 +498,6 @@ export default function UserProfile({ params }: PageProps) {
                       />
                     </div>
 
-                    {/* User name and join date */}
                     <div className="text-center space-y-1">
                       <h1 className="text-lg sm:text-xl font-bold text-[var(--gray-800)] transition-colors duration-200">
                         {user.displayName}
@@ -521,7 +513,6 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   </div>
 
-                  {/* Contact buttons */}
                   {currentUser && currentUser.uid !== user.id && (
                     <div className="flex flex-col gap-2">
                       {isContact ? (
@@ -609,7 +600,6 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   )}
 
-                  {/* Contact info */}
                   <div className="mt-3 sm:mt-4 space-y-2 border-t border-[var(--gray-200)] pt-3 sm:pt-4">
                     <div className="flex items-center text-[var(--gray-500)] text-xs sm:text-sm">
                       <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
@@ -621,7 +611,6 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   </div>
 
-                  {/* Bio - if exists */}
                   {user.bio && (
                     <div className="relative mt-2 w-full">
                       <div className="bg-[var(--background)] rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-[var(--gray-200)]">
@@ -648,7 +637,6 @@ export default function UserProfile({ params }: PageProps) {
                     </div>
                   )}
 
-                  {/* Statistics section */}
                   <div className="relative mt-2 w-full border-t border-[var(--gray-200)] pt-3 sm:pt-4">
                     <h3 className="text-xs sm:text-sm font-medium text-[var(--gray-700)] mb-2 sm:mb-3 flex items-center">
                       <svg
@@ -746,12 +734,9 @@ export default function UserProfile({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Right column - book collections */}
           <div className="lg:w-2/3">
             <div className="flex flex-col md:flex-row md:flex-wrap gap-4 sm:gap-6">
-              {/* Left book column */}
               <div className="w-full md:flex-1 min-w-0 md:min-w-[280px]">
-                {/* Want to read books */}
                 <div className="bg-[var(--card-background)] rounded-lg sm:rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
                   <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-2 sm:p-3 text-white">
                     <h2 className="text-sm sm:text-base font-bold flex items-center">
@@ -799,14 +784,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalOwnedBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                                onClick={() => {
-                                  /* Implement loading more */
-                                }}
+                              <Link
+                                href={`/users/${user.id}/desires`}
+                                className="inline-block px-3 py-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalOwnedBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -820,7 +803,6 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Favorite books - similar adjustments to padding and text sizes */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200 mb-4">
                   <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
@@ -864,14 +846,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalFavoriteBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
-                                onClick={() => {
-                                  /* Implement loading more */
-                                }}
+                              <Link
+                                href={`/users/${user.id}/favorites`}
+                                className="inline-block px-3 py-1.5 text-xs text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalFavoriteBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -885,9 +865,7 @@ export default function UserProfile({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Right book column */}
               <div className="w-full md:flex-1 min-w-0 md:min-w-[280px]">
-                {/* Exchange books - similar adjustments */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden mb-4 transition-all duration-200">
                   <div className="bg-gradient-to-r from-green-600 to-green-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
@@ -937,14 +915,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {totalExchangeBooks > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-green-600 hover:text-green-700 font-medium transition-colors"
-                                onClick={() => {
-                                  /* Implement loading more */
-                                }}
+                              <Link
+                                href={`/users/${user.id}/toExchange`}
+                                className="inline-block px-3 py-1.5 text-xs text-green-600 hover:text-green-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({totalExchangeBooks - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>
@@ -957,7 +933,6 @@ export default function UserProfile({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Reviews - similar adjustments */}
                 <div className="bg-[var(--card-background)] rounded-xl shadow-md overflow-hidden transition-all duration-200">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-3 text-white">
                     <h2 className="text-base font-bold flex items-center">
@@ -1031,14 +1006,12 @@ export default function UserProfile({ params }: PageProps) {
                           ))}
                           {user.reviewsCount > 3 && (
                             <div className="text-center">
-                              <button
-                                className="px-3 py-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-                                onClick={() => {
-                                  /* Implement loading more */
-                                }}
+                              <Link
+                                href={`/users/${user.id}/reviews`}
+                                className="inline-block px-3 py-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
                               >
                                 Zobacz więcej ({user.reviewsCount - 3})
-                              </button>
+                              </Link>
                             </div>
                           )}
                         </>

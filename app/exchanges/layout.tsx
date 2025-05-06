@@ -6,9 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/firebase/config";
-import { useNotifications } from "../contexts/NotificationsContext"; // Add this import
+import { useNotifications } from "../contexts/NotificationsContext";
 
 export default function ExchangeLayout({
   children,
@@ -17,14 +15,14 @@ export default function ExchangeLayout({
 }>) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [outgoingCount, setOutgoingCount] = useState(0);
   const [mounted, setMounted] = useState(false);
-  // Use context for both pending exchanges and history
   const {
     pendingExchanges: incomingCount,
     refreshPendingExchanges,
     historyExchangesCount: historyCount,
     refreshHistoryExchangesCount,
+    outgoingExchangesCount: outgoingCount,
+    refreshOutgoingExchangesCount,
   } = useNotifications();
 
   useEffect(() => {
@@ -36,26 +34,21 @@ export default function ExchangeLayout({
 
     const fetchExchangeCounts = async () => {
       try {
-        // Refresh both counts from the context
         refreshPendingExchanges();
         refreshHistoryExchangesCount();
-
-        // Only fetch outgoing exchanges locally
-        const outgoingQuery = query(
-          collection(db, "bookExchanges"),
-          where("userId", "==", user.uid),
-          where("status", "==", "pending")
-        );
-
-        const outgoingSnapshot = await getDocs(outgoingQuery);
-        setOutgoingCount(outgoingSnapshot.size);
+        refreshOutgoingExchangesCount();
       } catch (error) {
         console.error("Error fetching exchange counts:", error);
       }
     };
 
     fetchExchangeCounts();
-  }, [user, refreshPendingExchanges, refreshHistoryExchangesCount]);
+  }, [
+    user,
+    refreshPendingExchanges,
+    refreshHistoryExchangesCount,
+    refreshOutgoingExchangesCount,
+  ]);
 
   if (!mounted) {
     return null;
@@ -66,7 +59,6 @@ export default function ExchangeLayout({
       <div className="min-h-screen bg-[var(--background)] p-4 sm:p-6">
         <div className="w-full mx-auto">
           <div className="flex flex-col md:flex-row">
-            {/* Mobile navigation (visible only on small screens) */}
             <div className="md:hidden mb-4">
               <div className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] overflow-x-auto">
                 <nav className="flex p-1">
@@ -160,7 +152,6 @@ export default function ExchangeLayout({
               </div>
             </div>
 
-            {/* Desktop sidebar (hidden on mobile) */}
             <div className="hidden md:block md:w-60 lg:w-72 shrink-0">
               <div className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] sticky top-24">
                 <nav className="flex flex-col p-1">
@@ -254,7 +245,6 @@ export default function ExchangeLayout({
               </div>
             </div>
 
-            {/* Main content area */}
             <div className="flex-1 md:pl-6">{children}</div>
           </div>
         </div>

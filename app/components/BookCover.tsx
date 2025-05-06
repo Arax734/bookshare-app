@@ -19,19 +19,16 @@ export default function BookCover({
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // Reset states when ISBN changes
     setLoading(true);
     setError(false);
   }, [isbn]);
 
   useEffect(() => {
-    // If there's an error and size is L, notify the parent component
     if (error && size === "L" && onError) {
       onError();
     }
   }, [error, size, onError]);
 
-  // Return early if no ISBN provided
   if (!isbn || isbn === "") {
     return (
       <div className="relative aspect-[2/3] bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
@@ -48,7 +45,6 @@ export default function BookCover({
     );
   }
 
-  // Modified: Show fallback UI instead of returning null
   if (error && size === "L") {
     return (
       <div className="relative aspect-[2/3] bg-[var(--gray-100)] flex items-center justify-center rounded-lg">
@@ -57,10 +53,7 @@ export default function BookCover({
     );
   }
 
-  // Function to verify the image dimensions
   const verifyImageContent = (img: HTMLImageElement) => {
-    // If width or height is below threshold, consider it a missing cover
-    // OpenLibrary returns a tiny 1x1 pixel when no cover exists
     if (img.naturalWidth < 20 || img.naturalHeight < 20) {
       setError(true);
       return false;
@@ -97,12 +90,9 @@ export default function BookCover({
           loading ? "opacity-0" : "opacity-100"
         }`}
         onLoad={() => {
-          // Check if the image has valid dimensions
           if (imgRef.current && verifyImageContent(imgRef.current)) {
-            // Only set loading to false if the image is valid
             setTimeout(() => setLoading(false), 200);
           } else {
-            // If image is invalid (tiny placeholder), show fallback
             setTimeout(() => {
               setLoading(false);
               setError(true);
@@ -110,7 +100,6 @@ export default function BookCover({
           }
         }}
         onError={() => {
-          // Handle actual loading errors
           setTimeout(() => {
             setLoading(false);
             setError(true);

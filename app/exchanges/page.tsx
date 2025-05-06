@@ -14,7 +14,6 @@ export default function IncomingExchangesPage() {
   const { refreshPendingExchanges, refreshHistoryExchangesCount } =
     useNotifications();
 
-  // Refresh counts when component mounts
   useEffect(() => {
     if (user) {
       refreshPendingExchanges();

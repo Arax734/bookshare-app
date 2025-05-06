@@ -64,7 +64,6 @@ export default function Library() {
   };
 
   const renderBookCover = (book: BookItem, size: "S" | "M" | "L") => {
-    // Sprawdź czy ISBN istnieje i nie jest pusty
     const hasIsbn = !!book.isbnIssn && book.isbnIssn.trim().length > 0;
 
     return (

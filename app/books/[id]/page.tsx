@@ -59,16 +59,12 @@ export default function BookDetails({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [coverVisible, setCoverVisible] = useState(true);
 
-  // Add this helper function inside your BookDetails component
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
 
-    // Check if title contains a slash (/) which often separates Polish/English versions
     if (title.includes("/")) {
-      // Get the first part (usually Polish title)
       const firstPart = title.split("/")[0].trim();
 
-      // If first part is still too long, truncate it
       if (firstPart.length > 60) {
         return firstPart.substring(0, 57) + "...";
       }
@@ -76,7 +72,6 @@ export default function BookDetails({ params }: PageProps) {
       return firstPart;
     }
 
-    // For titles without slashes but still very long
     if (title.length > 60) {
       return title.substring(0, 57) + "...";
     }
@@ -116,7 +111,6 @@ export default function BookDetails({ params }: PageProps) {
 
   useEffect(() => {
     if (book) {
-      // If there's no ISBN, hide the cover container
       if (!book.isbnIssn || book.isbnIssn.trim() === "") {
         setCoverVisible(false);
       } else {
@@ -185,9 +179,7 @@ export default function BookDetails({ params }: PageProps) {
           </div>
 
           <div className="p-4">
-            {/* Book cover and main info section */}
             <div className="flex flex-col md:flex-row gap-6 mb-5">
-              {/* Book cover - only render container if cover is visible */}
               {coverVisible && (
                 <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
                   <div className="rounded-lg overflow-hidden shadow-md">
@@ -201,9 +193,7 @@ export default function BookDetails({ params }: PageProps) {
                 </div>
               )}
 
-              {/* Main book details - will stretch full width when cover is hidden */}
               <div className="flex-1 space-y-4">
-                {/* Authors section */}
                 <div className="bg-[var(--gray-50)] rounded-lg p-3">
                   <h3 className="text-[var(--gray-800)] font-semibold mb-2 flex items-center text-sm">
                     <UserIcon className="w-4 h-4 mr-2 text-[var(--primaryColor)]" />
@@ -229,7 +219,6 @@ export default function BookDetails({ params }: PageProps) {
                   )}
                 </div>
 
-                {/* Primary details */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-[var(--gray-50)] rounded-lg p-3">
                     <div className="flex items-center mb-1">
@@ -256,7 +245,6 @@ export default function BookDetails({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Publisher details */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-[var(--gray-50)] rounded-lg p-3">
                     <div className="flex items-center mb-1">
@@ -283,7 +271,6 @@ export default function BookDetails({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Categories/tags */}
                 {(book.genre || book.subject || book.domain) && (
                   <div className="flex flex-wrap gap-1">
                     {book.genre && (
@@ -306,7 +293,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Identifiers section */}
             {(book.isbnIssn || book.nationalBibliographyNumber) && (
               <div className="border-t border-[var(--gray-100)] pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -332,7 +318,6 @@ export default function BookDetails({ params }: PageProps) {
               </div>
             )}
 
-            {/* Additional info section */}
             {(book.kind ||
               book.formOfWork ||
               book.subjectPlace ||

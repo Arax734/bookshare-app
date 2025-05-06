@@ -9,7 +9,7 @@ import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
 import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import { UserIcon } from "../components/svg-icons/UserIcon";
 import { splitAuthors } from "../utils/stringUtils";
-import BookCover from "../components/BookCover"; // Add this import
+import BookCover from "../components/BookCover";
 
 interface RecommendationItem {
   category: string;
@@ -55,7 +55,6 @@ interface ExpandedSections {
   [key: string]: boolean;
 }
 
-// Add this new interface to track which categories have loaded books
 interface LoadedCategories {
   [key: string]: boolean;
 }
@@ -71,23 +70,19 @@ export default function Home() {
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>(
     {}
   );
-  // Track which categories have been loaded
   const [loadedCategories, setLoadedCategories] = useState<LoadedCategories>(
     {}
   );
-  // Track categories currently being loaded
   const [loadingCategories, setLoadingCategories] = useState<{
     [key: string]: boolean;
   }>({});
 
-  // Replace selectedFilters with a more detailed structure
   const [selectedFilters, setSelectedFilters] = useState({
     genre: null as string | null,
     author: null as string | null,
     language: null as string | null,
   });
 
-  // Add state for filtered books
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
   useEffect(() => {
@@ -127,11 +122,9 @@ export default function Home() {
     fetchRecommendationCategories();
   }, [user]);
 
-  // Add a new function to fetch combined filtered books
   const fetchFilteredBooks = async () => {
     if (!user) return;
 
-    // Don't fetch if no filters are selected
     if (
       !selectedFilters.genre &&
       !selectedFilters.author &&
@@ -143,7 +136,6 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      // Build query parameters from selected filters
       const params = new URLSearchParams();
       params.append("userId", user.uid);
 
@@ -231,12 +223,10 @@ export default function Home() {
   const toggleSection = (categoryType: string, category: string) => {
     const key = `${categoryType}-${category}`;
 
-    // Toggle expanded state
     setExpandedSections((prev) => {
       const newState = { ...prev };
       newState[key] = !prev[key];
 
-      // If expanding and books not loaded yet, fetch them
       if (newState[key] && !loadedCategories[key]) {
         fetchCategoryBooks(categoryType, category);
       }
@@ -265,9 +255,7 @@ export default function Home() {
     return title;
   };
 
-  // Function to check if book has valid ISBN for cover
   const hasValidCover = (book: Book): boolean => {
-    // Check both possible ISBN field names
     const isbn = book.isbn || book.isbnIssn;
     return !!isbn && isbn.trim().length > 0;
   };
@@ -378,10 +366,8 @@ export default function Home() {
     </div>
   );
 
-  // Create a skeleton loader component for books
   const BookSkeleton = () => (
     <div className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col animate-pulse">
-      {/* Title bar skeleton */}
       <div className="bg-[var(--gray-200)] px-2 sm:px-3 py-5">
         <div className="flex justify-between items-start gap-2">
           <div className="h-3 bg-[var(--gray-300)] rounded w-3/4"></div>
@@ -389,31 +375,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Content skeleton */}
       <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
-        {/* Book cover skeleton */}
         <div className="w-16 sm:w-20 h-24 sm:h-28 bg-[var(--gray-200)] flex-shrink-0"></div>
 
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Author skeleton */}
           <div className="mb-1 sm:mb-2">
             <div className="h-2 bg-[var(--gray-300)] rounded w-16 mb-1"></div>
             <div className="h-2 bg-[var(--gray-200)] rounded w-full mb-1"></div>
             <div className="h-2 bg-[var(--gray-200)] rounded w-2/3"></div>
           </div>
 
-          {/* Year and language skeleton */}
           <div className="flex flex-wrap gap-2 mb-2">
             <div className="h-2 bg-[var(--gray-300)] rounded w-12"></div>
             <div className="h-2 bg-[var(--gray-300)] rounded w-16"></div>
           </div>
 
-          {/* Genre skeleton */}
           <div className="mb-2">
             <div className="h-4 bg-[var(--gray-200)] rounded-full w-20"></div>
           </div>
 
-          {/* Button skeleton */}
           <div className="mt-auto pt-1 text-right">
             <div className="h-6 bg-[var(--gray-300)] rounded w-24 ml-auto"></div>
           </div>
@@ -422,7 +402,6 @@ export default function Home() {
     </div>
   );
 
-  // Move the selectFilter function outside of renderCategoryFilters to the component level
   const selectFilter = (
     type: "genre" | "author" | "language",
     value: string | null
@@ -433,7 +412,6 @@ export default function Home() {
     }));
   };
 
-  // Update renderCategoryFilters to remove the internal function definition
   const renderCategoryFilters = () => {
     return (
       <div className="pt-4 pb-3 bg-[var(--background)] mb-6">
@@ -442,9 +420,7 @@ export default function Home() {
             Filtruj rekomendacje
           </h3>
 
-          {/* Filter value selectors with improved styling */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Genre filters */}
             <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
               <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
                 <svg
@@ -474,7 +450,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Author filters - with individual author parsing */}
             <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
               <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
                 <svg
@@ -492,18 +467,12 @@ export default function Home() {
                 Autorzy
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1 custom-scrollbar">
-                {/* Process each author group to extract individual authors */}
                 {recommendations.byAuthor.flatMap((item) => {
-                  // Get individual authors from the complex string
                   const authors = splitAuthors(item.category);
 
-                  // Return a button for each individual author, with the original group as data attribute
                   return authors
                     .map((author, index) => {
-                      // Skip publishers or very short names (likely not authors)
                       if (author.length < 4) return null;
-
-                      // Remove dates and normalize the author name
                       const cleanAuthor = author
                         .replace(/\(\d{4}-\d{4}\)/g, "")
                         .replace(/\(\d{4}-\s*\)/g, "")
@@ -518,18 +487,17 @@ export default function Home() {
                               ? "bg-[var(--primaryColor)] text-white shadow-sm"
                               : "bg-[var(--gray-50)] text-[var(--gray-700)] hover:bg-[var(--gray-100)] border border-[var(--gray-100)]"
                           }`}
-                          title={item.category} // Show the full original string on hover
+                          title={item.category}
                         >
                           {cleanAuthor}
                         </button>
                       );
                     })
-                    .filter(Boolean); // Remove nulls
+                    .filter(Boolean);
                 })}
               </div>
             </div>
 
-            {/* Language filters */}
             <div className="bg-[var(--card-background)] p-3 rounded-lg shadow-sm border border-[var(--gray-100)]">
               <div className="text-xs font-medium mb-2 text-[var(--primaryColor)] flex items-center">
                 <svg
@@ -563,13 +531,11 @@ export default function Home() {
               </div>
             </div>
           </div>
-          {/* Active filter chips with improved styling */}
         </div>
       </div>
     );
   };
 
-  // Replace the existing getActiveRecommendations function
   const getActiveRecommendations = () => {
     return [
       {
@@ -598,14 +564,10 @@ export default function Home() {
     );
   }
 
-  // Check if there are any recommendations at all
   const hasAnyRecommendations =
     recommendations.byGenre.length > 0 ||
     recommendations.byAuthor.length > 0 ||
     recommendations.byLanguage.length > 0;
-
-  // Get the current active recommendations
-  const activeRecommendations = getActiveRecommendations();
 
   return (
     <main className="container pb-8 mx-auto px-4 bg-[var(--background)] min-h-screen">
@@ -725,7 +687,6 @@ export default function Home() {
               </div>
             )}
             <section className="bg-[var(--card-background)] rounded-xl p-4 sm:p-6 shadow-md">
-              {/* When filters are applied, show filtered results */}
               {selectedFilters.genre ||
               selectedFilters.author ||
               selectedFilters.language ? (
@@ -783,7 +744,6 @@ export default function Home() {
                   )}
                 </div>
               ) : (
-                // Original categorized recommendations when no filters are applied
                 <div className="space-y-8">
                   {getActiveRecommendations().map(
                     ({ type, recommendations, title }) => (

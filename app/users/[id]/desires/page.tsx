@@ -36,7 +36,7 @@ interface BookItem {
   totalReviews?: number;
 }
 
-interface FavoriteBook {
+interface DesiredBook {
   id: string;
   bookId: string;
   userId: string;
@@ -44,11 +44,11 @@ interface FavoriteBook {
   bookData?: BookItem;
 }
 
-export default function UserFavorites() {
+export default function UserDesires() {
   const { id } = useParams();
   const { user } = useAuth();
-  const [favoriteBooks, setFavoriteBooks] = useState<FavoriteBook[]>([]);
-  const [filteredBooks, setFilteredBooks] = useState<FavoriteBook[]>([]);
+  const [desiredBooks, setDesiredBooks] = useState<DesiredBook[]>([]);
+  const [filteredBooks, setFilteredBooks] = useState<DesiredBook[]>([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -89,7 +89,7 @@ export default function UserFavorites() {
   };
 
   useEffect(() => {
-    async function fetchUserFavorites() {
+    async function fetchUserDesires() {
       if (!id) return;
 
       setLoading(true);
@@ -101,21 +101,21 @@ export default function UserFavorites() {
           setUsername(userSnapshot.data().displayName);
         }
 
-        const favoritesQuery = query(
-          collection(db, "bookFavorites"),
+        const desiresQuery = query(
+          collection(db, "bookDesire"),
           where("userId", "==", id)
         );
 
-        const favoritesSnapshot = await getDocs(favoritesQuery);
+        const desiresSnapshot = await getDocs(desiresQuery);
 
-        if (favoritesSnapshot.empty) {
-          setFavoriteBooks([]);
+        if (desiresSnapshot.empty) {
+          setDesiredBooks([]);
           setFilteredBooks([]);
           setLoading(false);
           return;
         }
 
-        const favorites = favoritesSnapshot.docs.map(
+        const desires = desiresSnapshot.docs.map(
           (doc) =>
             ({
               id: doc.id,
@@ -123,24 +123,24 @@ export default function UserFavorites() {
               bookId: doc.data().bookId,
               userId: doc.data().userId,
               createdAt: doc.data().createdAt,
-            } as FavoriteBook)
+            } as DesiredBook)
         );
 
         console.log(
-          "Pobrane ulubione ID:",
-          favorites.map((f) => f.bookId)
+          "Pobrane książki z listy życzeń ID:",
+          desires.map((d) => d.bookId)
         );
 
         const booksWithDetails = await Promise.all(
-          favorites.map(async (favorite) => {
+          desires.map(async (desire) => {
             try {
-              const bookData = await fetchBookDetails(favorite.bookId);
+              const bookData = await fetchBookDetails(desire.bookId);
 
               if (bookData) {
-                const ratings = await fetchBookRatings(favorite.bookId);
+                const ratings = await fetchBookRatings(desire.bookId);
 
                 return {
-                  ...favorite,
+                  ...desire,
                   bookData: {
                     ...bookData,
                     averageRating: ratings.average,
@@ -149,42 +149,42 @@ export default function UserFavorites() {
                 };
               }
 
-              return favorite;
+              return desire;
             } catch (error) {
               console.error(
-                `Błąd podczas pobierania danych książki ${favorite.bookId}:`,
+                `Błąd podczas pobierania danych książki ${desire.bookId}:`,
                 error
               );
-              return favorite;
+              return desire;
             }
           })
         );
 
         const validBooks = booksWithDetails.filter((book) => book.bookData);
         console.log(
-          `Znaleziono ${validBooks.length} książek z danymi z ${booksWithDetails.length} ulubionych`
+          `Znaleziono ${validBooks.length} książek z danymi z ${booksWithDetails.length} na liście życzeń`
         );
 
-        setFavoriteBooks(validBooks);
+        setDesiredBooks(validBooks);
         setFilteredBooks(validBooks);
       } catch (error) {
-        console.error("Błąd podczas pobierania ulubionych książek:", error);
+        console.error("Błąd podczas pobierania książek z listy życzeń:", error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUserFavorites();
+    fetchUserDesires();
   }, [id]);
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredBooks(favoriteBooks);
+      setFilteredBooks(desiredBooks);
       return;
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = favoriteBooks.filter((book) => {
+    const filtered = desiredBooks.filter((book) => {
       if (!book.bookData) return false;
 
       if (searchType === "title") {
@@ -195,7 +195,7 @@ export default function UserFavorites() {
     });
 
     setFilteredBooks(filtered);
-  }, [searchQuery, searchType, favoriteBooks]);
+  }, [searchQuery, searchType, desiredBooks]);
 
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
@@ -241,10 +241,10 @@ export default function UserFavorites() {
     <div className="max-w-6xl mx-auto pb-8 px-4 sm:px-6">
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-[var(--gray-800)]">
         {isCurrentUser
-          ? "Twoje ulubione książki"
+          ? "Twoja lista życzeń"
           : username
-          ? `Ulubione książki użytkownika ${username}`
-          : "Ulubione książki"}
+          ? `Lista życzeń użytkownika ${username}`
+          : "Lista życzeń"}
       </h1>
 
       <div className="flex flex-col gap-3 max-w-lg mx-auto mb-6 sm:mb-8">
@@ -258,7 +258,7 @@ export default function UserFavorites() {
                 ? "Wyszukaj po tytule..."
                 : "Wyszukaj po autorze..."
             }
-            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400 transition-[border] duration-200 text-sm"
+            className="w-full px-3 py-1.5 rounded-xl border border-[var(--gray-200)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-[var(--primaryColorLight)] transition-[border] duration-200 text-sm"
           />
         </div>
 
@@ -268,7 +268,7 @@ export default function UserFavorites() {
             onClick={() => setSearchType("title")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "title"
-                ? "bg-yellow-500 text-white"
+                ? "bg-purple-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -279,7 +279,7 @@ export default function UserFavorites() {
             onClick={() => setSearchType("author")}
             className={`px-2 py-1 rounded-lg transition-colors ${
               searchType === "author"
-                ? "bg-yellow-500 text-white"
+                ? "bg-purple-600 text-white"
                 : "bg-[var(--gray-100)] text-[var(--gray-700)] hover:bg-[var(--gray-200)]"
             }`}
           >
@@ -295,8 +295,8 @@ export default function UserFavorites() {
             {searchQuery
               ? "Nie znaleziono pasujących książek"
               : isCurrentUser
-              ? "Nie masz jeszcze ulubionych książek"
-              : "Użytkownik nie ma jeszcze ulubionych książek"}
+              ? "Nie masz jeszcze książek na liście życzeń"
+              : "Użytkownik nie ma jeszcze książek na liście życzeń"}
           </p>
           {searchQuery && (
             <p className="text-gray-400 mt-2">
@@ -307,19 +307,19 @@ export default function UserFavorites() {
       ) : (
         <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredBooks.map(
-            (favorite) =>
-              favorite.bookData && (
+            (desire) =>
+              desire.bookData && (
                 <div
-                  key={favorite.id}
+                  key={desire.id}
                   className="bg-[var(--card-background)] rounded-lg shadow-sm overflow-hidden border border-[var(--gray-100)] flex flex-col"
                 >
-                  <div className="bg-yellow-600 px-2 sm:px-3 py-2">
+                  <div className="bg-purple-800 px-2 sm:px-3 py-2">
                     <div className="flex justify-between items-start gap-2">
                       <h2
                         className="text-xs sm:text-sm font-semibold text-white flex-1"
-                        title={favorite.bookData.title}
+                        title={desire.bookData.title}
                       >
-                        {formatBookTitle(favorite.bookData.title) ||
+                        {formatBookTitle(desire.bookData.title) ||
                           "Tytuł niedostępny"}
                       </h2>
                       <div className="flex items-center bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs shrink-0">
@@ -331,8 +331,8 @@ export default function UserFavorites() {
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                         <span className="ml-0.5 text-white text-xs font-medium">
-                          {favorite.bookData.averageRating
-                            ? favorite.bookData.averageRating
+                          {desire.bookData.averageRating
+                            ? desire.bookData.averageRating
                             : "—"}
                         </span>
                       </div>
@@ -340,36 +340,35 @@ export default function UserFavorites() {
                   </div>
 
                   <div className="p-2 sm:p-3 flex gap-2 sm:gap-3">
-                    {renderBookCover(favorite.bookData)}
+                    {renderBookCover(desire.bookData)}
 
                     <div className="flex-1 min-w-0 flex flex-col">
                       <div className="mb-1 sm:mb-2">
                         <div className="flex items-center gap-1 text-xs">
-                          <UserIcon className="w-3 h-3 text-yellow-600" />
+                          <UserIcon className="w-3 h-3 text-purple-600" />
                           <span className="text-[var(--gray-700)] font-medium">
                             Autor:
                           </span>
                         </div>
                         <div className="text-xs text-[var(--gray-600)] line-clamp-3">
-                          {favorite.bookData.author ? (
-                            splitAuthors(favorite.bookData.author).length >
-                            2 ? (
-                              <div title={favorite.bookData.author}>
+                          {desire.bookData.author ? (
+                            splitAuthors(desire.bookData.author).length > 2 ? (
+                              <div title={desire.bookData.author}>
                                 <div>
-                                  {splitAuthors(favorite.bookData.author)[0]}
+                                  {splitAuthors(desire.bookData.author)[0]}
                                 </div>
                                 <div>
-                                  {splitAuthors(favorite.bookData.author)[1]}
+                                  {splitAuthors(desire.bookData.author)[1]}
                                 </div>
                                 <div className="text-[var(--gray-500)] italic">
                                   {`i ${
-                                    splitAuthors(favorite.bookData.author)
+                                    splitAuthors(desire.bookData.author)
                                       .length - 2
                                   } więcej`}
                                 </div>
                               </div>
                             ) : (
-                              splitAuthors(favorite.bookData.author).map(
+                              splitAuthors(desire.bookData.author).map(
                                 (author, i) => <div key={i}>{author}</div>
                               )
                             )
@@ -380,19 +379,19 @@ export default function UserFavorites() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 text-xs mb-1 sm:mb-2">
-                        {favorite.bookData.publicationYear && (
+                        {desire.bookData.publicationYear && (
                           <div className="flex items-center gap-1">
-                            <CalendarIcon className="w-3 h-3 text-yellow-600" />
+                            <CalendarIcon className="w-3 h-3 text-purple-600" />
                             <span className="text-[var(--gray-600)]">
-                              {favorite.bookData.publicationYear || "—"}
+                              {desire.bookData.publicationYear || "—"}
                             </span>
                           </div>
                         )}
-                        {favorite.bookData.language && (
+                        {desire.bookData.language && (
                           <div className="flex items-center gap-1">
-                            <LanguageIcon className="w-3 h-3 text-yellow-600" />
+                            <LanguageIcon className="w-3 h-3 text-purple-600" />
                             <span className="text-[var(--gray-600)] capitalize">
-                              {favorite.bookData.language}
+                              {desire.bookData.language}
                             </span>
                           </div>
                         )}
@@ -400,8 +399,8 @@ export default function UserFavorites() {
 
                       <div className="mt-auto pt-1 text-right">
                         <Link
-                          href={`/books/${favorite.bookId}`}
-                          className="inline-block text-xs font-medium bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
+                          href={`/books/${desire.bookId}`}
+                          className="inline-block text-xs font-medium bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition-colors"
                         >
                           Zobacz szczegóły →
                         </Link>

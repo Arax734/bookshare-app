@@ -10,6 +10,7 @@ import {
   doc,
   updateDoc,
   getDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { toast } from "react-hot-toast";
@@ -46,12 +47,15 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
   const { user } = useAuth();
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshPendingExchanges, incrementHistoryCount } = useNotifications();
+  const {
+    refreshPendingExchanges,
+    incrementHistoryCount,
+    refreshHistoryExchangesCount,
+  } = useNotifications();
 
   useEffect(() => {
     if (!user) return;
 
-    // Add a small delay to ensure Firebase Auth is fully initialized
     const timer = setTimeout(() => {
       fetchExchanges();
     }, 500);
@@ -69,13 +73,11 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
     }
 
     try {
-      // Fetch incoming exchanges (where I'm the contactId)
       const incomingQuery = query(
         collection(db, "bookExchanges"),
         where("contactId", "==", user.uid)
       );
 
-      // Fetch outgoing exchanges (where I'm the userId)
       const outgoingQuery = query(
         collection(db, "bookExchanges"),
         where("userId", "==", user.uid)
@@ -86,7 +88,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
         getDocs(outgoingQuery),
       ]);
 
-      // Process incoming exchanges
       const incomingData: Exchange[] = [];
       for (const docSnap of incomingSnapshot.docs) {
         const data = docSnap.data();
@@ -101,14 +102,12 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
           createdAt: data.createdAt?.toDate() || new Date(),
         } as Exchange;
 
-        // Get user info
         const userDoc = await getDoc(doc(db, "users", exchangeData.userId));
         if (userDoc.exists()) {
           exchangeData.userName = userDoc.data().displayName;
           exchangeData.userPhotoURL = userDoc.data().photoURL;
         }
 
-        // Direct assignment of book details if they exist
         if (Array.isArray(data.userBooks) && data.userBooks.length > 0) {
           if (
             typeof data.userBooks[0] === "object" &&
@@ -138,7 +137,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
         incomingData.push(exchangeData);
       }
 
-      // Process outgoing exchanges
       const outgoingData: Exchange[] = [];
       for (const docSnap of outgoingSnapshot.docs) {
         const data = docSnap.data();
@@ -153,7 +151,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
           createdAt: data.createdAt?.toDate() || new Date(),
         } as Exchange;
 
-        // Get contact user info (recipient)
         const contactDoc = await getDoc(
           doc(db, "users", exchangeData.contactId)
         );
@@ -162,7 +159,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
           exchangeData.contactPhotoURL = contactDoc.data().photoURL;
         }
 
-        // Get book details
         if (Array.isArray(data.userBooks) && data.userBooks.length > 0) {
           if (
             typeof data.userBooks[0] === "object" &&
@@ -192,7 +188,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
         outgoingData.push(exchangeData);
       }
 
-      // Filter exchanges based on type
       if (type === "incoming") {
         setExchanges(incomingData.filter((ex) => ex.status === "pending"));
       } else if (type === "outgoing") {
@@ -218,7 +213,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
   const fetchBooksDetails = async (bookIds: any): Promise<Book[]> => {
     if (!bookIds || bookIds.length === 0) return [];
 
-    // Normalize book IDs - handling different data formats
     let normalizedBookIds: string[] = [];
 
     if (Array.isArray(bookIds)) {
@@ -265,20 +259,16 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
 
   const handleAcceptExchange = async (exchange: Exchange) => {
     try {
-      // First, update the exchange status to completed
       const statusDate = new Date();
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "completed",
         statusDate: statusDate,
       });
 
-      // Remove from current view
       setExchanges((prev) => prev.filter((ex) => ex.id !== exchange.id));
 
-      // Transfer book ownership - with better error handling
       let transferErrors = 0;
 
-      // 1. Transfer books from the exchange initiator to the recipient (current user)
       if (exchange.userBooksDetails && exchange.userBooksDetails.length > 0) {
         for (const book of exchange.userBooksDetails) {
           try {
@@ -295,8 +285,8 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
                 doc(db, "bookOwnership", ownershipSnapshot.docs[0].id),
                 {
                   userId: user?.uid,
-                  status: null, // Reset forExchange status
-                  exchangeId: exchange.id, // Add reference to the exchange for security rules
+                  status: null,
+                  exchangeId: exchange.id,
                 }
               );
             } else {
@@ -310,7 +300,6 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
         }
       }
 
-      // 2. Transfer books from the recipient (current user) to the exchange initiator
       if (
         exchange.contactBooksDetails &&
         exchange.contactBooksDetails.length > 0
@@ -330,8 +319,8 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
                 doc(db, "bookOwnership", ownershipSnapshot.docs[0].id),
                 {
                   userId: exchange.userId,
-                  status: null, // Reset forExchange status
-                  exchangeId: exchange.id, // Add reference to the exchange for security rules
+                  status: null,
+                  exchangeId: exchange.id,
                 }
               );
             } else {
@@ -384,10 +373,13 @@ export const useExchanges = (type: "incoming" | "outgoing" | "history") => {
       await updateDoc(doc(db, "bookExchanges", exchange.id), {
         status: "declined",
         statusDate: statusDate,
+        updatedAt: serverTimestamp(),
       });
 
       setExchanges((prev) => prev.filter((ex) => ex.id !== exchange.id));
       toast.success("Wymiana anulowana");
+      incrementHistoryCount();
+      refreshHistoryExchangesCount();
     } catch (error) {
       console.error("Error canceling exchange:", error);
       toast.error("Nie udało się anulować wymiany");

@@ -3,12 +3,30 @@
 import { useExchanges } from "../../hooks/useExchanges";
 import ExchangeCard from "../../components/ExchangeCard";
 import ExchangeCardSkeleton from "../../components/ExchangeCardSkeleton";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
+import { useNotifications } from "../../contexts/NotificationsContext";
+import { useEffect } from "react";
 
 export default function OutgoingExchangesPage() {
   const { user } = useAuth();
   const { exchanges, loading, handleCancelExchange } = useExchanges("outgoing");
+  const {
+    refreshHistoryExchangesCount,
+    refreshOutgoingExchangesCount,
+    decrementOutgoingCount,
+  } = useNotifications();
+
+  useEffect(() => {
+    if (user) {
+      refreshHistoryExchangesCount();
+      refreshOutgoingExchangesCount();
+    }
+  }, [user, refreshHistoryExchangesCount, refreshOutgoingExchangesCount]);
+
+  const handleExchangeCancel = (exchange: any) => {
+    handleCancelExchange(exchange);
+    decrementOutgoingCount();
+  };
 
   return (
     <div className="min-h-screen">
@@ -37,7 +55,7 @@ export default function OutgoingExchangesPage() {
                   type="outgoing"
                   onAccept={() => {}}
                   onDecline={() => {}}
-                  onCancel={() => handleCancelExchange(exchange)}
+                  onCancel={() => handleExchangeCancel(exchange)}
                 />
               ))}
             </div>

@@ -9,12 +9,11 @@ export default function ExchangeHistoryPage() {
   const { user } = useAuth();
   const { exchanges, loading } = useExchanges("history");
 
-  // Helper function to determine exchange type for display purposes
   const getExchangeDisplayType = (exchange: any) => {
     if (exchange.userId === user?.uid) {
-      return "history-outgoing"; // I initiated this exchange
+      return "history-outgoing";
     } else {
-      return "history-incoming"; // Someone else initiated this exchange
+      return "history-incoming";
     }
   };
 
@@ -42,7 +41,6 @@ export default function ExchangeHistoryPage() {
                 <ExchangeCard
                   key={exchange.id}
                   exchange={exchange}
-                  // Use a more specific type to control display better
                   type={getExchangeDisplayType(exchange)}
                   onAccept={() => {}}
                   onDecline={() => {}}
