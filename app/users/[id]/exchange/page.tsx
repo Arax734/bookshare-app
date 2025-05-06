@@ -464,8 +464,8 @@ export default function Exchange({ params }: PageProps) {
       setExchangeSuccess(true);
 
       setTimeout(() => {
-        router.push(`/users/${profileUser.id}`);
-      }, 1500);
+        router.push("/exchanges/outgoing");
+      }, 500);
     } catch (error) {
       console.error("Error proposing exchange:", error);
       setExchangeError(
