@@ -57,7 +57,6 @@ export default function BookDetails({ params }: PageProps) {
   const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [coverVisible, setCoverVisible] = useState(true);
 
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
@@ -108,17 +107,6 @@ export default function BookDetails({ params }: PageProps) {
 
     fetchBookDetails();
   }, [unwrappedParams.id]);
-
-  useEffect(() => {
-    if (book) {
-      if (!book.isbnIssn || book.isbnIssn.trim() === "") {
-        setCoverVisible(false);
-      } else {
-        setCoverVisible(true);
-      }
-    }
-  }, [book]);
-
   if (isLoading) return <LoadingSpinner />;
 
   if (error) {
@@ -179,19 +167,17 @@ export default function BookDetails({ params }: PageProps) {
           </div>
 
           <div className="p-4">
+            {" "}
             <div className="flex flex-col md:flex-row gap-6 mb-5">
-              {coverVisible && (
-                <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
-                  <div className="rounded-lg overflow-hidden shadow-md">
-                    <BookCover
-                      isbn={book.isbnIssn}
-                      title={book.title}
-                      size={"L"}
-                      onError={() => setCoverVisible(false)}
-                    />
-                  </div>
+              <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
+                <div className="rounded-lg overflow-hidden shadow-md">
+                  <BookCover
+                    isbn={book.isbnIssn}
+                    title={book.title}
+                    size={"L"}
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="flex-1 space-y-4">
                 <div className="bg-[var(--gray-50)] rounded-lg p-3">
@@ -303,7 +289,6 @@ export default function BookDetails({ params }: PageProps) {
                 )}
               </div>
             </div>
-
             {(book.isbnIssn || book.nationalBibliographyNumber) && (
               <div className="border-t border-[var(--gray-100)] pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -328,7 +313,6 @@ export default function BookDetails({ params }: PageProps) {
                 </div>
               </div>
             )}
-
             {(book.kind ||
               book.formOfWork ||
               book.subjectPlace ||
