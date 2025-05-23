@@ -57,7 +57,6 @@ export default function BookDetails({ params }: PageProps) {
   const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [coverVisible, setCoverVisible] = useState(true);
 
   const formatBookTitle = (title: string | undefined): string => {
     if (!title) return "Tytuł niedostępny";
@@ -108,17 +107,6 @@ export default function BookDetails({ params }: PageProps) {
 
     fetchBookDetails();
   }, [unwrappedParams.id]);
-
-  useEffect(() => {
-    if (book) {
-      if (!book.isbnIssn || book.isbnIssn.trim() === "") {
-        setCoverVisible(false);
-      } else {
-        setCoverVisible(true);
-      }
-    }
-  }, [book]);
-
   if (isLoading) return <LoadingSpinner />;
 
   if (error) {
@@ -179,19 +167,17 @@ export default function BookDetails({ params }: PageProps) {
           </div>
 
           <div className="p-4">
+            {" "}
             <div className="flex flex-col md:flex-row gap-6 mb-5">
-              {coverVisible && (
-                <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
-                  <div className="rounded-lg overflow-hidden shadow-md">
-                    <BookCover
-                      isbn={book.isbnIssn}
-                      title={book.title}
-                      size={"L"}
-                      onError={() => setCoverVisible(false)}
-                    />
-                  </div>
+              <div className="w-40 md:w-56 flex-shrink-0 self-center md:self-start">
+                <div className="rounded-lg overflow-hidden shadow-md">
+                  <BookCover
+                    isbn={book.isbnIssn}
+                    title={book.title}
+                    size={"L"}
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="flex-1 space-y-4">
                 <div className="bg-[var(--gray-50)] rounded-lg p-3">
@@ -234,7 +220,18 @@ export default function BookDetails({ params }: PageProps) {
 
                   <div className="bg-[var(--gray-50)] rounded-lg p-3">
                     <div className="flex items-center mb-1">
-                      <LanguageIcon className="w-4 h-4 text-[var(--primaryColor)] mr-1" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="var(--primaryColor)"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 21.034 21.034 0 01-.554-.6 19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                       <h3 className="font-medium text-[var(--gray-800)]">
                         Język
                       </h3>
@@ -292,7 +289,6 @@ export default function BookDetails({ params }: PageProps) {
                 )}
               </div>
             </div>
-
             {(book.isbnIssn || book.nationalBibliographyNumber) && (
               <div className="border-t border-[var(--gray-100)] pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -317,7 +313,6 @@ export default function BookDetails({ params }: PageProps) {
                 </div>
               </div>
             )}
-
             {(book.kind ||
               book.formOfWork ||
               book.subjectPlace ||

@@ -328,14 +328,25 @@ export default function Home() {
 
           <div className="flex flex-wrap gap-2 text-xs mb-1 sm:mb-2">
             <div className="flex items-center gap-1">
-              <CalendarIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+              <CalendarIcon className="w-3 h-3 mb-0.5 text-[var(--primaryColor)]" />
               <span className="text-[var(--gray-600)]">
                 {book.publicationYear || "—"}
               </span>
             </div>
             {book.language && (
               <div className="flex items-center gap-1">
-                <LanguageIcon className="w-3 h-3 text-[var(--primaryColor)]" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 20 20"
+                  fill="var(--primaryColor)"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 21.034 21.034 0 01-.554-.6 19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 <span className="text-[var(--gray-600)] capitalize">
                   {book.language}
                 </span>
@@ -751,44 +762,37 @@ export default function Home() {
                         <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)] flex items-center border-b pb-3 border-[var(--gray-100)]">
                           {type === "genre" ? (
                             <svg
-                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-7 w-7 mr-3 text-[var(--primaryColor)]"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                              />
+                              <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                             </svg>
                           ) : type === "author" ? (
                             <svg
-                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-7 w-7 mr-3 text-[var(--primaryColor)]"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
                               <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                fillRule="evenodd"
+                                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clipRule="evenodd"
                               />
                             </svg>
                           ) : (
                             <svg
-                              className="w-5 h-5 mr-2 text-[var(--primaryColor)]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-7 w-7 mr-3 text-[var(--primaryColor)]"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
                             >
                               <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                                fillRule="evenodd"
+                                d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389 21.034 21.034 0 01-.554-.6 19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z"
+                                clipRule="evenodd"
                               />
                             </svg>
                           )}
