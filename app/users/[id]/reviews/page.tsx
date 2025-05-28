@@ -23,7 +23,6 @@ import { UserIcon } from "@/app/components/svg-icons/UserIcon";
 import { CalendarIcon } from "@/app/components/svg-icons/CalendarIcon";
 import BookCover from "@/app/components/BookCover";
 import { useAuth } from "@/app/hooks/useAuth";
-import { useParams } from "next/navigation";
 
 interface Review {
   id: string;
@@ -54,7 +53,7 @@ export default function Reviews({
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<any>(null);
-  const [itemsPerPage, setItemsPerPage] = useState(6); // Increased for grid layout
+  const [itemsPerPage, setItemsPerPage] = useState(6);
   const [isFetchingBooks, setIsFetchingBooks] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -86,7 +85,7 @@ export default function Reviews({
         const containerHeight = window.innerHeight - 200;
         const itemHeight = 200;
         const itemsFit = Math.ceil(containerHeight / itemHeight);
-        setItemsPerPage(Math.max(itemsFit * 2, 6)); // Multiplied by 2 for two columns
+        setItemsPerPage(Math.max(itemsFit * 2, 6));
       }
     };
 
@@ -98,7 +97,6 @@ export default function Reviews({
     };
   }, []);
 
-  // Fetch username
   useEffect(() => {
     async function fetchUsername() {
       try {
@@ -154,7 +152,7 @@ export default function Reviews({
         return {
           id: doc.id,
           ...data,
-          content: data.comment || "", // Use "comment" field instead of "content"
+          content: data.comment || "",
           createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
           rating: data.rating || 0,
         };
@@ -234,7 +232,6 @@ export default function Reviews({
     };
   }, [unwrappedParams.id]);
 
-  // Filter reviews based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredReviews(reviews);

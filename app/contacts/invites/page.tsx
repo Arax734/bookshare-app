@@ -94,9 +94,8 @@ export default function Friends() {
         prevInvites.filter((invite) => invite.id !== inviteId)
       );
 
-      // Refresh both pending invites and accepted contacts counts
       refreshPendingInvites();
-      refreshAcceptedContactsCount(); // Add this line to update the accepted contacts count
+      refreshAcceptedContactsCount();
     } catch (error) {
       console.error("Error accepting invite:", error);
     }

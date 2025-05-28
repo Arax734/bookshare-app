@@ -6,7 +6,6 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { CalendarIcon } from "../components/svg-icons/CalendarIcon";
 import Link from "next/link";
 import { BookOpenIcon } from "../components/svg-icons/BookOpenIcon";
-import { LanguageIcon } from "../components/svg-icons/LanguageIcon";
 import { UserIcon } from "../components/svg-icons/UserIcon";
 import { splitAuthors } from "../utils/stringUtils";
 import BookCover from "../components/BookCover";
