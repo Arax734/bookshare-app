@@ -49,7 +49,6 @@ export default function Search() {
     try {
       const queryLower = searchText.toLowerCase();
 
-      // Get pending invites and contacts setup
       const sentInvitesQuery = query(
         collection(db, "userContacts"),
         where("userId", "==", user.uid),
@@ -73,25 +72,22 @@ export default function Search() {
         ])
       );
 
-      // Fetch all users for full search capability
       const usersSnapshot = await getDocs(collection(db, "users"));
       const results = new Map<
         string,
         UserSearchResult & { pendingInvite?: PendingInvite }
       >();
 
-      // Filter users manually to allow partial matching of names
       usersSnapshot.docs.forEach((doc) => {
         const userData = doc.data();
         const docId = doc.id;
 
-        if (docId === user.uid) return; // Skip current user
+        if (docId === user.uid) return;
 
         const displayName = userData.displayName?.toLowerCase() || "";
         const email = userData.email?.toLowerCase() || "";
         const phoneNumber = userData.phoneNumber?.toLowerCase() || "";
 
-        // Check if any field contains the search query
         if (
           displayName.includes(queryLower) ||
           email.includes(queryLower) ||

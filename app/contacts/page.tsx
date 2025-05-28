@@ -155,14 +155,12 @@ export default function Contacts() {
       })) as UserContact[];
       setContacts(updatedContacts);
 
-      // Clear search results
       setSearchResults([]);
     } catch (error) {
       console.error("Error adding contact:", error);
     }
   };
 
-  // Update the contact card render function
   const renderContactCard = (contact: ExtendedUserContact) => (
     <div
       key={contact.id}
@@ -271,7 +269,6 @@ export default function Contacts() {
           )}
         </div>
 
-        {/* Update the contact card styles for better mobile display */}
         {searchResults.length > 0 && (
           <div className="bg-[var(--card-background)] rounded-lg shadow-sm border border-[var(--gray-200)]">
             <h3 className="text-[var(--gray-800)] font-semibold p-2 sm:p-3 border-b border-[var(--gray-200)] text-sm sm:text-base">

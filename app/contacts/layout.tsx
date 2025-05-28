@@ -80,9 +80,7 @@ export default function ContactsLayout({
     <AuthenticatedLayout>
       <div className="min-h-screen bg-[var(--background)] p-4 sm:p-6">
         <div className="w-full mx-auto">
-          {/* Responsive layout that changes from column to row based on screen size */}
           <div className="flex flex-col md:flex-row">
-            {/* Mobile navigation (visible only on small screens) */}
             <div className="md:hidden mb-4">
               <div className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] overflow-x-auto">
                 <nav className="flex p-1">
@@ -172,11 +170,9 @@ export default function ContactsLayout({
               </div>
             </div>
 
-            {/* Desktop sidebar (hidden on mobile) */}
             <div className="hidden md:block md:w-60 lg:w-72 shrink-0">
               <div className="bg-[var(--card-background)] rounded-lg border border-[var(--gray-200)] sticky top-24">
                 <nav className="flex flex-col p-1">
-                  {/* Same as your original sidebar links */}
                   <Link
                     href="/contacts"
                     className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${
@@ -262,7 +258,6 @@ export default function ContactsLayout({
               </div>
             </div>
 
-            {/* Main content area - add responsive padding */}
             <div className="flex-1 md:pl-6">{children}</div>
           </div>
         </div>

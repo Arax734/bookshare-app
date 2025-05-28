@@ -106,7 +106,6 @@ export async function GET(request: NextRequest) {
   try {
     const reviewedBookIds = await getUserReviewedBookIds(userId);
 
-    // Determine which parameter to use based on type
     const params: any = { limit: 10 };
     if (type === "genre") params.genre = category;
     else if (type === "author") params.author = category;
