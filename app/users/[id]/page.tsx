@@ -638,11 +638,11 @@ export default function UserProfile({ params }: PageProps) {
                   )}
 
                   <div className="relative mt-2 w-full border-t border-[var(--gray-200)] pt-3 sm:pt-4">
-                    <h3 className="text-xs sm:text-sm font-medium text-[var(--gray-700)] mb-2 sm:mb-3 flex items-center">
+                    <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3 flex items-center">
                       <svg
                         className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
                         fill="none"
-                        stroke="currentColor"
+                        stroke="gray"
                         viewBox="0 0 24 24"
                       >
                         <path

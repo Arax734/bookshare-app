@@ -115,7 +115,7 @@ export default function ExchangeCard({
                   ? `Data zakończenia: ${formatDate(
                       exchange.statusDate || exchange.createdAt
                     )}`
-                  : `Utworzono: ${formatDate(exchange.createdAt)}`}
+                  : `Utworzono: ${formatDate(exchange.statusDate)}`}
               </span>
             </div>
           </div>
