@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Define protected and auth routes
-const protectedRoutes = ["/home", "/library", "/settings"];
+const protectedRoutes = [
+  "/home",
+  "/library",
+  "/settings",
+  "/bookshelf",
+  "/books",
+  "/contacts",
+  "/exchanges",
+  "/users",
+];
 const authRoutes = ["/login", "/"];
 
 export async function middleware(request: NextRequest) {
@@ -45,6 +54,11 @@ export const config = {
     "/home/:path*",
     "/library/:path*",
     "/settings/:path*",
+    "/bookshelf/:path*",
+    "/books/:path*",
+    "/contacts/:path*",
+    "/exchanges/:path*",
+    "/users/:path*",
     "/login",
     "/",
   ],
