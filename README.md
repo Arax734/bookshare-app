@@ -16,7 +16,6 @@ BookShare is a web application designed to facilitate the sharing and exchange o
 - **Frontend:** Next.js, React, Tailwind CSS
 - **Backend:** Firebase (Firestore, Authentication)
 - **Testing:** Jest
-- **Other:** ESLint, PostCSS
 
 ## Getting Started
 
