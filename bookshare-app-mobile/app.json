@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "BookShare",
+    "slug": "bookshare-app-mobile",
+    "version": "1.0.0",
+    "jsEngine": "hermes",
+    "web": {
+      "favicon": "./assets/bookshare-logo2.svg"
+    },
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "plugins": ["expo-video"],
+    "orientation": "portrait",
+    "icon": "./assets/bookshare-logo2.svg",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIStatusBarStyle": "UIStatusBarStyleDarkContent",
+        "UIViewControllerBasedStatusBarAppearance": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/bookshare-logo2.svg",
+        "backgroundColor": "#ffffff"
+      }
+    }
+  }
+}

@@ -39,3 +39,37 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- Mobile app related ---
+# Expo
+.expo/
+.expo-shared/
+web-build/
+
+# Build output
+dist/
+build/
+
+# Metro
+.cache/
+
+# React Native
+android/app/build/
+ios/Pods/
+
+# Expo managed workflow
+*.expo
+
+# Expo assets
+assets/**/*.db
+assets/**/*.sqlite
+assets/**/*.realm
+assets/**/*.h2.db
+assets/**/*.h2.db.lock
+
+# Expo Go
+.expo-go
+
+# Misc
+*.local
+*.keystore

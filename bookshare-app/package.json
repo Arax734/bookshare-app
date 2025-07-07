@@ -1,0 +1,48 @@
+{
+  "name": "bookshare-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:api": "jest __tests__/api",
+    "test:ci": "jest --ci --coverage --watchAll=false"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "date-fns": "^4.1.0",
+    "firebase": "^11.2.0",
+    "i": "^0.3.7",
+    "js-cookie": "^3.0.5",
+    "libphonenumber-js": "^1.12.5",
+    "next": "15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-firebase-hooks": "^5.1.1",
+    "react-hook-form": "^7.54.2",
+    "react-hot-toast": "^2.5.2",
+    "react-phone-input-2": "^2.15.1",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/jest": "^29.5.14",
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.6",
+    "jest": "^29.7.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "ts-jest": "^29.3.4",
+    "typescript": "^5"
+  }
+}
