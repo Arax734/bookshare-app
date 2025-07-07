@@ -1,4 +1,4 @@
-# BookShare App
+# BookShare App (Web)
 
 BookShare is a web application designed to facilitate the sharing and exchange of books among users. Built with Next.js, React, Firebase, and Tailwind CSS, the app provides a modern, user-friendly interface for managing personal libraries, discovering new books, and connecting with other book enthusiasts.
 
@@ -56,6 +56,52 @@ BookShare is a web application designed to facilitate the sharing and exchange o
 - `firebase/` - Firebase configuration
 - `public/` - Static assets
 - `__tests__/` - Test files
+
+---
+
+# BookShare Mobile App
+
+BookShare Mobile is a cross-platform mobile application (Android & iOS) built with Expo, React Native, and Firebase. It allows users to access BookShare features on the go, including book exchange, library management, and social features, with a native mobile experience.
+
+## Mobile App Features
+
+- **User Authentication:** Secure login and registration (email, Google, Facebook)
+- **Book Exchange:** Browse, add, and manage books for exchange
+- **Personal Library:** Manage your own book collection
+- **Contacts & Invites:** Connect with other users, send/receive invites
+- **Notifications:** Stay up to date with exchanges and invites
+- **Reviews & Ratings:** Leave and view book reviews
+- **Modern UI:** Built with React Native, NativeWind (Tailwind CSS for RN), and Expo
+
+## Mobile Tech Stack
+
+- **Framework:** Expo, React Native
+- **UI:** NativeWind (Tailwind CSS for React Native)
+- **State Management:** React Context
+- **Backend:** Firebase (Firestore, Authentication)
+
+## Getting Started (Mobile)
+
+1. **Navigate to the mobile app folder:**
+   ```sh
+   cd bookshare-app-mobile
+   ```
+2. **Install dependencies:**
+   ```sh
+   npm install
+   # or
+   pnpm install
+   ```
+3. **Configure Firebase:**
+   - Copy `firebase/config.example.ts` to `firebase/config.ts` and fill in your Firebase credentials.
+   - (Optional) Copy `firebase/firebase.config.example.ts` to `firebase/firebase.config.ts` if needed.
+4. **Start the app:**
+   ```sh
+   npm start
+   # or
+   pnpm start
+   ```
+   Then follow Expo CLI instructions to run on Android/iOS simulator or a real device.
 
 ---
 
